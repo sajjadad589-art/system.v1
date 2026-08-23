@@ -1,0 +1,7 @@
+{
+  "name": "Mwaledti - Generator Management System",
+  "description": "Professional Generator Management System (نظام إدارة المولدات - مولدتي) in Arabic with RTL layout, subscriber donut charts, folder-based settings, and theme customization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
