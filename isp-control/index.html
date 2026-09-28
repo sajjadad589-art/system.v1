@@ -177,40 +177,41 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
 
     <div class="auth-tabs">
       <button id="loginTab" class="btn active" type="button">تسجيل الدخول</button>
-      <button id="setupTab" class="btn" type="button">إنشاء المالك الأول</button>
+      <button id="setupTab" class="btn" type="button">تهيئة الدخول</button>
     </div>
 
     <form id="loginForm">
       <div class="field">
-        <label>البريد الإلكتروني</label>
-        <input id="loginEmail" type="email" autocomplete="username" required>
+        <label>اسم المستخدم</label>
+        <input id="loginUsername" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" required>
       </div>
       <div class="field">
-        <label>كلمة المرور</label>
-        <input id="loginPassword" type="password" autocomplete="current-password" required>
+        <label>رمز الدخول - 6 أرقام</label>
+        <input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" minlength="6" maxlength="6" pattern="[0-9]{6}" required>
       </div>
       <button class="btn primary" style="width:100%;margin-top:8px">دخول</button>
     </form>
 
     <form id="setupForm" class="hidden">
+      <div class="alert info">تُستخدم هذه الصفحة مرة واحدة لتحويل حسابك الحالي من البريد وكلمة المرور إلى يوزر + رمز من 6 أرقام.</div>
       <div class="field">
-        <label>الاسم</label>
-        <input id="setupName" required>
+        <label>البريد الحالي</label>
+        <input id="legacyEmail" type="email" autocomplete="username" required>
       </div>
       <div class="field">
-        <label>البريد الإلكتروني</label>
-        <input id="setupEmail" type="email" autocomplete="username" required>
+        <label>كلمة المرور الحالية</label>
+        <input id="legacyPassword" type="password" autocomplete="current-password" required>
       </div>
       <div class="field">
-        <label>كلمة المرور</label>
-        <input id="setupPassword" type="password" minlength="8" autocomplete="new-password" required>
+        <label>اسم المستخدم الجديد</label>
+        <input id="setupUsername" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" autocomplete="username" required>
       </div>
       <div class="field">
-        <label>رمز التأسيس</label>
-        <input id="setupToken" type="password" required>
+        <label>رمز الدخول الجديد - 6 أرقام</label>
+        <input id="setupPin" type="password" inputmode="numeric" minlength="6" maxlength="6" pattern="[0-9]{6}" autocomplete="new-password" required>
       </div>
-      <div class="hint">رمز التأسيس يُستخدم مرة واحدة فقط لإنشاء حساب OWNER الأول.</div>
-      <button class="btn primary" style="width:100%;margin-top:12px">إنشاء حساب المالك</button>
+      <div class="hint">بعد نجاح التهيئة، الدخول يصير فقط باسم المستخدم والرمز المكوّن من 6 أرقام.</div>
+      <button class="btn primary" style="width:100%;margin-top:12px">حفظ طريقة الدخول الجديدة</button>
     </form>
 
     <div id="authMessage" class="hint" style="margin-top:14px"></div>
@@ -435,47 +436,67 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
     e.preventDefault();
     showAuthMessage('جاري تسجيل الدخول...');
     try{
+      const username=$('#loginUsername').value.trim().toLowerCase();
+      const pin=$('#loginPin').value.trim();
+      if(!/^[a-z0-9._-]{3,32}$/.test(username) || !/^\d{6}$/.test(pin)){
+        throw new Error('تأكد من اسم المستخدم والرمز المكوّن من 6 أرقام');
+      }
+
+      const resolved=await rawFetch('/rest/v1/rpc/resolve_login_email',{
+        method:'POST',
+        body:JSON.stringify({p_username:username})
+      });
+      if(!resolved)throw new Error('اسم المستخدم أو الرمز غير صحيح');
+
       const data=await rawFetch('/auth/v1/token?grant_type=password',{
         method:'POST',
-        body:JSON.stringify({
-          email:$('#loginEmail').value.trim(),
-          password:$('#loginPassword').value
-        })
+        body:JSON.stringify({email:resolved,password:pin})
       });
       saveSession(data);
       await boot();
     }catch(err){
-      showAuthMessage(err.message,true);
+      showAuthMessage(err.message==='Invalid login credentials'?'اسم المستخدم أو الرمز غير صحيح':err.message,true);
     }
   });
 
   $('#setupForm').addEventListener('submit',async e=>{
     e.preventDefault();
-    showAuthMessage('جاري إنشاء حساب المالك...');
+    showAuthMessage('جاري تحويل طريقة الدخول...');
     try{
-      const res=await fetch(SUPABASE_URL+'/auth/v1/signup',{
-        method:'POST',
-        headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
-        body:JSON.stringify({
-          email:$('#setupEmail').value.trim(),
-          password:$('#setupPassword').value,
-          data:{
-            full_name:$('#setupName').value.trim(),
-            setup_token:$('#setupToken').value.trim()
-          }
-        })
-      });
-      const data=await res.json().catch(()=>({}));
-      if(!res.ok)throw new Error(data.msg||data.message||data.error_description||data.error||('HTTP '+res.status));
+      const email=$('#legacyEmail').value.trim();
+      const oldPassword=$('#legacyPassword').value;
+      const username=$('#setupUsername').value.trim().toLowerCase();
+      const pin=$('#setupPin').value.trim();
 
-      if(data.access_token){
-        saveSession(data);
-        await boot();
-      }else{
-        showAuthMessage('تم إنشاء الحساب. إذا كان تأكيد البريد مفعّلاً، افتح رسالة التأكيد ثم ارجع وسجّل الدخول.');
-      }
+      if(!/^[a-z0-9._-]{3,32}$/.test(username))throw new Error('اسم المستخدم يجب أن يكون 3 إلى 32 حرف/رقم ويمكن استخدام . _ -');
+      if(!/^\d{6}$/.test(pin))throw new Error('رمز الدخول يجب أن يكون 6 أرقام بالضبط');
+
+      const oldSession=await rawFetch('/auth/v1/token?grant_type=password',{
+        method:'POST',
+        body:JSON.stringify({email,password:oldPassword})
+      });
+      saveSession(oldSession);
+
+      await rpc('set_my_username',{p_username:username});
+
+      await api('/auth/v1/user',{
+        method:'PUT',
+        body:JSON.stringify({password:pin,data:{username}})
+      });
+
+      try{await api('/auth/v1/logout',{method:'POST'})}catch{}
+      saveSession(null);
+
+      $('#setupForm').reset();
+      $('#setupTab').classList.remove('active');
+      $('#loginTab').classList.add('active');
+      $('#setupForm').classList.add('hidden');
+      $('#loginForm').classList.remove('hidden');
+      $('#loginUsername').value=username;
+      showAuthMessage('تم التحويل بنجاح. من الآن استخدم اسم المستخدم ورمز الـ6 أرقام فقط.');
     }catch(err){
-      showAuthMessage(err.message,true);
+      saveSession(null);
+      showAuthMessage(err.message==='Invalid login credentials'?'بيانات الدخول الحالية غير صحيحة':err.message,true);
     }
   });
 
@@ -514,8 +535,8 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
       if(!profiles?.length)throw new Error('هذا الحساب غير مفعّل داخل ISP Control');
 
       state.profile=profiles[0];
-      $('#sideUser').textContent=state.profile.full_name||state.profile.email;
-      $('#sideRole').textContent=state.profile.role;
+      $('#sideUser').textContent=state.profile.full_name||state.profile.username||'User';
+      $('#sideRole').textContent=(state.profile.username?'@'+state.profile.username+' • ':'')+state.profile.role;
       $('#authView').classList.add('hidden');
       $('#appView').classList.remove('hidden');
 
@@ -809,7 +830,7 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
       '<div class="page-head"><div><h1>المستخدمين</h1><div class="muted">OWNER / MANAGER / CASHIER / VIEWER</div></div><button class="btn primary" onclick="openInviteUser()">+ دعوة مستخدم</button></div>'+
       '<div class="grid2">'+
         '<div class="card card-pad"><h3 class="section-title">الحسابات</h3><div class="mini-list">'+
-          state.profiles.map(p=>'<div class="mini-item"><div><b>'+esc(p.full_name||p.email)+'</b><div class="muted">'+esc(p.email)+'</div></div><span class="chip">'+esc(p.role)+'</span></div>').join('')+
+          state.profiles.map(p=>'<div class="mini-item"><div><b>'+esc(p.full_name||p.username||'—')+'</b><div class="muted">'+esc(p.username?'@'+p.username:'لم يتم تعيين يوزر بعد')+'</div></div><span class="chip">'+esc(p.role)+'</span></div>').join('')+
         '</div></div>'+
         '<div class="card card-pad"><h3 class="section-title">الدعوات</h3><div class="mini-list">'+
           (state.invites.length?state.invites.slice(0,20).map(i=>'<div class="mini-item"><div><b>'+esc(i.email)+'</b><div class="muted">'+esc(fmtDate(i.created_at))+'</div></div><span class="chip">'+esc(i.used_at?'USED':i.role)+'</span></div>').join(''):'<div class="empty">لا توجد دعوات</div>')+
