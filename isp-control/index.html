@@ -193,25 +193,21 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
     </form>
 
     <form id="setupForm" class="hidden">
-      <div class="alert info">تُستخدم هذه الصفحة مرة واحدة لتحويل حسابك الحالي من البريد وكلمة المرور إلى يوزر + رمز من 6 أرقام.</div>
+      <div class="alert info">اسم المستخدم مهيأ إلك. أول مرة فقط، ثبّت رمز الدخول المكوّن من 6 أرقام باستعمال كلمة المرور القديمة.</div>
       <div class="field">
-        <label>البريد الحالي</label>
-        <input id="legacyEmail" type="email" autocomplete="username" required>
+        <label>اسم المستخدم</label>
+        <input id="setupUsername" value="sajjad" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" autocomplete="username" required>
       </div>
       <div class="field">
-        <label>كلمة المرور الحالية</label>
+        <label>كلمة المرور القديمة - مرة واحدة فقط</label>
         <input id="legacyPassword" type="password" autocomplete="current-password" required>
-      </div>
-      <div class="field">
-        <label>اسم المستخدم الجديد</label>
-        <input id="setupUsername" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" autocomplete="username" required>
       </div>
       <div class="field">
         <label>رمز الدخول الجديد - 6 أرقام</label>
         <input id="setupPin" type="password" inputmode="numeric" minlength="6" maxlength="6" pattern="[0-9]{6}" autocomplete="new-password" required>
       </div>
-      <div class="hint">بعد نجاح التهيئة، الدخول يصير فقط باسم المستخدم والرمز المكوّن من 6 أرقام.</div>
-      <button class="btn primary" style="width:100%;margin-top:12px">حفظ طريقة الدخول الجديدة</button>
+      <div class="hint">بعد الحفظ، ما راح تحتاج البريد ولا كلمة المرور القديمة. الدخول يصير باليوزر + رمز 6 أرقام فقط.</div>
+      <button class="btn primary" style="width:100%;margin-top:12px">تفعيل الدخول باليوزر والرمز</button>
     </form>
 
     <div id="authMessage" class="hint" style="margin-top:14px"></div>
@@ -463,7 +459,6 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
     e.preventDefault();
     showAuthMessage('جاري تحويل طريقة الدخول...');
     try{
-      const email=$('#legacyEmail').value.trim();
       const oldPassword=$('#legacyPassword').value;
       const username=$('#setupUsername').value.trim().toLowerCase();
       const pin=$('#setupPin').value.trim();
@@ -471,9 +466,15 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
       if(!/^[a-z0-9._-]{3,32}$/.test(username))throw new Error('اسم المستخدم يجب أن يكون 3 إلى 32 حرف/رقم ويمكن استخدام . _ -');
       if(!/^\d{6}$/.test(pin))throw new Error('رمز الدخول يجب أن يكون 6 أرقام بالضبط');
 
+      const resolved=await rawFetch('/rest/v1/rpc/resolve_login_email',{
+        method:'POST',
+        body:JSON.stringify({p_username:username})
+      });
+      if(!resolved)throw new Error('اسم المستخدم غير موجود');
+
       const oldSession=await rawFetch('/auth/v1/token?grant_type=password',{
         method:'POST',
-        body:JSON.stringify({email,password:oldPassword})
+        body:JSON.stringify({email:resolved,password:oldPassword})
       });
       saveSession(oldSession);
 
@@ -844,7 +845,7 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
     $('#content').innerHTML=
       '<div class="page-head"><div><h1>الإعدادات</h1><div class="muted">النظام حالياً مستقل عن MikroTik إلى أن يتم الربط</div></div></div>'+
       '<div class="grid2">'+
-        '<div class="card card-pad"><h3 class="section-title">إعدادات عامة</h3>'+
+        '<div class="card card-pad"><div class="row between"><h3 class="section-title">إعدادات عامة</h3><button class="btn small primary" onclick="openLoginSettings()">تغيير بيانات الدخول</button></div>'+
           '<div class="mini-list">'+state.settings.map(s=>
             '<div class="mini-item"><div><b>'+esc(s.key)+'</b><div class="muted">'+esc(s.description||'')+'</div></div><div class="row"><code>'+esc(typeof s.value==='string'?s.value:JSON.stringify(s.value))+'</code>'+(isOwner()?'<button class="btn small" onclick="openSetting(\''+esc(s.key)+'\')">تعديل</button>':'')+'</div></div>'
           ).join('')+'</div>'+
@@ -1097,6 +1098,46 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
         await rpc('invite_user',{p_email:f.get('email').trim(),p_role:f.get('role')});
         closeModal();toast('تم إنشاء الدعوة');await refreshAll();
       }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+  }
+
+  window.openLoginSettings=function(){
+    const current=state.profile?.username||'';
+    openModal(
+      '<div class="modal-head"><h3>تغيير بيانات الدخول</h3><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<form id="loginSettingsForm">'+
+        '<div class="field"><label>اسم المستخدم</label><input name="username" value="'+esc(current)+'" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" required></div>'+
+        '<div class="field"><label>رمز جديد من 6 أرقام</label><input name="pin" type="password" inputmode="numeric" minlength="6" maxlength="6" pattern="[0-9]{6}" placeholder="اتركه فارغ إذا ما تريد تغيّره"></div>'+
+        '<div class="hint">يمكن تغيير اليوزر وحده، أو تغيير اليوزر والرمز معاً.</div>'+
+        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">حفظ</button></div>'+
+      '</form>'
+    );
+
+    $('#loginSettingsForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=e.submitter;btn.disabled=true;
+      const f=new FormData(e.currentTarget);
+      const username=f.get('username').trim().toLowerCase();
+      const pin=f.get('pin').trim();
+      try{
+        if(!/^[a-z0-9._-]{3,32}$/.test(username))throw new Error('اسم المستخدم غير صالح');
+        if(pin && !/^\d{6}$/.test(pin))throw new Error('الرمز يجب أن يكون 6 أرقام بالضبط');
+
+        await rpc('set_my_username',{p_username:username});
+        if(pin){
+          await api('/auth/v1/user',{
+            method:'PUT',
+            body:JSON.stringify({password:pin,data:{username}})
+          });
+        }
+
+        closeModal();
+        toast('تم تحديث بيانات الدخول');
+        await refreshAll();
+      }catch(err){
+        toast(err.message,true);
+        btn.disabled=false;
+      }
     });
   }
 
