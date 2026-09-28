@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>ISP Control</title>
+<style>
+:root{
+  --bg:#08111f;--panel:#0f1b2d;--panel-2:#14233a;--line:#213653;--text:#eef5ff;--muted:#8fa3bf;
+  --primary:#4f8cff;--primary-2:#6c5ce7;--success:#27c481;--warning:#ffb020;--danger:#ff5d6c;
+  --shadow:0 16px 45px rgba(0,0,0,.28);--radius:18px
+}
+:root.light{
+  --bg:#f4f7fb;--panel:#ffffff;--panel-2:#f8fafc;--line:#e2e8f0;--text:#162033;--muted:#6b778c;
+  --primary:#2563eb;--primary-2:#6d28d9;--success:#059669;--warning:#d97706;--danger:#dc2626;
+  --shadow:0 12px 32px rgba(30,41,59,.08)
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text)}
+body{min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+.mono{font-family:Consolas,Monaco,monospace}
+.row{display:flex;align-items:center;gap:10px}
+.wrap{flex-wrap:wrap}
+.between{justify-content:space-between}
+.grow{flex:1}
+.btn{
+  border:1px solid var(--line);background:var(--panel-2);color:var(--text);padding:10px 14px;border-radius:12px;
+  transition:.16s ease;display:inline-flex;align-items:center;justify-content:center;gap:7px
+}
+.btn:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--primary) 55%,var(--line))}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.success{background:var(--success);border-color:var(--success);color:#fff}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn.ghost{background:transparent}
+.btn.small{padding:7px 10px;border-radius:10px;font-size:12px}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.icon-btn{width:38px;height:38px;padding:0}
+.auth{
+  min-height:100vh;display:grid;place-items:center;padding:24px;
+  background:
+   radial-gradient(circle at 10% 10%,rgba(79,140,255,.20),transparent 32%),
+   radial-gradient(circle at 85% 85%,rgba(39,196,129,.11),transparent 30%),var(--bg)
+}
+.auth-card{width:min(480px,100%);background:var(--panel);border:1px solid var(--line);border-radius:26px;padding:28px;box-shadow:var(--shadow)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:46px;height:46px;border-radius:15px;display:grid;place-items:center;color:#fff;font-weight:900;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));box-shadow:0 10px 26px rgba(79,140,255,.25)
+}
+.brand h2{margin:0;font-size:21px}
+.auth-tabs{display:flex;gap:8px;margin:24px 0 10px}
+.auth-tabs .btn{flex:1}
+.auth-tabs .active{background:var(--primary);border-color:var(--primary);color:#fff}
+.field{display:flex;flex-direction:column;gap:7px;margin:12px 0}
+.field label{font-size:13px;color:var(--muted)}
+.input, .field input,.field select,.field textarea{
+  width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px 13px;outline:none
+}
+.field textarea{min-height:90px;resize:vertical}
+.input:focus,.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 18%,transparent)
+}
+.hint{font-size:12px;color:var(--muted);line-height:1.65}
+.alert{padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);font-size:13px;line-height:1.6}
+.alert.info{border-color:color-mix(in srgb,var(--primary) 35%,var(--line));background:color-mix(in srgb,var(--primary) 8%,var(--panel))}
+.alert.error{border-color:color-mix(in srgb,var(--danger) 42%,var(--line));background:color-mix(in srgb,var(--danger) 8%,var(--panel))}
+.shell{display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+.sidebar{height:100vh;position:sticky;top:0;background:var(--panel);border-left:1px solid var(--line);padding:18px;z-index:20}
+.sidebar .brand{margin-bottom:25px}
+.nav{display:flex;flex-direction:column;gap:7px}
+.nav button{
+  border:0;background:transparent;color:var(--muted);padding:11px 12px;border-radius:12px;text-align:right;display:flex;align-items:center;gap:10px
+}
+.nav button:hover,.nav button.active{background:var(--panel-2);color:var(--text)}
+.nav .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.75}
+.sidebar-foot{position:absolute;left:18px;right:18px;bottom:18px}
+.userbox{padding:12px;border:1px solid var(--line);background:var(--panel-2);border-radius:14px;margin-bottom:10px}
+.userbox b{display:block;font-size:13px}
+.userbox span{font-size:11px;color:var(--muted)}
+.main{min-width:0}
+.topbar{
+  height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--line);
+  background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10
+}
+.mobile-menu{display:none}
+.content{padding:24px}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.page-head h1{font-size:24px;margin:0 0 5px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-pad{padding:18px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.kpi .label{font-size:13px;color:var(--muted)}
+.kpi .value{font-size:29px;font-weight:900;margin-top:7px}
+.kpi .sub{font-size:11px;color:var(--muted);margin-top:5px}
+.grid2{display:grid;grid-template-columns:1.25fr .75fr;gap:14px;margin-top:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.section-title{font-size:15px;margin:0 0 12px}
+.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:13px}
+.toolbar .input{min-width:220px;flex:1}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;min-width:920px}
+th,td{padding:12px 13px;border-bottom:1px solid var(--line);text-align:right;font-size:13px;white-space:nowrap}
+th{background:var(--panel-2);color:var(--muted);font-weight:600;position:sticky;top:0;z-index:1}
+tbody tr:hover{background:color-mix(in srgb,var(--panel-2) 58%,transparent)}
+tbody tr:last-child td{border-bottom:0}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid transparent}
+.badge.active,.badge.online,.badge.completed{color:#38d59c;background:rgba(39,196,129,.10);border-color:rgba(39,196,129,.24)}
+.badge.expired,.badge.failed,.badge.archived{color:#ff7b88;background:rgba(255,93,108,.10);border-color:rgba(255,93,108,.24)}
+.badge.suspended,.badge.pending,.badge.executing,.badge.retry{color:#ffc66b;background:rgba(255,176,32,.10);border-color:rgba(255,176,32,.22)}
+.badge.offline,.badge.viewer{color:var(--muted);background:var(--panel-2);border-color:var(--line)}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.mini-list{display:flex;flex-direction:column}
+.mini-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.mini-item:last-child{border-bottom:0}
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.metric{background:var(--panel-2);border:1px solid var(--line);border-radius:13px;padding:12px}
+.metric span{display:block;font-size:11px;color:var(--muted)}
+.metric b{display:block;margin-top:5px}
+.package-card .speed{font-size:30px;font-weight:900}
+.package-card .price{color:var(--success);font-weight:900;margin-top:9px}
+.package-card .meta{font-size:12px;color:var(--muted);margin-top:6px}
+.empty{padding:34px;text-align:center;color:var(--muted)}
+.modal{
+  position:fixed;inset:0;background:rgba(2,7,15,.76);display:grid;place-items:center;padding:18px;z-index:50
+}
+.modal-card{
+  width:min(700px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow)
+}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.modal-head h3{margin:0}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.toast{
+  position:fixed;left:22px;bottom:22px;max-width:390px;background:var(--panel);border:1px solid var(--line);padding:13px 16px;border-radius:14px;z-index:80;box-shadow:var(--shadow)
+}
+.toast.error{border-color:var(--danger)}
+.chip{font-size:11px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:18px 0}
+code{font-family:Consolas,Monaco,monospace;font-size:12px}
+@media(max-width:1100px){
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .grid2{grid-template-columns:1fr}
+  .grid3{grid-template-columns:1fr 1fr}
+}
+@media(max-width:780px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{position:fixed;right:0;top:0;width:280px;transform:translateX(105%);transition:.2s}
+  .sidebar.open{transform:none}
+  .mobile-menu{display:inline-flex}
+  .content{padding:16px}
+  .topbar{padding:0 16px}
+  .cards,.grid3{grid-template-columns:1fr}
+  .page-head{flex-direction:column}
+  .form-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="authView" class="auth">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="logo">ISP</div>
+      <div>
+        <h2>ISP Control</h2>
+        <div class="muted" style="font-size:12px">إدارة المشتركين والشبكة</div>
+      </div>
+    </div>
+
+    <div class="alert info" style="margin-top:18px">
+      النظام مربوط بقاعدة ISP Control فقط. MikroTik حالياً يعمل بوضع <b>MOCK</b> إلى حين ربط الجهاز الفعلي.
+    </div>
+
+    <div class="auth-tabs">
+      <button id="loginTab" class="btn active" type="button">تسجيل الدخول</button>
+      <button id="setupTab" class="btn" type="button">إنشاء المالك الأول</button>
+    </div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input id="loginEmail" type="email" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label>كلمة المرور</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn primary" style="width:100%;margin-top:8px">دخول</button>
+    </form>
+
+    <form id="setupForm" class="hidden">
+      <div class="field">
+        <label>الاسم</label>
+        <input id="setupName" required>
+      </div>
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input id="setupEmail" type="email" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label>كلمة المرور</label>
+        <input id="setupPassword" type="password" minlength="8" autocomplete="new-password" required>
+      </div>
+      <div class="field">
+        <label>رمز التأسيس</label>
+        <input id="setupToken" type="password" required>
+      </div>
+      <div class="hint">رمز التأسيس يُستخدم مرة واحدة فقط لإنشاء حساب OWNER الأول.</div>
+      <button class="btn primary" style="width:100%;margin-top:12px">إنشاء حساب المالك</button>
+    </form>
+
+    <div id="authMessage" class="hint" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<div id="appView" class="shell hidden">
+  <aside id="sidebar" class="sidebar">
+    <div class="brand">
+      <div class="logo">ISP</div>
+      <div>
+        <b>ISP Control</b>
+        <div class="muted" style="font-size:11px">Network Management</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button data-page="dashboard" class="active"><span class="dot"></span>الرئيسية</button>
+      <button data-page="subscribers"><span class="dot"></span>المشتركين</button>
+      <button data-page="packages"><span class="dot"></span>الباقات</button>
+      <button data-page="payments"><span class="dot"></span>المالية</button>
+      <button data-page="commands"><span class="dot"></span>أوامر الراوتر</button>
+      <button data-page="logs"><span class="dot"></span>السجلات</button>
+      <button data-page="users"><span class="dot"></span>المستخدمين</button>
+      <button data-page="settings"><span class="dot"></span>الإعدادات</button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="userbox">
+        <b id="sideUser">—</b>
+        <span id="sideRole">—</span>
+      </div>
+      <button id="logoutBtn" class="btn" style="width:100%">تسجيل الخروج</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="row">
+        <button id="mobileMenuBtn" class="btn icon-btn mobile-menu" type="button">☰</button>
+        <div>
+          <b id="pageTitle">الرئيسية</b>
+          <div id="pageSubtitle" class="muted" style="font-size:11px"></div>
+        </div>
+      </div>
+      <div class="row">
+        <span id="routerBadge" class="badge offline">MikroTik غير متصل</span>
+        <button id="themeBtn" class="btn icon-btn" type="button">◐</button>
+      </div>
+    </header>
+
+    <div id="content" class="content"></div>
+  </main>
+</div>
+
+<div id="modal" class="modal hidden"></div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  const SUPABASE_URL='https://varccsjoydhlfazaizqs.supabase.co';
+  const SUPABASE_KEY='sb_publishable_3M9BkewAJ3i6daQc_Sojbw_WA2ryzm9';
+  const SESSION_KEY='isp_control_session_v1';
+
+  const state={
+    page:'dashboard',
+    profile:null,
+    packages:[],
+    subscribers:[],
+    subscriptions:[],
+    payments:[],
+    commands:[],
+    logs:[],
+    routers:[],
+    settings:[],
+    profiles:[],
+    invites:[]
+  };
+
+  let session=loadSession();
+
+  const $=s=>document.querySelector(s);
+  const $$=s=>Array.from(document.querySelectorAll(s));
+  const role=()=>state.profile?.role||null;
+  const canManage=()=>['OWNER','MANAGER'].includes(role());
+  const canRenew=()=>['OWNER','MANAGER','CASHIER'].includes(role());
+  const isOwner=()=>role()==='OWNER';
+
+  function loadSession(){
+    try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{return null}
+  }
+  function saveSession(s){
+    session=s;
+    if(s)localStorage.setItem(SESSION_KEY,JSON.stringify(s));
+    else localStorage.removeItem(SESSION_KEY);
+  }
+  function esc(v){
+    return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function fmtIQD(v){return new Intl.NumberFormat('ar-IQ').format(Number(v||0))+' د.ع'}
+  function fmtDate(v){
+    if(!v)return '—';
+    try{return new Intl.DateTimeFormat('ar-IQ',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Baghdad'}).format(new Date(v))}
+    catch{return '—'}
+  }
+  function remaining(expiresAt){
+    if(!expiresAt)return '—';
+    const ms=new Date(expiresAt).getTime()-Date.now();
+    if(ms<=0)return 'منتهي';
+    const d=Math.floor(ms/86400000);
+    const h=Math.floor((ms%86400000)/3600000);
+    return d>0?d+' يوم '+h+' س':h+' ساعة';
+  }
+  function statusBadge(s,archivedAt){
+    if(archivedAt)return '<span class="badge archived">مؤرشف</span>';
+    const map={ACTIVE:'فعال',EXPIRED:'منتهي',SUSPENDED:'موقوف',PENDING:'قيد الانتظار',COMPLETED:'مكتمل',EXECUTING:'قيد التنفيذ',RETRY:'إعادة محاولة',FAILED:'فشل'};
+    return '<span class="badge '+String(s||'').toLowerCase()+'">'+esc(map[s]||s||'—')+'</span>';
+  }
+  function toast(message,error=false){
+    const t=$('#toast');
+    t.textContent=message;
+    t.className='toast'+(error?' error':'');
+    t.classList.remove('hidden');
+    clearTimeout(toast._timer);
+    toast._timer=setTimeout(()=>t.classList.add('hidden'),3200);
+  }
+  function openModal(html){
+    $('#modal').innerHTML='<div class="modal-card">'+html+'</div>';
+    $('#modal').classList.remove('hidden');
+  }
+  function closeModal(){
+    $('#modal').classList.add('hidden');
+    $('#modal').innerHTML='';
+  }
+  window.closeModal=closeModal;
+  $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+
+  async function rawFetch(path,options={}){
+    const headers={
+      apikey:SUPABASE_KEY,
+      'Content-Type':'application/json',
+      ...(options.headers||{})
+    };
+    if(session?.access_token)headers.Authorization='Bearer '+session.access_token;
+
+    const res=await fetch(SUPABASE_URL+path,{...options,headers});
+    const text=await res.text();
+    let data=null;
+    try{data=text?JSON.parse(text):null}catch{data=text}
+
+    if(!res.ok){
+      const msg=data?.message||data?.msg||data?.error_description||data?.error||('HTTP '+res.status);
+      const err=new Error(msg);
+      err.status=res.status;
+      throw err;
+    }
+    return data;
+  }
+
+  async function refreshSession(){
+    if(!session?.refresh_token)return false;
+    try{
+      const res=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token',{
+        method:'POST',
+        headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({refresh_token:session.refresh_token})
+      });
+      if(!res.ok)return false;
+      const next=await res.json();
+      saveSession(next);
+      return true;
+    }catch{return false}
+  }
+
+  async function api(path,options={},retry=true){
+    try{return await rawFetch(path,options)}
+    catch(err){
+      if(retry&&err.status===401&&await refreshSession())return api(path,options,false);
+      throw err;
+    }
+  }
+
+  async function table(name,query=''){
+    return api('/rest/v1/'+name+(query?'?'+query:''));
+  }
+
+  async function rpc(name,params){
+    return api('/rest/v1/rpc/'+name,{method:'POST',body:JSON.stringify(params)});
+  }
+
+  async function logout(){
+    try{if(session?.access_token)await api('/auth/v1/logout',{method:'POST'})}catch{}
+    saveSession(null);
+    location.reload();
+  }
+
+  function showAuthMessage(msg,isError=false){
+    const el=$('#authMessage');
+    el.textContent=msg||'';
+    el.style.color=isError?'var(--danger)':'var(--muted)';
+  }
+
+  $('#loginTab').addEventListener('click',()=>{
+    $('#loginTab').classList.add('active');
+    $('#setupTab').classList.remove('active');
+    $('#loginForm').classList.remove('hidden');
+    $('#setupForm').classList.add('hidden');
+    showAuthMessage('');
+  });
+
+  $('#setupTab').addEventListener('click',()=>{
+    $('#setupTab').classList.add('active');
+    $('#loginTab').classList.remove('active');
+    $('#setupForm').classList.remove('hidden');
+    $('#loginForm').classList.add('hidden');
+    showAuthMessage('');
+  });
+
+  $('#loginForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    showAuthMessage('جاري تسجيل الدخول...');
+    try{
+      const data=await rawFetch('/auth/v1/token?grant_type=password',{
+        method:'POST',
+        body:JSON.stringify({
+          email:$('#loginEmail').value.trim(),
+          password:$('#loginPassword').value
+        })
+      });
+      saveSession(data);
+      await boot();
+    }catch(err){
+      showAuthMessage(err.message,true);
+    }
+  });
+
+  $('#setupForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    showAuthMessage('جاري إنشاء حساب المالك...');
+    try{
+      const res=await fetch(SUPABASE_URL+'/auth/v1/signup',{
+        method:'POST',
+        headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({
+          email:$('#setupEmail').value.trim(),
+          password:$('#setupPassword').value,
+          data:{
+            full_name:$('#setupName').value.trim(),
+            setup_token:$('#setupToken').value.trim()
+          }
+        })
+      });
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(data.msg||data.message||data.error_description||data.error||('HTTP '+res.status));
+
+      if(data.access_token){
+        saveSession(data);
+        await boot();
+      }else{
+        showAuthMessage('تم إنشاء الحساب. إذا كان تأكيد البريد مفعّلاً، افتح رسالة التأكيد ثم ارجع وسجّل الدخول.');
+      }
+    }catch(err){
+      showAuthMessage(err.message,true);
+    }
+  });
+
+  $('#logoutBtn').addEventListener('click',logout);
+  $('#mobileMenuBtn').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+  $('#themeBtn').addEventListener('click',()=>{
+    document.documentElement.classList.toggle('light');
+    localStorage.setItem('isp_theme',document.documentElement.classList.contains('light')?'light':'dark');
+  });
+  if(localStorage.getItem('isp_theme')==='light')document.documentElement.classList.add('light');
+
+  $$('.nav button').forEach(btn=>btn.addEventListener('click',()=>{
+    state.page=btn.dataset.page;
+    $$('.nav button').forEach(b=>b.classList.toggle('active',b===btn));
+    $('#sidebar').classList.remove('open');
+    render();
+  }));
+
+  async function boot(){
+    if(!session?.access_token){
+      $('#authView').classList.remove('hidden');
+      $('#appView').classList.add('hidden');
+      return;
+    }
+
+    if(session.expires_at&&Date.now()>(session.expires_at*1000-60000)){
+      const ok=await refreshSession();
+      if(!ok){saveSession(null);return boot()}
+    }
+
+    try{
+      const userId=session.user?.id;
+      if(!userId)throw new Error('جلسة الدخول غير صالحة');
+
+      const profiles=await table('profiles','select=*&id=eq.'+encodeURIComponent(userId));
+      if(!profiles?.length)throw new Error('هذا الحساب غير مفعّل داخل ISP Control');
+
+      state.profile=profiles[0];
+      $('#sideUser').textContent=state.profile.full_name||state.profile.email;
+      $('#sideRole').textContent=state.profile.role;
+      $('#authView').classList.add('hidden');
+      $('#appView').classList.remove('hidden');
+
+      await refreshAll();
+    }catch(err){
+      showAuthMessage(err.message,true);
+      saveSession(null);
+      $('#authView').classList.remove('hidden');
+      $('#appView').classList.add('hidden');
+    }
+  }
+
+  async function refreshAll(){
+    try{
+      const [packages,subscribers,subscriptions,payments,commands,logs,routers,settings,profiles,invites]=await Promise.all([
+        table('packages','select=*&order=created_at.asc'),
+        table('subscribers','select=*&order=created_at.desc'),
+        table('subscriptions','select=*'),
+        table('payments','select=*&order=paid_at.desc&limit=500'),
+        table('router_commands','select=*&order=created_at.desc&limit=500'),
+        table('audit_logs','select=*&order=created_at.desc&limit=500'),
+        table('routers','select=*&order=created_at.asc'),
+        table('settings','select=*&order=key.asc'),
+        table('profiles','select=*&order=created_at.asc'),
+        isOwner()?table('user_invites','select=*&order=created_at.desc') : Promise.resolve([])
+      ]);
+
+      state.packages=packages||[];
+      state.subscribers=subscribers||[];
+      state.subscriptions=subscriptions||[];
+      state.payments=payments||[];
+      state.commands=commands||[];
+      state.logs=logs||[];
+      state.routers=routers||[];
+      state.settings=settings||[];
+      state.profiles=profiles||[];
+      state.invites=invites||[];
+
+      updateRouterBadge();
+      render();
+    }catch(err){
+      $('#content').innerHTML='<div class="card card-pad"><b>تعذر تحميل البيانات</b><div class="muted" style="margin-top:8px">'+esc(err.message)+'</div></div>';
+      toast(err.message,true);
+    }
+  }
+
+  function updateRouterBadge(){
+    const r=state.routers[0];
+    const el=$('#routerBadge');
+    if(!r){
+      el.className='badge offline';
+      el.textContent='لا يوجد Router';
+      return;
+    }
+    if(r.adapter_mode==='MOCK'){
+      el.className='badge pending';
+      el.textContent='MikroTik • MOCK';
+      return;
+    }
+    el.className='badge '+(r.router_status==='ONLINE'?'online':'offline');
+    el.textContent=r.router_status==='ONLINE'?'MikroTik متصل':'MikroTik غير متصل';
+  }
+
+  function packageById(id){return state.packages.find(x=>x.id===id)}
+  function subscriptionBySubscriber(id){return state.subscriptions.find(x=>x.subscriber_id===id)}
+  function subscriberById(id){return state.subscribers.find(x=>x.id===id)}
+  function visibleSubscribers(){return state.subscribers.filter(x=>!x.archived_at)}
+
+  function render(){
+    const titles={
+      dashboard:['الرئيسية','نظرة عامة على الشبكة والاشتراكات'],
+      subscribers:['المشتركين','إدارة PPPoE والاشتراكات'],
+      packages:['الباقات','السرعات والأسعار والمدد'],
+      payments:['المالية','سجل التجديدات والمدفوعات'],
+      commands:['أوامر الراوتر','طابور الأوامر المرسل إلى MikroTik'],
+      logs:['السجلات','كل التغييرات والعمليات الإدارية'],
+      users:['المستخدمين','الصلاحيات وحسابات النظام'],
+      settings:['الإعدادات','إعدادات ISP Control وحالة الراوتر']
+    };
+    const current=titles[state.page]||titles.dashboard;
+    $('#pageTitle').textContent=current[0];
+    $('#pageSubtitle').textContent=current[1];
+
+    if(state.page==='dashboard')renderDashboard();
+    else if(state.page==='subscribers')renderSubscribers();
+    else if(state.page==='packages')renderPackages();
+    else if(state.page==='payments')renderPayments();
+    else if(state.page==='commands')renderCommands();
+    else if(state.page==='logs')renderLogs();
+    else if(state.page==='users')renderUsers();
+    else if(state.page==='settings')renderSettings();
+  }
+
+  function renderDashboard(){
+    const subs=visibleSubscribers();
+    const active=subs.filter(x=>x.status==='ACTIVE').length;
+    const expired=subs.filter(x=>x.status==='EXPIRED').length;
+    const suspended=subs.filter(x=>x.status==='SUSPENDED').length;
+    const online=subs.filter(x=>x.is_online).length;
+
+    const monthStart=new Date();
+    monthStart.setDate(1);monthStart.setHours(0,0,0,0);
+    const monthRevenue=state.payments.filter(x=>new Date(x.paid_at)>=monthStart).reduce((a,x)=>a+Number(x.amount_iqd||0),0);
+
+    const todayStart=new Date();todayStart.setHours(0,0,0,0);
+    const todayRevenue=state.payments.filter(x=>new Date(x.paid_at)>=todayStart).reduce((a,x)=>a+Number(x.amount_iqd||0),0);
+
+    const upcoming=state.subscriptions
+      .filter(x=>x.status==='ACTIVE'&&new Date(x.expires_at)>new Date())
+      .sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at))
+      .slice(0,7);
+
+    const router=state.routers[0]||{};
+    const pendingCommands=state.commands.filter(x=>['PENDING','RETRY','EXECUTING'].includes(x.status)).length;
+
+    $('#content').innerHTML=
+      '<div class="page-head">'+
+        '<div><h1>لوحة التحكم</h1><div class="muted">آخر تحديث: '+esc(fmtDate(new Date()))+'</div></div>'+
+        (canManage()?'<button class="btn primary" onclick="openAddSubscriber()">+ إضافة مشترك</button>':'')+
+      '</div>'+
+      '<div class="cards">'+
+        '<div class="card card-pad kpi"><div class="label">المشتركين الفعالين</div><div class="value">'+active+'</div><div class="sub">من أصل '+subs.length+' مشترك</div></div>'+
+        '<div class="card card-pad kpi"><div class="label">Online الآن</div><div class="value">'+online+'</div><div class="sub">يتحدّث فعلياً بعد ربط MikroTik</div></div>'+
+        '<div class="card card-pad kpi"><div class="label">المنتهية / الموقوفة</div><div class="value">'+(expired+suspended)+'</div><div class="sub">'+expired+' منتهي • '+suspended+' موقوف</div></div>'+
+        '<div class="card card-pad kpi"><div class="label">إيراد الشهر</div><div class="value" style="font-size:23px">'+fmtIQD(monthRevenue)+'</div><div class="sub">اليوم '+fmtIQD(todayRevenue)+'</div></div>'+
+      '</div>'+
+      '<div class="grid2">'+
+        '<div class="card card-pad"><h3 class="section-title">أقرب مواعيد الانتهاء</h3>'+
+          '<div class="mini-list">'+(upcoming.length?upcoming.map(s=>{
+            const u=subscriberById(s.subscriber_id);
+            return '<div class="mini-item"><div><b>'+esc(u?.full_name||'—')+'</b><div class="muted">'+esc(u?.pppoe_username||'')+'</div></div><div><b>'+esc(remaining(s.expires_at))+'</b><div class="muted">'+esc(fmtDate(s.expires_at))+'</div></div></div>'
+          }).join(''):'<div class="empty">لا توجد اشتراكات فعالة قريبة الانتهاء</div>')+'</div>'+
+        '</div>'+
+        '<div class="card card-pad"><h3 class="section-title">حالة MikroTik</h3>'+
+          '<div class="metric-grid">'+
+            '<div class="metric"><span>الوضع</span><b>'+esc(router.adapter_mode||'MOCK')+'</b></div>'+
+            '<div class="metric"><span>الحالة</span><b>'+esc(router.router_status||'OFFLINE')+'</b></div>'+
+            '<div class="metric"><span>PPPoE Active</span><b>'+esc(router.pppoe_active_sessions??0)+'</b></div>'+
+            '<div class="metric"><span>أوامر معلقة</span><b>'+pendingCommands+'</b></div>'+
+            '<div class="metric"><span>CPU</span><b>'+esc(router.cpu_load??0)+'%</b></div>'+
+            '<div class="metric"><span>RAM</span><b>'+esc(router.ram_used_percent??0)+'%</b></div>'+
+          '</div>'+
+          '<div class="hint" style="margin-top:12px">بيانات الراوتر الحالية تجريبية إلى أن نربط MikroTik الحقيقي.</div>'+
+        '</div>'+
+      '</div>';
+  }
+
+  function renderSubscribers(){
+    $('#content').innerHTML=
+      '<div class="page-head">'+
+        '<div><h1>المشتركين</h1><div class="muted">'+visibleSubscribers().length+' مشترك غير مؤرشف</div></div>'+
+        (canManage()?'<button class="btn primary" onclick="openAddSubscriber()">+ مشترك جديد</button>':'')+
+      '</div>'+
+      '<div class="toolbar">'+
+        '<input id="subscriberSearch" class="input" placeholder="بحث بالاسم، الهاتف أو PPPoE...">'+
+        '<select id="subscriberStatus" class="input" style="flex:0 0 180px"><option value="">كل الحالات</option><option value="ACTIVE">فعال</option><option value="EXPIRED">منتهي</option><option value="SUSPENDED">موقوف</option><option value="PENDING">قيد الانتظار</option><option value="ARCHIVED">مؤرشف</option></select>'+
+        '<button class="btn" onclick="refreshAll()">تحديث</button>'+
+      '</div>'+
+      '<div id="subscriberTable"></div>';
+
+    $('#subscriberSearch').addEventListener('input',drawSubscriberTable);
+    $('#subscriberStatus').addEventListener('change',drawSubscriberTable);
+    drawSubscriberTable();
+  }
+
+  function drawSubscriberTable(){
+    const query=($('#subscriberSearch')?.value||'').trim().toLowerCase();
+    const filter=$('#subscriberStatus')?.value||'';
+
+    const rows=state.subscribers.filter(s=>{
+      const archived=!!s.archived_at;
+      if(filter==='ARCHIVED'&&!archived)return false;
+      if(filter&&filter!=='ARCHIVED'&&s.status!==filter)return false;
+      if(!filter&&archived)return false;
+      if(query&&!([s.full_name,s.phone,s.pppoe_username].some(v=>String(v||'').toLowerCase().includes(query))))return false;
+      return true;
+    });
+
+    const html=
+      '<div class="table-wrap"><table><thead><tr>'+
+      '<th>المشترك</th><th>PPPoE</th><th>الباقة</th><th>السرعة</th><th>الانتهاء</th><th>المتبقي</th><th>الحالة</th><th>الاتصال</th><th>إجراءات</th>'+
+      '</tr></thead><tbody>'+
+      rows.map(s=>{
+        const sub=subscriptionBySubscriber(s.id);
+        const p=packageById(s.package_id);
+        const actions=s.archived_at
+          ? '<span class="muted">مؤرشف</span>'
+          : [
+              canRenew()?'<button class="btn small success" onclick="openRenew(\''+s.id+'\')">تجديد</button>':'',
+              canManage()?'<button class="btn small" onclick="openEditSubscriber(\''+s.id+'\')">تعديل</button>':'',
+              canManage()?'<button class="btn small" onclick="openSpeed(\''+s.id+'\')">سرعة</button>':'',
+              canManage()?'<button class="btn small" onclick="toggleSuspend(\''+s.id+'\','+(s.status!=='SUSPENDED')+')">'+(s.status==='SUSPENDED'?'تفعيل':'تعليق')+'</button>':'',
+              canManage()?'<button class="btn small" onclick="disconnectSubscriber(\''+s.id+'\')">فصل</button>':'',
+              canManage()?'<button class="btn small danger" onclick="archiveSubscriber(\''+s.id+'\')">أرشفة</button>':''
+            ].join('');
+
+        return '<tr>'+
+          '<td><b>'+esc(s.full_name)+'</b><div class="muted">'+esc(s.phone)+'</div></td>'+
+          '<td><span class="mono">'+esc(s.pppoe_username)+'</span></td>'+
+          '<td>'+esc(p?.name||'—')+'</td>'+
+          '<td>'+esc(s.download_mbps)+'/'+esc(s.upload_mbps)+' Mbps</td>'+
+          '<td>'+esc(fmtDate(sub?.expires_at))+'</td>'+
+          '<td>'+esc(remaining(sub?.expires_at))+'</td>'+
+          '<td>'+statusBadge(s.status,s.archived_at)+'</td>'+
+          '<td><span class="badge '+(s.is_online?'online':'offline')+'">'+(s.is_online?'Online':'Offline')+'</span></td>'+
+          '<td><div class="actions">'+actions+'</div></td>'+
+        '</tr>';
+      }).join('')+
+      '</tbody></table>'+(rows.length?'':'<div class="empty">لا توجد نتائج</div>')+'</div>';
+
+    $('#subscriberTable').innerHTML=html;
+  }
+
+  function renderPackages(){
+    $('#content').innerHTML=
+      '<div class="page-head">'+
+        '<div><h1>الباقات</h1><div class="muted">يمكن تعديل الاسم والسعر والسرعة والمدة بأي وقت</div></div>'+
+        (canManage()?'<button class="btn primary" onclick="openPackage()">+ باقة جديدة</button>':'')+
+      '</div>'+
+      '<div class="grid3">'+state.packages.map(p=>
+        '<div class="card card-pad package-card">'+
+          '<div class="row between"><h3 style="margin:0">'+esc(p.name)+'</h3>'+statusBadge(p.active?'ACTIVE':'SUSPENDED')+'</div>'+
+          '<div class="speed" style="margin-top:14px">'+esc(p.download_mbps)+' Mbps</div>'+
+          '<div class="meta">رفع '+esc(p.upload_mbps)+' Mbps • '+esc(p.duration_hours)+' ساعة</div>'+
+          '<div class="price">'+fmtIQD(p.price_iqd)+'</div>'+
+          '<div class="meta mono">'+esc(p.router_profile_name||'بدون Router Profile')+'</div>'+
+          (canManage()?'<div style="margin-top:14px"><button class="btn small" onclick="openPackage(\''+p.id+'\')">تعديل</button></div>':'')+
+        '</div>'
+      ).join('')+'</div>';
+  }
+
+  function renderPayments(){
+    const total=state.payments.reduce((a,x)=>a+Number(x.amount_iqd||0),0);
+    const monthStart=new Date();monthStart.setDate(1);monthStart.setHours(0,0,0,0);
+    const month=state.payments.filter(x=>new Date(x.paid_at)>=monthStart).reduce((a,x)=>a+Number(x.amount_iqd||0),0);
+
+    $('#content').innerHTML=
+      '<div class="page-head"><div><h1>المالية</h1><div class="muted">سجل كامل لعمليات التفعيل والتجديد</div></div></div>'+
+      '<div class="cards" style="margin-bottom:14px">'+
+        '<div class="card card-pad kpi"><div class="label">الإجمالي المسجل</div><div class="value" style="font-size:23px">'+fmtIQD(total)+'</div></div>'+
+        '<div class="card card-pad kpi"><div class="label">هذا الشهر</div><div class="value" style="font-size:23px">'+fmtIQD(month)+'</div></div>'+
+        '<div class="card card-pad kpi"><div class="label">عدد العمليات</div><div class="value">'+state.payments.length+'</div></div>'+
+        '<div class="card card-pad kpi"><div class="label">العملة</div><div class="value" style="font-size:23px">IQD</div></div>'+
+      '</div>'+
+      '<div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>المشترك</th><th>الباقة</th><th>المبلغ</th><th>الانتهاء السابق</th><th>الانتهاء الجديد</th><th>ملاحظة</th></tr></thead><tbody>'+
+      state.payments.map(p=>{
+        const s=subscriberById(p.subscriber_id);
+        return '<tr><td>'+esc(fmtDate(p.paid_at))+'</td><td>'+esc(s?.full_name||'—')+'</td><td>'+esc(p.package_name_snapshot||'—')+'</td><td><b>'+fmtIQD(p.amount_iqd)+'</b></td><td>'+esc(fmtDate(p.old_expiry))+'</td><td>'+esc(fmtDate(p.new_expiry))+'</td><td>'+esc(p.notes||'—')+'</td></tr>'
+      }).join('')+
+      '</tbody></table>'+(state.payments.length?'':'<div class="empty">لا توجد مدفوعات</div>')+'</div>';
+  }
+
+  function renderCommands(){
+    const pending=state.commands.filter(x=>x.status==='PENDING').length;
+    const failed=state.commands.filter(x=>x.status==='FAILED').length;
+
+    $('#content').innerHTML=
+      '<div class="page-head"><div><h1>أوامر الراوتر</h1><div class="muted">هذه الأوامر ستنفذ تلقائياً بعد ربط MikroTik</div></div><button class="btn" onclick="refreshAll()">تحديث</button></div>'+
+      '<div class="cards" style="margin-bottom:14px">'+
+        '<div class="card card-pad kpi"><div class="label">PENDING</div><div class="value">'+pending+'</div></div>'+
+        '<div class="card card-pad kpi"><div class="label">FAILED</div><div class="value">'+failed+'</div></div>'+
+        '<div class="card card-pad kpi"><div class="label">الإجمالي</div><div class="value">'+state.commands.length+'</div></div>'+
+        '<div class="card card-pad kpi"><div class="label">Adapter</div><div class="value" style="font-size:22px">'+esc(state.routers[0]?.adapter_mode||'MOCK')+'</div></div>'+
+      '</div>'+
+      '<div class="table-wrap"><table><thead><tr><th>الوقت</th><th>النوع</th><th>المشترك</th><th>الحالة</th><th>المحاولات</th><th>الخطأ</th><th>Payload</th></tr></thead><tbody>'+
+      state.commands.map(c=>{
+        const s=subscriberById(c.subscriber_id);
+        return '<tr><td>'+esc(fmtDate(c.created_at))+'</td><td><code>'+esc(c.type)+'</code></td><td>'+esc(s?.full_name||'—')+'</td><td>'+statusBadge(c.status)+'</td><td>'+esc(c.retry_count??0)+'</td><td>'+esc(c.error||'—')+'</td><td><code>'+esc(JSON.stringify(c.payload||{})).slice(0,120)+'</code></td></tr>'
+      }).join('')+
+      '</tbody></table>'+(state.commands.length?'':'<div class="empty">لا توجد أوامر</div>')+'</div>';
+  }
+
+  function renderLogs(){
+    $('#content').innerHTML=
+      '<div class="page-head"><div><h1>السجلات</h1><div class="muted">Audit Log لكل تعديل وتجديد وتعليق وأمر</div></div></div>'+
+      '<div class="table-wrap"><table><thead><tr><th>الوقت</th><th>العملية</th><th>النوع</th><th>المشترك</th><th>القيمة القديمة</th><th>القيمة الجديدة</th></tr></thead><tbody>'+
+      state.logs.map(l=>{
+        const s=subscriberById(l.subscriber_id);
+        return '<tr><td>'+esc(fmtDate(l.created_at))+'</td><td><code>'+esc(l.action)+'</code></td><td>'+esc(l.entity_type)+'</td><td>'+esc(s?.full_name||'—')+'</td><td><code>'+esc(JSON.stringify(l.old_values||{})).slice(0,130)+'</code></td><td><code>'+esc(JSON.stringify(l.new_values||{})).slice(0,130)+'</code></td></tr>'
+      }).join('')+
+      '</tbody></table>'+(state.logs.length?'':'<div class="empty">لا توجد سجلات</div>')+'</div>';
+  }
+
+  function renderUsers(){
+    if(!isOwner()){
+      $('#content').innerHTML='<div class="card card-pad"><b>الصلاحية غير متاحة</b><div class="muted" style="margin-top:7px">إدارة المستخدمين متاحة لحساب OWNER فقط.</div></div>';
+      return;
+    }
+
+    $('#content').innerHTML=
+      '<div class="page-head"><div><h1>المستخدمين</h1><div class="muted">OWNER / MANAGER / CASHIER / VIEWER</div></div><button class="btn primary" onclick="openInviteUser()">+ دعوة مستخدم</button></div>'+
+      '<div class="grid2">'+
+        '<div class="card card-pad"><h3 class="section-title">الحسابات</h3><div class="mini-list">'+
+          state.profiles.map(p=>'<div class="mini-item"><div><b>'+esc(p.full_name||p.email)+'</b><div class="muted">'+esc(p.email)+'</div></div><span class="chip">'+esc(p.role)+'</span></div>').join('')+
+        '</div></div>'+
+        '<div class="card card-pad"><h3 class="section-title">الدعوات</h3><div class="mini-list">'+
+          (state.invites.length?state.invites.slice(0,20).map(i=>'<div class="mini-item"><div><b>'+esc(i.email)+'</b><div class="muted">'+esc(fmtDate(i.created_at))+'</div></div><span class="chip">'+esc(i.used_at?'USED':i.role)+'</span></div>').join(''):'<div class="empty">لا توجد دعوات</div>')+
+        '</div></div>'+
+      '</div>';
+  }
+
+  function renderSettings(){
+    const r=state.routers[0]||{};
+
+    $('#content').innerHTML=
+      '<div class="page-head"><div><h1>الإعدادات</h1><div class="muted">النظام حالياً مستقل عن MikroTik إلى أن يتم الربط</div></div></div>'+
+      '<div class="grid2">'+
+        '<div class="card card-pad"><h3 class="section-title">إعدادات عامة</h3>'+
+          '<div class="mini-list">'+state.settings.map(s=>
+            '<div class="mini-item"><div><b>'+esc(s.key)+'</b><div class="muted">'+esc(s.description||'')+'</div></div><div class="row"><code>'+esc(typeof s.value==='string'?s.value:JSON.stringify(s.value))+'</code>'+(isOwner()?'<button class="btn small" onclick="openSetting(\''+esc(s.key)+'\')">تعديل</button>':'')+'</div></div>'
+          ).join('')+'</div>'+
+        '</div>'+
+        '<div class="card card-pad"><h3 class="section-title">MikroTik</h3>'+
+          '<div class="mini-list">'+
+            '<div class="mini-item"><span>الاسم</span><b>'+esc(r.name||'—')+'</b></div>'+
+            '<div class="mini-item"><span>الموديل</span><b>'+esc(r.model||'—')+'</b></div>'+
+            '<div class="mini-item"><span>Management IP</span><b class="mono">'+esc(r.management_ip||'—')+'</b></div>'+
+            '<div class="mini-item"><span>WAN</span><b>'+esc(r.wan_interface||'—')+'</b></div>'+
+            '<div class="mini-item"><span>PPPoE Port</span><b>'+esc(r.distribution_interface||'—')+'</b></div>'+
+            '<div class="mini-item"><span>Provider</span><b>'+esc(r.internet_provider||'—')+'</b></div>'+
+            '<div class="mini-item"><span>Adapter</span><b>'+esc(r.adapter_mode||'MOCK')+'</b></div>'+
+            '<div class="mini-item"><span>آخر ظهور</span><b>'+esc(fmtDate(r.last_seen_at))+'</b></div>'+
+          '</div>'+
+          '<div class="alert info" style="margin-top:14px">لن نعتمد تشغيل المشتركين على السحابة. بعد الربط، الراوتر يبقى يشغّل PPPoE والانتهاء والسرعات محلياً حتى إذا توقف الموقع.</div>'+
+        '</div>'+
+      '</div>';
+  }
+
+  window.openAddSubscriber=function(){
+    if(!canManage())return;
+    openModal(
+      '<div class="modal-head"><h3>إضافة مشترك</h3><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<form id="addSubscriberForm">'+
+        '<div class="form-grid">'+
+          '<div class="field"><label>الاسم الكامل</label><input name="full_name" required></div>'+
+          '<div class="field"><label>رقم الهاتف</label><input name="phone" required></div>'+
+          '<div class="field"><label>PPPoE Username</label><input name="username" autocomplete="off" required></div>'+
+          '<div class="field"><label>PPPoE Password</label><input name="password" type="password" minlength="4" autocomplete="new-password" required></div>'+
+          '<div class="field"><label>الباقة</label><select name="package_id" required>'+state.packages.filter(x=>x.active).map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+' • '+fmtIQD(p.price_iqd)+'</option>').join('')+'</select></div>'+
+          '<div class="field"><label>ملاحظات</label><input name="notes"></div>'+
+        '</div>'+
+        '<div class="alert info">عند الحفظ يتم إنشاء الاشتراك لمدة الباقة وتسجيل الدفعة وإنشاء أوامر MikroTik تلقائياً.</div>'+
+        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">حفظ وتفعيل</button></div>'+
+      '</form>'
+    );
+
+    $('#addSubscriberForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=e.submitter;btn.disabled=true;
+      const f=new FormData(e.currentTarget);
+      try{
+        await rpc('activate_subscriber',{
+          p_full_name:f.get('full_name').trim(),
+          p_phone:f.get('phone').trim(),
+          p_username:f.get('username').trim(),
+          p_password:f.get('password'),
+          p_package_id:f.get('package_id'),
+          p_notes:f.get('notes')?.trim()||null
+        });
+        closeModal();toast('تمت إضافة المشترك بنجاح');await refreshAll();
+      }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+  }
+
+  window.openRenew=function(id){
+    if(!canRenew())return;
+    const s=subscriberById(id);
+    const current=subscriptionBySubscriber(id);
+    if(!s)return;
+
+    openModal(
+      '<div class="modal-head"><h3>تجديد '+esc(s.full_name)+'</h3><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<form id="renewForm">'+
+        '<div class="field"><label>الباقة</label><select name="package_id">'+state.packages.filter(x=>x.active).map(p=>'<option value="'+esc(p.id)+'" '+(p.id===s.package_id?'selected':'')+'>'+esc(p.name)+' • '+fmtIQD(p.price_iqd)+' • '+esc(p.duration_hours)+' ساعة</option>').join('')+'</select></div>'+
+        '<div class="field"><label>ملاحظة</label><input name="notes"></div>'+
+        '<div class="alert info">الانتهاء الحالي: <b>'+esc(fmtDate(current?.expires_at))+'</b><br>إذا الاشتراك ما زال فعالاً، تضاف المدة إلى تاريخ الانتهاء الحالي. إذا منتهي، تبدأ المدة من لحظة التجديد.</div>'+
+        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn success">تأكيد التجديد</button></div>'+
+      '</form>'
+    );
+
+    $('#renewForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=e.submitter;btn.disabled=true;
+      const f=new FormData(e.currentTarget);
+      try{
+        const expiry=await rpc('renew_subscriber',{
+          p_subscriber_id:id,
+          p_package_id:f.get('package_id'),
+          p_notes:f.get('notes')?.trim()||null,
+          p_idempotency_key:'renew:'+id+':'+crypto.randomUUID()
+        });
+        closeModal();toast('تم التجديد حتى '+fmtDate(expiry));await refreshAll();
+      }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+  }
+
+  window.openEditSubscriber=function(id){
+    if(!canManage())return;
+    const s=subscriberById(id);
+    if(!s)return;
+
+    openModal(
+      '<div class="modal-head"><h3>تعديل بيانات المشترك</h3><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<form id="editSubscriberForm">'+
+        '<div class="form-grid">'+
+          '<div class="field"><label>الاسم الكامل</label><input name="full_name" value="'+esc(s.full_name)+'" required></div>'+
+          '<div class="field"><label>رقم الهاتف</label><input name="phone" value="'+esc(s.phone)+'" required></div>'+
+          '<div class="field"><label>PPPoE Username</label><input name="username" value="'+esc(s.pppoe_username)+'" required></div>'+
+          '<div class="field"><label>ملاحظات</label><input name="notes" value="'+esc(s.notes||'')+'"></div>'+
+        '</div>'+
+        '<div class="hint">تغيير PPPoE Username ينشئ أمر UPDATE_PPPOE تلقائياً. كلمة المرور محفوظة في جدول خاص ولا تظهر بالواجهة.</div>'+
+        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">حفظ</button></div>'+
+      '</form>'
+    );
+
+    $('#editSubscriberForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=e.submitter;btn.disabled=true;
+      const f=new FormData(e.currentTarget);
+      try{
+        await rpc('update_subscriber_details',{
+          p_subscriber_id:id,
+          p_full_name:f.get('full_name').trim(),
+          p_phone:f.get('phone').trim(),
+          p_username:f.get('username').trim(),
+          p_notes:f.get('notes')?.trim()||null
+        });
+        closeModal();toast('تم تحديث بيانات المشترك');await refreshAll();
+      }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+  }
+
+  window.openSpeed=function(id){
+    if(!canManage())return;
+    const s=subscriberById(id);
+    if(!s)return;
+
+    openModal(
+      '<div class="modal-head"><h3>تغيير السرعة</h3><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<form id="speedForm">'+
+        '<div class="form-grid">'+
+          '<div class="field"><label>Download Mbps</label><input name="down" type="number" min="1" value="'+esc(s.download_mbps)+'" required></div>'+
+          '<div class="field"><label>Upload Mbps</label><input name="up" type="number" min="1" value="'+esc(s.upload_mbps)+'" required></div>'+
+        '</div>'+
+        '<label class="row" style="margin-top:8px"><input name="disconnect" type="checkbox" checked> فصل الجلسة بعد تغيير السرعة لتطبيقها فوراً</label>'+
+        '<div class="alert info" style="margin-top:14px">تغيير السرعة لا يغيّر تاريخ انتهاء الاشتراك.</div>'+
+        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">حفظ السرعة</button></div>'+
+      '</form>'
+    );
+
+    $('#speedForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=e.submitter;btn.disabled=true;
+      const f=new FormData(e.currentTarget);
+      try{
+        await rpc('change_subscriber_speed',{
+          p_subscriber_id:id,
+          p_download_mbps:Number(f.get('down')),
+          p_upload_mbps:Number(f.get('up')),
+          p_disconnect:f.get('disconnect')==='on'
+        });
+        closeModal();toast('تم تحديث السرعة');await refreshAll();
+      }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+  }
+
+  window.toggleSuspend=async function(id,suspend){
+    if(!canManage())return;
+    if(!confirm(suspend?'تعليق هذا المشترك وفصل جلسته؟':'إعادة تفعيل هذا المشترك؟'))return;
+    try{
+      await rpc('set_subscriber_suspension',{p_subscriber_id:id,p_suspend:suspend});
+      toast(suspend?'تم تعليق المشترك':'تم تفعيل المشترك');
+      await refreshAll();
+    }catch(err){toast(err.message,true)}
+  }
+
+  window.disconnectSubscriber=async function(id){
+    if(!canManage())return;
+    if(!confirm('إرسال أمر فصل جلسة PPPoE لهذا المشترك؟'))return;
+    try{
+      await rpc('disconnect_subscriber',{p_subscriber_id:id});
+      toast('تم إنشاء أمر فصل الجلسة');
+      await refreshAll();
+    }catch(err){toast(err.message,true)}
+  }
+
+  window.archiveSubscriber=async function(id){
+    if(!canManage())return;
+    const s=subscriberById(id);
+    if(!s)return;
+    if(!confirm('أرشفة '+s.full_name+'؟\nسيتم تعطيله وفصل جلسته وإزالة موعد الانتهاء من الراوتر لاحقاً. السجلات والمدفوعات تبقى محفوظة.'))return;
+    try{
+      await rpc('archive_subscriber',{p_subscriber_id:id});
+      toast('تمت أرشفة المشترك');
+      await refreshAll();
+    }catch(err){toast(err.message,true)}
+  }
+
+  window.openPackage=function(id=null){
+    if(!canManage())return;
+    const p=id?packageById(id):null;
+
+    openModal(
+      '<div class="modal-head"><h3>'+(p?'تعديل الباقة':'إضافة باقة')+'</h3><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<form id="packageForm">'+
+        '<div class="form-grid">'+
+          '<div class="field"><label>اسم الباقة</label><input name="name" value="'+esc(p?.name||'')+'" required></div>'+
+          '<div class="field"><label>السعر IQD</label><input name="price" type="number" min="0" value="'+esc(p?.price_iqd??0)+'" required></div>'+
+          '<div class="field"><label>Download Mbps</label><input name="down" type="number" min="1" value="'+esc(p?.download_mbps??10)+'" required></div>'+
+          '<div class="field"><label>Upload Mbps</label><input name="up" type="number" min="1" value="'+esc(p?.upload_mbps??5)+'" required></div>'+
+          '<div class="field"><label>المدة بالساعات</label><input name="hours" type="number" min="1" value="'+esc(p?.duration_hours??720)+'" required></div>'+
+          '<div class="field"><label>Router Profile Name</label><input name="router_profile" value="'+esc(p?.router_profile_name||'')+'" required></div>'+
+        '</div>'+
+        '<label class="row"><input name="active" type="checkbox" '+(p?.active!==false?'checked':'')+'> الباقة فعالة</label>'+
+        '<div class="hint" style="margin-top:8px">30 يوم بالضبط = 720 ساعة.</div>'+
+        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">حفظ</button></div>'+
+      '</form>'
+    );
+
+    $('#packageForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=e.submitter;btn.disabled=true;
+      const f=new FormData(e.currentTarget);
+      try{
+        await rpc('save_package',{
+          p_id:p?.id||null,
+          p_name:f.get('name').trim(),
+          p_price_iqd:Number(f.get('price')),
+          p_download_mbps:Number(f.get('down')),
+          p_upload_mbps:Number(f.get('up')),
+          p_duration_hours:Number(f.get('hours')),
+          p_router_profile_name:f.get('router_profile').trim(),
+          p_active:f.get('active')==='on'
+        });
+        closeModal();toast('تم حفظ الباقة');await refreshAll();
+      }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+  }
+
+  window.openInviteUser=function(){
+    if(!isOwner())return;
+
+    openModal(
+      '<div class="modal-head"><h3>دعوة مستخدم</h3><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<form id="inviteForm">'+
+        '<div class="field"><label>البريد الإلكتروني</label><input name="email" type="email" required></div>'+
+        '<div class="field"><label>الصلاحية</label><select name="role"><option value="MANAGER">MANAGER</option><option value="CASHIER">CASHIER</option><option value="VIEWER">VIEWER</option></select></div>'+
+        '<div class="alert info">بعد إنشاء الدعوة، يسجل الشخص حساباً بنفس البريد من Supabase Auth، وسيحصل على الصلاحية المحددة تلقائياً.</div>'+
+        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">إنشاء الدعوة</button></div>'+
+      '</form>'
+    );
+
+    $('#inviteForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=e.submitter;btn.disabled=true;
+      const f=new FormData(e.currentTarget);
+      try{
+        await rpc('invite_user',{p_email:f.get('email').trim(),p_role:f.get('role')});
+        closeModal();toast('تم إنشاء الدعوة');await refreshAll();
+      }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+  }
+
+  window.openSetting=function(key){
+    if(!isOwner())return;
+    const s=state.settings.find(x=>x.key===key);
+    if(!s)return;
+    const value=typeof s.value==='string'?s.value:JSON.stringify(s.value);
+
+    openModal(
+      '<div class="modal-head"><h3>تعديل '+esc(key)+'</h3><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<form id="settingForm">'+
+        '<div class="field"><label>القيمة</label><input name="value" value="'+esc(value)+'" required></div>'+
+        '<div class="hint">'+esc(s.description||'')+'</div>'+
+        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">حفظ</button></div>'+
+      '</form>'
+    );
+
+    $('#settingForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=e.submitter;btn.disabled=true;
+      const f=new FormData(e.currentTarget);
+      try{
+        await rpc('save_setting',{p_key:key,p_value:f.get('value')});
+        closeModal();toast('تم حفظ الإعداد');await refreshAll();
+      }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+  }
+
+  window.refreshAll=refreshAll;
+
+  setInterval(()=>{
+    if(!$('#appView').classList.contains('hidden'))refreshAll();
+  },60000);
+
+  boot();
+})();
+</script>
+</body>
+</html>
