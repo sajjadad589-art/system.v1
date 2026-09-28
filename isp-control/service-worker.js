@@ -1,5 +1,5 @@
-const CACHE='isp-control-pwa-v1';
-const CORE=['./index.html','./manifest.webmanifest'];
+const CACHE='isp-control-pwa-v2';
+const CORE=['./index.html','./manifest.json'];
 const ICON='https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-control-assets/icon.png';
 
 self.addEventListener('install',event=>{
