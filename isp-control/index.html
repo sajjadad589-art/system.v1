@@ -73,6 +73,141 @@ table{width:100%;border-collapse:collapse;min-width:880px}th,td{padding:12px 13p
     .floating-add{right:14px;bottom:84px}
   }
 }
+
+/* ===== ISP Control • Aurora UI v17 ===== */
+:root{
+  --aurora-blue:#168cff;
+  --aurora-cyan:#22c7ff;
+  --aurora-green:#00d99a;
+  --aurora-purple:#9a5cff;
+  --aurora-pink:#ff3f78;
+  --aurora-orange:#ffad35;
+  --glass:rgba(10,30,58,.78);
+  --glass-strong:rgba(13,39,72,.94);
+}
+body{
+  background:
+    radial-gradient(circle at 15% -5%,rgba(36,95,255,.27),transparent 29%),
+    radial-gradient(circle at 92% 10%,rgba(145,54,255,.12),transparent 24%),
+    radial-gradient(circle at 44% 108%,rgba(0,196,255,.09),transparent 30%),
+    linear-gradient(155deg,#040b18 0%,#07172c 52%,#040b17 100%);
+}
+.auth{background:
+  radial-gradient(circle at 50% 12%,rgba(20,113,255,.28),transparent 31%),
+  radial-gradient(circle at 85% 80%,rgba(139,72,255,.13),transparent 24%),
+  linear-gradient(160deg,#030a16,#06172d 55%,#030a16)}
+.auth-card{
+  position:relative;overflow:hidden;border:1px solid rgba(65,133,220,.45);
+  background:linear-gradient(180deg,rgba(13,36,68,.96),rgba(4,17,34,.96));
+  box-shadow:0 35px 90px rgba(0,0,0,.58),0 0 55px rgba(24,112,255,.10);
+}
+.auth-card:before{
+  content:"";position:absolute;width:230px;height:230px;border-radius:50%;top:-150px;left:50%;
+  transform:translateX(-50%);background:rgba(28,114,255,.18);filter:blur(10px);pointer-events:none
+}
+.auth-card .brand{justify-content:center;flex-direction:column;text-align:center;margin:8px 0 20px}
+.auth-card .brand .logo{width:76px;height:76px;border-radius:24px;font-size:20px;background:
+  linear-gradient(145deg,#1fd2ff,#1766ff 58%,#894cff);box-shadow:0 15px 42px rgba(22,104,255,.38),inset 0 1px rgba(255,255,255,.28)}
+.auth-card .brand h2{font-size:25px;margin-top:5px}
+.auth-tabs{background:#091b35;border:1px solid #1c4777;padding:5px;border-radius:16px}
+.auth-tabs .btn{border:0;background:transparent;box-shadow:none}
+.auth-tabs .active{background:linear-gradient(135deg,#1597ff,#3e62ff 62%,#9456ff);box-shadow:0 8px 22px rgba(29,105,255,.28)}
+.auth-card .field input{height:52px;background:rgba(10,34,65,.9);border-color:#24558c}
+.auth-card form>.btn.primary{height:52px;background:linear-gradient(100deg,#178fff,#3168ff 58%,#9c4cff);border:0;box-shadow:0 12px 30px rgba(59,83,255,.30)}
+.sidebar{background:linear-gradient(180deg,rgba(5,18,36,.98),rgba(4,13,27,.98));border-left-color:rgba(50,103,168,.33);box-shadow:-20px 0 60px rgba(0,0,0,.17)}
+.sidebar .logo,.router-logo{background:linear-gradient(145deg,#2bd6ff,#1776ff 58%,#6d4dff);box-shadow:0 10px 30px rgba(31,132,255,.3)}
+.nav button{position:relative;border:1px solid transparent}
+.nav button:hover{border-color:rgba(67,132,213,.25)}
+.nav button.active{background:linear-gradient(110deg,rgba(24,132,255,.25),rgba(116,69,255,.17));border-color:rgba(50,143,255,.38);box-shadow:inset 3px 0 #2b9dff,0 8px 20px rgba(0,0,0,.1)}
+.topbar{
+  background:linear-gradient(180deg,rgba(3,13,28,.95),rgba(6,21,40,.88));
+  border-bottom-color:rgba(61,122,193,.27);
+  box-shadow:0 12px 30px rgba(0,0,0,.15)
+}
+.topbar .icon-btn{background:linear-gradient(180deg,#12345e,#0d2748);border-color:#285784}
+.topbar .icon-btn:first-of-type{position:relative}
+.topbar .icon-btn:first-of-type:after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:#ff3d64;right:7px;top:7px;box-shadow:0 0 9px rgba(255,61,100,.7)}
+.content{max-width:1500px;width:100%;margin:0 auto}
+.card,.table-wrap,.modal-card,.subscriber-mobile-card,.traffic-provider,.traffic-capacity{
+  border-color:rgba(51,105,171,.44);
+  box-shadow:0 18px 46px rgba(0,5,16,.30),inset 0 1px rgba(255,255,255,.025)
+}
+.card{background:linear-gradient(155deg,rgba(16,44,79,.94),rgba(7,25,48,.95))}
+.page-head h1{font-size:28px;letter-spacing:-.4px}
+.eyebrow{font-size:10px;letter-spacing:1.8px;color:#59baff;font-weight:900}
+.dashboard-welcome{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:18px}
+.dashboard-welcome h1{font-size:31px;margin:4px 0}
+.dashboard-clock{padding:10px 13px;border:1px solid #214a77;border-radius:14px;background:rgba(11,34,63,.72);text-align:left}
+.dashboard-clock span{display:block;font-size:9px;color:#8da4c2}.dashboard-clock b{font-size:11px}
+.dash-color-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.dash-color-card{min-height:112px;border-radius:20px;padding:17px;display:flex;align-items:center;gap:14px;color:#fff;position:relative;overflow:hidden;box-shadow:0 16px 35px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.18)}
+.dash-color-card:after{content:"";position:absolute;width:100px;height:100px;border-radius:50%;left:-40px;bottom:-55px;background:rgba(255,255,255,.10)}
+.dash-color-card b{font-size:29px;display:block}.dash-color-card span{font-size:11px;opacity:.9}.dc-icon{width:45px;height:45px;border-radius:15px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:20px;backdrop-filter:blur(8px)}
+.dc-blue{background:linear-gradient(135deg,#118fff,#1d5ee6)}.dc-green{background:linear-gradient(135deg,#08d39d,#00a96f)}.dc-orange{background:linear-gradient(135deg,#ffb039,#f17b20)}.dc-pink{background:linear-gradient(135deg,#ff5772,#d62d62)}
+.dashboard-main-grid{display:grid;grid-template-columns:1.5fr .65fr;gap:14px;margin-bottom:14px}
+.isp-live-card{padding:20px;border-radius:22px;border:1px solid rgba(43,124,209,.55);background:
+  radial-gradient(circle at 100% 0,rgba(22,139,255,.14),transparent 34%),
+  linear-gradient(155deg,#0d2a4d,#081d38);box-shadow:0 20px 52px rgba(0,5,18,.34)}
+.isp-live-card h3{font-size:20px;margin:3px 0 0}.isp-speeds{display:flex;gap:28px;margin:19px 0 5px}.isp-speeds span{display:block;font-size:10px;color:#91a9c7}.isp-speeds b{display:block;margin-top:5px;font-size:21px}.isp-speeds>div:first-child b{color:#39bdff}.isp-speeds>div:last-child b{color:#42e1af}
+.dash-sparkline{height:120px;margin:2px -2px 8px}.dash-sparkline svg{width:100%;height:100%}
+.isp-meta{display:flex;gap:8px;flex-wrap:wrap}.isp-meta span{padding:7px 10px;border-radius:9px;border:1px solid #23507f;background:#0b2442;font-size:9px;color:#91a9c7}.isp-meta b{color:#fff}
+.finance-glass-card{border:1px solid rgba(124,84,221,.36);border-radius:22px;padding:20px;background:
+  radial-gradient(circle at 90% 5%,rgba(154,83,255,.24),transparent 32%),
+  linear-gradient(160deg,#161f47,#0a1c36 58%,#07172c);box-shadow:0 20px 50px rgba(0,4,16,.3)}
+.finance-value{font-size:28px;font-weight:900;margin:18px 0 4px;background:linear-gradient(90deg,#fff,#64c8ff);-webkit-background-clip:text;color:transparent}
+.finance-today{margin-top:23px;padding:12px;border:1px solid #2c4d79;border-radius:13px;background:rgba(8,28,53,.72);display:flex;justify-content:space-between}.finance-today span{color:#91a8c7;font-size:10px}
+.finance-status{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.finance-status span{padding:9px;border-radius:10px;font-size:9px;text-align:center}.finance-status span:first-child{background:rgba(0,213,148,.13);color:#58dfb2}.finance-status span:last-child{background:rgba(255,72,103,.13);color:#ff8296}
+.dashboard-lower-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:14px}.premium-card{background:
+  linear-gradient(150deg,rgba(15,44,80,.97),rgba(7,24,46,.98))}
+.mini-link{border:0;background:transparent;color:#53b7ff;font-size:10px}
+.status-orb{width:11px;height:11px;border-radius:50%;background:#ff4966;box-shadow:0 0 14px rgba(255,73,102,.5)}.status-orb.ok{background:#00d99a;box-shadow:0 0 14px rgba(0,217,154,.6)}
+.neon-stat{position:relative;overflow:hidden}.neon-stat:after{content:"";position:absolute;inset:auto -25px -50px auto;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.10)}
+.search-panel .input{box-shadow:inset 0 1px rgba(255,255,255,.03)}.search-panel .add-inline{background:linear-gradient(135deg,#168fff,#365fff 62%,#8d56ff);border:0}
+.filter-chip{background:rgba(9,28,52,.78);border-color:#2b537f}.filter-chip.active{background:linear-gradient(135deg,#f8fbff,#9dd9ff);box-shadow:0 7px 18px rgba(67,166,255,.18)}
+.subscriber-mobile-card{background:linear-gradient(135deg,rgba(17,47,84,.95),rgba(8,29,55,.97))}
+.subscriber-mobile-card:hover{border-color:#3288df}
+.avatar-circle{border:1px solid rgba(255,255,255,.24)}
+.pkg-pill{background:linear-gradient(135deg,#118cff,#155bda);box-shadow:0 6px 14px rgba(18,105,238,.18)}
+.action-trigger{background:linear-gradient(180deg,#153b67,#0f2a4b)!important;border-color:#2c5d91!important}
+.package-card{position:relative;overflow:hidden}.package-card:before{content:"";position:absolute;right:0;top:0;width:4px;height:100%;background:#168cff}.grid3>.package-card:nth-child(2):before{background:#9b5cff}.grid3>.package-card:nth-child(3):before{background:#ffad35}.grid3>.package-card:nth-child(4):before{background:#00d99a}.package-card .speed{background:linear-gradient(90deg,#fff,#58c4ff);-webkit-background-clip:text;color:transparent}
+body[data-page="payments"] .cards .card:nth-child(1){border-color:rgba(0,217,154,.35)}body[data-page="payments"] .cards .card:nth-child(2){border-color:rgba(37,163,255,.4)}body[data-page="payments"] .cards .card:nth-child(3){border-color:rgba(154,92,255,.38)}body[data-page="payments"] .cards .card:nth-child(4){border-color:rgba(255,173,53,.38)}
+body[data-page="settings"] .grid2>.card:first-child{border-top:2px solid #9a5cff}body[data-page="settings"] .grid2>.card:last-child{border-top:2px solid #22c7ff}
+body[data-page="users"] .grid2>.card:first-child{border-top:2px solid #22c7ff}body[data-page="users"] .grid2>.card:last-child{border-top:2px solid #9a5cff}
+body[data-page="logs"] .table-wrap{border-top:2px solid #9a5cff}body[data-page="commands"] .table-wrap{border-top:2px solid #ffad35}
+.traffic-provider{background:radial-gradient(circle at 100% 0,rgba(24,145,255,.18),transparent 36%),linear-gradient(145deg,#0e2b50,#081e39)}
+.traffic-capacity{background:radial-gradient(circle at 100% 0,rgba(154,92,255,.14),transparent 36%),linear-gradient(145deg,#10294b,#081d37)}
+.traffic-row{border-color:#28517e;background:linear-gradient(145deg,#102d51,#091f3a)}
+.traffic-row:hover{border-color:#2d9cff;box-shadow:0 12px 28px rgba(0,10,28,.26)}
+.traffic-rate.tx{border-color:rgba(66,224,175,.28)}.traffic-rate.rx{border-color:rgba(55,184,255,.28)}
+.modal{background:rgba(1,7,18,.83);backdrop-filter:blur(13px)}
+.modal-card{border-color:rgba(53,125,205,.62);background:
+  radial-gradient(circle at 100% 0,rgba(49,112,255,.12),transparent 30%),
+  linear-gradient(180deg,#102d51,#071a33);box-shadow:0 28px 90px rgba(0,0,0,.65),0 0 45px rgba(33,123,255,.10)}
+.modal-head{border-bottom:1px solid rgba(49,99,158,.28);padding-bottom:12px}.modal-head h3{font-size:19px}
+.modal-card .field input,.modal-card .field select,.modal-card .field textarea{background:#0b2646;border-color:#2a5687}
+.modal-card .btn.primary{background:linear-gradient(100deg,#168eff,#3564ff 60%,#9a53ff);border:0}
+.package-choice{background:linear-gradient(150deg,#102b4f,#0a213e);min-height:86px;display:flex;flex-direction:column;justify-content:center}.package-choice:nth-child(1){border-color:rgba(0,217,154,.34)}.package-choice:nth-child(2){border-color:rgba(31,145,255,.4)}.package-choice:nth-child(3){border-color:rgba(255,173,53,.38)}.package-choice:nth-child(4){border-color:rgba(154,92,255,.42)}
+.action-sheet-item{transition:.15s}.action-sheet-item:hover{transform:translateX(-2px);border-color:#3688d7}
+.table-wrap{background:rgba(7,24,46,.88)}th{background:linear-gradient(180deg,#12345c,#0e2a4b)}tbody tr:hover{background:rgba(20,61,103,.55)}
+.metric{background:linear-gradient(150deg,#112f54,#0a2341)}
+.mini-item{padding:12px 4px}.mini-item:hover{background:rgba(21,59,99,.28)}
+.bottom-nav{background:linear-gradient(180deg,rgba(6,22,43,.96),rgba(4,15,31,.98));border-color:rgba(52,108,178,.50);box-shadow:0 20px 55px rgba(0,0,0,.5)}
+.bottom-nav button.active{background:linear-gradient(135deg,#168bff,#325fff 62%,#7653f5);box-shadow:0 8px 22px rgba(35,97,255,.30)}
+.toast{background:linear-gradient(145deg,#12365e,#0b2544);border-color:#2d639a}
+@media(max-width:1100px){
+  .dashboard-main-grid,.dashboard-lower-grid{grid-template-columns:1fr}
+}
+@media(max-width:780px){
+  .content{padding:13px 12px 96px}
+  .dashboard-welcome{align-items:flex-start}.dashboard-welcome h1{font-size:23px}.dashboard-clock{display:none}
+  .dash-color-cards{gap:7px}.dash-color-card{min-height:90px;padding:10px 6px;display:block;text-align:center;border-radius:15px}.dash-color-card .dc-icon{width:30px;height:30px;margin:0 auto 5px;border-radius:10px;font-size:14px}.dash-color-card b{font-size:20px}.dash-color-card span{font-size:8px}
+  .dashboard-main-grid{grid-template-columns:1fr}.dashboard-lower-grid{grid-template-columns:1fr}.isp-live-card,.finance-glass-card{padding:15px;border-radius:18px}
+  .isp-speeds{gap:20px}.isp-speeds b{font-size:18px}.dash-sparkline{height:93px}
+  .finance-value{font-size:23px}.finance-today{margin-top:15px}
+  .page-head h1{font-size:23px}
+  .modal-card{border-top:1px solid #377bc3;background:linear-gradient(180deg,#102d51,#06172e)}
+  .auth-card{padding:22px 18px;border-radius:24px}
+}
 </style>
 </head>
 <body>
@@ -558,6 +693,7 @@ table{width:100%;border-collapse:collapse;min-width:880px}th,td{padding:12px 13p
 
   function render(){
     const floating=$('#floatingAdd'); if(floating) floating.classList.add('hidden');
+    document.body.dataset.page=state.page;
 
     const titles={
       dashboard:['الرئيسية','نظرة عامة على الشبكة والاشتراكات'],
@@ -608,35 +744,46 @@ table{width:100%;border-collapse:collapse;min-width:880px}th,td{padding:12px 13p
 
     const router=state.routers[0]||{};
     const pendingCommands=state.commands.filter(x=>['PENDING','RETRY','EXECUTING'].includes(x.status)).length;
+    const providerFresh=trafficFresh(router.traffic_updated_at);
 
     $('#content').innerHTML=
-      '<div class="page-head">'+
-        '<div><h1>لوحة التحكم</h1><div class="muted">آخر تحديث: '+esc(fmtDate(new Date()))+'</div></div>'+
-        (canManage()?'<button class="btn primary" onclick="openAddSubscriber()">+ إضافة مشترك</button>':'')+
+      '<div class="dashboard-welcome">'+
+        '<div><div class="eyebrow">ISP CONTROL</div><h1>لوحة التحكم</h1><div class="muted">إدارة الشبكة والمشتركين من مكان واحد</div></div>'+
+        '<div class="dashboard-clock"><span>آخر تحديث</span><b>'+esc(fmtDate(new Date()))+'</b></div>'+
       '</div>'+
-      '<div class="cards">'+
-        '<div class="card card-pad kpi"><div class="label">المشتركين الفعالين</div><div class="value">'+active+'</div><div class="sub">من أصل '+subs.length+' مشترك</div></div>'+
-        '<div class="card card-pad kpi"><div class="label">Online الآن</div><div class="value">'+online+'</div><div class="sub">يتحدّث فعلياً بعد ربط MikroTik</div></div>'+
-        '<div class="card card-pad kpi"><div class="label">المنتهية / الموقوفة</div><div class="value">'+(expired+suspended)+'</div><div class="sub">'+expired+' منتهي • '+suspended+' موقوف</div></div>'+
-        '<div class="card card-pad kpi"><div class="label">إيراد الشهر</div><div class="value" style="font-size:23px">'+fmtIQD(monthRevenue)+'</div><div class="sub">اليوم '+fmtIQD(todayRevenue)+'</div></div>'+
+      '<div class="dash-color-cards">'+
+        '<div class="dash-color-card dc-blue"><div class="dc-icon">♙</div><div><b>'+subs.length+'</b><span>المشتركين</span></div></div>'+
+        '<div class="dash-color-card dc-green"><div class="dc-icon">◉</div><div><b>'+online+'</b><span>متصل الآن</span></div></div>'+
+        '<div class="dash-color-card dc-orange"><div class="dc-icon">◔</div><div><b>'+expired+'</b><span>منتهي</span></div></div>'+
+        '<div class="dash-color-card dc-pink"><div class="dc-icon">!</div><div><b>'+suspended+'</b><span>موقوف</span></div></div>'+
       '</div>'+
-      '<div class="grid2">'+
-        '<div class="card card-pad"><h3 class="section-title">أقرب مواعيد الانتهاء</h3>'+
-          '<div class="mini-list">'+(upcoming.length?upcoming.map(s=>{
-            const u=subscriberById(s.subscriber_id);
-            return '<div class="mini-item"><div><b>'+esc(u?.full_name||'—')+'</b><div class="muted">'+esc(u?.pppoe_username||'')+'</div></div><div><b>'+esc(remaining(s.expires_at))+'</b><div class="muted">'+esc(fmtDate(s.expires_at))+'</div></div></div>'
-          }).join(''):'<div class="empty">لا توجد اشتراكات فعالة قريبة الانتهاء</div>')+'</div>'+
+      '<div class="dashboard-main-grid">'+
+        '<div class="isp-live-card">'+
+          '<div class="row between"><div><div class="eyebrow">مزود الإنترنت (WAN)</div><h3>'+esc(router.internet_provider||'ISP')+'</h3></div><span class="badge '+(providerFresh?'online':'pending')+'">'+(providerFresh?'LIVE':'MOCK')+'</span></div>'+
+          '<div class="isp-speeds">'+
+            '<div><span>↓ RX</span><b>'+esc(providerFresh?fmtRate(router.provider_rx_bps):fmtRate(router.download_mbps*1000000||0))+'</b></div>'+
+            '<div><span>↑ TX</span><b>'+esc(providerFresh?fmtRate(router.provider_tx_bps):fmtRate(router.upload_mbps*1000000||0))+'</b></div>'+
+          '</div>'+
+          '<div class="dash-sparkline"><svg viewBox="0 0 560 120" preserveAspectRatio="none"><defs><linearGradient id="gDashB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#25b9ff" stop-opacity=".34"/><stop offset="100%" stop-color="#25b9ff" stop-opacity="0"/></linearGradient><linearGradient id="gDashG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#32e0ad" stop-opacity=".25"/><stop offset="100%" stop-color="#32e0ad" stop-opacity="0"/></linearGradient></defs><path d="M0 92 C40 84 62 40 96 66 S150 95 185 54 S240 28 275 64 S330 100 365 58 S424 42 458 18 S520 66 560 38 L560 120 L0 120 Z" fill="url(#gDashB)"/><path d="M0 92 C40 84 62 40 96 66 S150 95 185 54 S240 28 275 64 S330 100 365 58 S424 42 458 18 S520 66 560 38" fill="none" stroke="#31b8ff" stroke-width="3"/><path d="M0 103 C42 78 76 98 110 78 S170 54 205 82 S270 98 306 72 S365 52 398 79 S458 88 494 62 S535 74 560 55 L560 120 L0 120 Z" fill="url(#gDashG)"/><path d="M0 103 C42 78 76 98 110 78 S170 54 205 82 S270 98 306 72 S365 52 398 79 S458 88 494 62 S535 74 560 55" fill="none" stroke="#35dfa9" stroke-width="3"/></svg></div>'+
+          '<div class="isp-meta"><span>الخط <b>'+esc(router.line_speed_mbps||0)+' Mbps</b></span><span>PPPoE <b>'+online+'</b></span><span>أوامر معلقة <b>'+pendingCommands+'</b></span></div>'+
         '</div>'+
-        '<div class="card card-pad"><h3 class="section-title">حالة MikroTik</h3>'+
+        '<div class="finance-glass-card">'+
+          '<div class="eyebrow">المالية</div><div class="finance-value">'+fmtIQD(monthRevenue)+'</div><div class="muted">إيراد هذا الشهر</div>'+
+          '<div class="finance-today"><span>اليوم</span><b>'+fmtIQD(todayRevenue)+'</b></div>'+
+          '<div class="finance-status"><span>فعال '+active+'</span><span>منتهي '+expired+'</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="dashboard-lower-grid">'+
+        '<div class="card card-pad premium-card"><div class="row between"><h3 class="section-title">أقرب مواعيد الانتهاء</h3><button class="mini-link" onclick="document.querySelector(\'[data-page=subscribers]\').click()">عرض المشتركين</button></div>'+
+          '<div class="mini-list">'+(upcoming.length?upcoming.map(s=>{const u=subscriberById(s.subscriber_id);return '<div class="mini-item"><div><b>'+esc(u?.full_name||'—')+'</b><div class="muted">'+esc(u?.pppoe_username||'')+'</div></div><div><b>'+esc(remaining(s.expires_at))+'</b><div class="muted">'+esc(fmtDate(s.expires_at))+'</div></div></div>'}).join(''):'<div class="empty">لا توجد اشتراكات فعالة قريبة الانتهاء</div>')+'</div>'+
+        '</div>'+
+        '<div class="card card-pad premium-card router-health-card"><div class="row between"><h3 class="section-title">حالة النظام</h3><span class="status-orb '+(router.router_status==='ONLINE'?'ok':'')+'"></span></div>'+
           '<div class="metric-grid">'+
-            '<div class="metric"><span>الوضع</span><b>'+esc(router.adapter_mode||'MOCK')+'</b></div>'+
-            '<div class="metric"><span>الحالة</span><b>'+esc(router.router_status||'OFFLINE')+'</b></div>'+
-            '<div class="metric"><span>PPPoE Active</span><b>'+esc(router.pppoe_active_sessions??0)+'</b></div>'+
-            '<div class="metric"><span>أوامر معلقة</span><b>'+pendingCommands+'</b></div>'+
+            '<div class="metric"><span>الراوتر</span><b>'+esc(router.router_status||'OFFLINE')+'</b></div>'+
+            '<div class="metric"><span>Adapter</span><b>'+esc(router.adapter_mode||'MOCK')+'</b></div>'+
             '<div class="metric"><span>CPU</span><b>'+esc(router.cpu_load??0)+'%</b></div>'+
             '<div class="metric"><span>RAM</span><b>'+esc(router.ram_used_percent??0)+'%</b></div>'+
           '</div>'+
-          '<div class="hint" style="margin-top:12px">بيانات الراوتر الحالية تجريبية إلى أن نربط MikroTik الحقيقي.</div>'+
         '</div>'+
       '</div>';
   }
