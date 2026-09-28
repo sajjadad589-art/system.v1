@@ -64,8 +64,12 @@ table{width:100%;border-collapse:collapse;min-width:880px}th,td{padding:12px 13p
   .modal{align-items:end;padding:0}.modal-card{width:100%;max-width:none;border-radius:22px 22px 0 0;max-height:90vh;padding:17px}
   .bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;right:10px;left:10px;bottom:9px;z-index:45;background:rgba(5,18,38,.96);border:1px solid #234a78;border-radius:20px;padding:7px;box-shadow:0 18px 46px rgba(0,0,0,.45);backdrop-filter:blur(18px)}
   .bottom-nav button{border:0;background:transparent;color:#8fa9ca;padding:7px 4px;border-radius:13px;font-size:9px;display:flex;flex-direction:column;align-items:center;gap:4px}.bottom-nav .bn-icon{font-size:19px}.bottom-nav button.active{background:linear-gradient(135deg,#175dff,#143fc7);color:#fff}
-  .floating-add{display:flex;position:fixed;left:50%;transform:translateX(-50%);bottom:69px;z-index:46;align-items:center;gap:0}.floating-add .plus{width:55px;height:55px;border-radius:50%;background:linear-gradient(145deg,#1b91ff,#154ff2);display:grid;place-items:center;font-size:32px;color:white;box-shadow:0 10px 28px rgba(20,93,255,.4);border:1px solid #56b4ff}.floating-add .label{background:rgba(14,39,72,.95);border:1px solid #26537f;color:#fff;padding:11px 18px 11px 27px;border-radius:14px 0 0 14px;margin-right:-8px;font-size:12px}
+  .floating-add{display:flex;position:fixed;right:16px;left:auto;transform:none;bottom:86px;z-index:46;align-items:center;gap:8px;flex-direction:row-reverse}.floating-add .plus{width:54px;height:54px;border-radius:50%;background:linear-gradient(145deg,#1b91ff,#154ff2);display:grid;place-items:center;font-size:31px;color:white;box-shadow:0 10px 28px rgba(20,93,255,.4);border:1px solid #56b4ff}.floating-add .label{background:rgba(14,39,72,.96);border:1px solid #26537f;color:#fff;padding:10px 13px;border-radius:12px;font-size:11px;box-shadow:0 8px 20px rgba(0,0,0,.24)}
   .toast{bottom:90px;left:12px;right:12px;max-width:none}
+  @media(max-width:430px){
+    .floating-add .label{display:none}
+    .floating-add{right:14px;bottom:84px}
+  }
 }
 </style>
 </head>
