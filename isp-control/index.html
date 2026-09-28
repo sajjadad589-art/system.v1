@@ -7,265 +7,65 @@
 <title>ISP Control</title>
 <style>
 :root{
-  --bg:#050d1b;--bg-2:#08172b;--panel:rgba(11,29,55,.88);--panel-2:rgba(17,42,76,.92);
-  --line:rgba(92,150,226,.22);--text:#f6f9ff;--muted:#91a8c8;
-  --primary:#1687ff;--primary-2:#1557ff;--cyan:#25c6ff;--success:#00c98f;--warning:#ffad22;--danger:#ff445c;--purple:#8d56ff;
-  --shadow:0 20px 55px rgba(0,8,24,.48);--glow:0 0 26px rgba(22,135,255,.18);--radius:20px
-}
-:root.light{
-  --bg:#061126;--bg-2:#0a1d38;--panel:rgba(14,38,70,.92);--panel-2:rgba(20,49,88,.94);
-  --line:rgba(99,165,255,.26);--text:#ffffff;--muted:#9bb0cd;
-  --primary:#2196ff;--primary-2:#1c61ff;--cyan:#38ceff;--success:#02ce92;--warning:#ffb02f;--danger:#ff5268;--purple:#9567ff;
-  --shadow:0 20px 55px rgba(0,8,24,.46);--glow:0 0 28px rgba(33,150,255,.20)
+  --bg:#061225;--bg2:#071a31;--panel:#0c213e;--panel2:#102b4e;--panel3:#15365f;
+  --line:#244b79;--text:#f6f9ff;--muted:#91a8c8;--blue:#1487ff;--blue2:#0e5ce8;
+  --green:#00c98f;--orange:#ff9e22;--red:#ff4058;--purple:#8c52ff;--yellow:#ffb72c;
+  --shadow:0 18px 45px rgba(0,7,20,.38)
 }
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;font-family:Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text)}
-body{
-  min-height:100vh;
-  background:
-    radial-gradient(circle at 12% 8%,rgba(22,87,255,.20),transparent 28%),
-    radial-gradient(circle at 90% 18%,rgba(37,198,255,.08),transparent 24%),
-    linear-gradient(145deg,var(--bg),var(--bg-2) 56%,#050b16);
-  background-attachment:fixed
-}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-a{color:inherit}
-.hidden{display:none!important}
-.muted{color:var(--muted)}
-.mono{font-family:Consolas,Monaco,monospace}
-.row{display:flex;align-items:center;gap:10px}
-.wrap{flex-wrap:wrap}
-.between{justify-content:space-between}
-.grow{flex:1}
-.btn{
-  border:1px solid var(--line);background:linear-gradient(180deg,rgba(26,58,100,.92),rgba(14,37,69,.92));color:var(--text);padding:10px 14px;border-radius:13px;
-  transition:.16s ease;display:inline-flex;align-items:center;justify-content:center;gap:7px;box-shadow:inset 0 1px rgba(255,255,255,.04)
-}
-.btn:hover{transform:translateY(-1px);border-color:rgba(50,159,255,.66);box-shadow:var(--glow)}
-.btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));border-color:rgba(68,157,255,.8);color:#fff;box-shadow:0 10px 24px rgba(21,94,255,.22)}
-.btn.success{background:linear-gradient(135deg,#00b67c,var(--success));border-color:#13d99b;color:#fff}
-.btn.danger{background:linear-gradient(135deg,#e92f4e,var(--danger));border-color:#ff6075;color:#fff}
-.btn.ghost{background:transparent}
-.btn.small{padding:7px 10px;border-radius:10px;font-size:12px}
-.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
-.icon-btn{width:38px;height:38px;padding:0}
-.auth{
-  min-height:100vh;display:grid;place-items:center;padding:24px;
-  background:
-   radial-gradient(circle at 10% 10%,rgba(79,140,255,.20),transparent 32%),
-   radial-gradient(circle at 85% 85%,rgba(39,196,129,.11),transparent 30%),var(--bg)
-}
-.auth-card{width:min(480px,100%);background:var(--panel);border:1px solid var(--line);border-radius:26px;padding:28px;box-shadow:var(--shadow)}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{
-  width:46px;height:46px;border-radius:15px;display:grid;place-items:center;color:#fff;font-weight:900;
-  background:linear-gradient(135deg,var(--primary),var(--primary-2));box-shadow:0 10px 26px rgba(79,140,255,.25)
-}
-.brand h2{margin:0;font-size:21px}
-.auth-tabs{display:flex;gap:8px;margin:24px 0 10px}
-.auth-tabs .btn{flex:1}
-.auth-tabs .active{background:var(--primary);border-color:var(--primary);color:#fff}
-.field{display:flex;flex-direction:column;gap:7px;margin:12px 0}
-.field label{font-size:13px;color:var(--muted)}
-.input, .field input,.field select,.field textarea{
-  width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px 13px;outline:none
-}
-.field textarea{min-height:90px;resize:vertical}
-.input:focus,.field input:focus,.field select:focus,.field textarea:focus{
-  border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 18%,transparent)
-}
-.hint{font-size:12px;color:var(--muted);line-height:1.65}
-.alert{padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);font-size:13px;line-height:1.6}
-.alert.info{border-color:color-mix(in srgb,var(--primary) 35%,var(--line));background:color-mix(in srgb,var(--primary) 8%,var(--panel))}
-.alert.error{border-color:color-mix(in srgb,var(--danger) 42%,var(--line));background:color-mix(in srgb,var(--danger) 8%,var(--panel))}
-.shell{display:grid;grid-template-columns:270px 1fr;min-height:100vh}
-.sidebar{height:100vh;position:sticky;top:0;background:var(--panel);border-left:1px solid var(--line);padding:18px;z-index:20}
-.sidebar .brand{margin-bottom:25px}
-.nav{display:flex;flex-direction:column;gap:7px}
-.nav button{
-  border:0;background:transparent;color:var(--muted);padding:11px 12px;border-radius:12px;text-align:right;display:flex;align-items:center;gap:10px
-}
-.nav button:hover,.nav button.active{background:var(--panel-2);color:var(--text)}
-.nav .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.75}
-.sidebar-foot{position:absolute;left:18px;right:18px;bottom:18px}
-.userbox{padding:12px;border:1px solid var(--line);background:var(--panel-2);border-radius:14px;margin-bottom:10px}
-.userbox b{display:block;font-size:13px}
-.userbox span{font-size:11px;color:var(--muted)}
-.main{min-width:0}
-.topbar{
-  min-height:78px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid rgba(84,144,220,.18);
-  background:rgba(5,16,34,.78);backdrop-filter:blur(20px);position:sticky;top:0;z-index:10;
-  box-shadow:0 12px 34px rgba(0,6,18,.18)
-}
-.mobile-menu{display:none}
-.content{padding:24px}
-.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
-.page-head h1{font-size:24px;margin:0 0 5px}
-.card{background:linear-gradient(180deg,rgba(14,35,65,.94),rgba(8,25,49,.92));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,.035);backdrop-filter:blur(16px)}
-.card-pad{padding:18px}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.kpi .label{font-size:13px;color:var(--muted)}
-.kpi .value{font-size:29px;font-weight:900;margin-top:7px}
-.kpi .sub{font-size:11px;color:var(--muted);margin-top:5px}
-.grid2{display:grid;grid-template-columns:1.25fr .75fr;gap:14px;margin-top:14px}
-.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.section-title{font-size:15px;margin:0 0 12px}
-.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:13px}
-.toolbar .input{min-width:220px;flex:1}
-.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
-table{width:100%;border-collapse:collapse;min-width:920px}
-th,td{padding:12px 13px;border-bottom:1px solid var(--line);text-align:right;font-size:13px;white-space:nowrap}
-th{background:var(--panel-2);color:var(--muted);font-weight:600;position:sticky;top:0;z-index:1}
-tbody tr:hover{background:color-mix(in srgb,var(--panel-2) 58%,transparent)}
-tbody tr:last-child td{border-bottom:0}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid transparent}
-.badge.active,.badge.online,.badge.completed{color:#38d59c;background:rgba(39,196,129,.10);border-color:rgba(39,196,129,.24)}
-.badge.expired,.badge.failed,.badge.archived{color:#ff7b88;background:rgba(255,93,108,.10);border-color:rgba(255,93,108,.24)}
-.badge.suspended,.badge.pending,.badge.executing,.badge.retry{color:#ffc66b;background:rgba(255,176,32,.10);border-color:rgba(255,176,32,.22)}
-.badge.offline,.badge.viewer{color:var(--muted);background:var(--panel-2);border-color:var(--line)}
-.actions{display:flex;gap:6px;flex-wrap:wrap}
-.mini-list{display:flex;flex-direction:column}
-.mini-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
-.mini-item:last-child{border-bottom:0}
-.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.metric{background:var(--panel-2);border:1px solid var(--line);border-radius:13px;padding:12px}
-.metric span{display:block;font-size:11px;color:var(--muted)}
-.metric b{display:block;margin-top:5px}
-.package-card .speed{font-size:30px;font-weight:900}
-.package-card .price{color:var(--success);font-weight:900;margin-top:9px}
-.package-card .meta{font-size:12px;color:var(--muted);margin-top:6px}
-.empty{padding:34px;text-align:center;color:var(--muted)}
-.modal{
-  position:fixed;inset:0;background:rgba(2,7,15,.76);display:grid;place-items:center;padding:18px;z-index:50
-}
-.modal-card{
-  width:min(700px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow)
-}
-.modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.modal-head h3{margin:0}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
-.toast{
-  position:fixed;left:22px;bottom:22px;max-width:390px;background:var(--panel);border:1px solid var(--line);padding:13px 16px;border-radius:14px;z-index:80;box-shadow:var(--shadow)
-}
-.toast.error{border-color:var(--danger)}
-.chip{font-size:11px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
-hr{border:0;border-top:1px solid var(--line);margin:18px 0}
-code{font-family:Consolas,Monaco,monospace;font-size:12px}
-
-
-.glass-title{display:flex;align-items:center;gap:10px}
-.glass-title .network-logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(145deg,#27cfff,#176dff);display:grid;place-items:center;box-shadow:0 0 24px rgba(31,139,255,.38);font-size:20px}
-.neon-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
-.neon-stat{position:relative;overflow:hidden;border-radius:18px;padding:16px;color:#fff;min-height:110px;border:1px solid rgba(255,255,255,.10);box-shadow:0 14px 32px rgba(0,0,0,.18)}
-.neon-stat:after{content:"";position:absolute;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.09);left:-24px;bottom:-35px}
-.neon-stat.blue{background:linear-gradient(145deg,#1688ff,#1253c9)}
-.neon-stat.green{background:linear-gradient(145deg,#00c894,#00966f)}
-.neon-stat.orange{background:linear-gradient(145deg,#ffb327,#f17c1b)}
-.neon-stat.red{background:linear-gradient(145deg,#ff5b69,#d92e52)}
-.neon-stat .n-icon{font-size:22px;margin-bottom:8px}
-.neon-stat .n-value{font-size:28px;font-weight:900}
-.neon-stat .n-label{font-size:12px;opacity:.90;margin-top:3px}
-.search-panel{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:12px}
-.search-panel .input{height:52px;border-radius:16px;background:rgba(19,45,80,.82)}
-.filter-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
-.filter-chips::-webkit-scrollbar{display:none}
-.filter-chip{white-space:nowrap;border:1px solid rgba(100,158,232,.28);background:rgba(12,33,61,.80);color:#c8d7eb;border-radius:999px;padding:8px 13px;font-size:12px}
-.filter-chip.active{background:linear-gradient(135deg,#dff2ff,#99d6ff);color:#08203a;border-color:#9ed8ff;font-weight:800;box-shadow:0 0 18px rgba(40,163,255,.18)}
-.pkg-pill{display:inline-flex;padding:5px 10px;border-radius:9px;font-weight:800;font-size:11px;background:linear-gradient(135deg,#167df9,#1059d8);border:1px solid rgba(120,190,255,.35);color:#fff}
-.avatar-circle{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:0 0 44px;font-weight:900;font-size:18px;background:linear-gradient(145deg,#1fc8ff,#3565ff);box-shadow:0 8px 18px rgba(20,109,255,.25)}
-.avatar-circle.p2{background:linear-gradient(145deg,#af7cff,#6157dc)}
-.avatar-circle.p3{background:linear-gradient(145deg,#15d9cd,#10a9b4)}
-.avatar-circle.p4{background:linear-gradient(145deg,#65baff,#5c76e8)}
-.action-trigger{width:42px!important;height:42px!important;padding:0!important;font-size:22px!important;border-radius:13px!important}
+body{min-height:100vh;background:
+radial-gradient(circle at 10% 0%,rgba(27,106,255,.22),transparent 32%),
+radial-gradient(circle at 100% 14%,rgba(12,130,255,.08),transparent 25%),
+linear-gradient(145deg,#051020 0%,#081a31 55%,#050d1b 100%);background-attachment:fixed}
+button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}.muted{color:var(--muted)}.mono{font-family:Consolas,Monaco,monospace}
+.row{display:flex;align-items:center;gap:10px}.between{justify-content:space-between}.grow{flex:1}.wrap{flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:linear-gradient(180deg,#17385f,#102846);color:var(--text);padding:10px 14px;border-radius:13px;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:.15s;box-shadow:inset 0 1px rgba(255,255,255,.03)}
+.btn:hover{border-color:#2e86e8;transform:translateY(-1px)}.btn.primary{background:linear-gradient(135deg,#1595ff,#1456f2);border-color:#349fff;color:#fff;box-shadow:0 9px 22px rgba(20,102,255,.26)}
+.btn.success{background:linear-gradient(135deg,#00c98f,#00a770);border-color:#20dda7}.btn.danger{background:linear-gradient(135deg,#ff5269,#e82948);border-color:#ff6c7e}
+.btn.ghost{background:transparent}.btn.small{padding:7px 10px;font-size:12px}.btn:disabled{opacity:.55}.icon-btn{width:42px;height:42px;padding:0}
+.auth{min-height:100vh;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at 10% 10%,rgba(21,111,255,.22),transparent 30%),var(--bg)}
+.auth-card{width:min(480px,100%);background:linear-gradient(180deg,#102846,#091b33);border:1px solid var(--line);border-radius:26px;padding:26px;box-shadow:var(--shadow)}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(145deg,#21c8ff,#1760f5);display:grid;place-items:center;font-weight:900;box-shadow:0 0 25px rgba(33,137,255,.32)}
+.brand h2{margin:0}.auth-tabs{display:flex;gap:8px;margin:22px 0 10px}.auth-tabs .btn{flex:1}.auth-tabs .active{background:linear-gradient(135deg,#1595ff,#1456f2);border-color:#349fff}
+.field{display:flex;flex-direction:column;gap:7px;margin:12px 0}.field label{font-size:12px;color:var(--muted)}
+.input,.field input,.field select,.field textarea{width:100%;background:#102a4a;border:1px solid #28517e;color:var(--text);border-radius:13px;padding:12px 13px;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus,.input:focus{border-color:#2d9fff;box-shadow:0 0 0 3px rgba(31,145,255,.13)}
+.field textarea{min-height:90px}.hint{font-size:12px;color:var(--muted);line-height:1.65}.alert{padding:11px 13px;border:1px solid var(--line);border-radius:13px;background:#0e2747;font-size:12px;line-height:1.65}.alert.info{border-color:#286bb0;background:#0c2a50}
+.shell{display:grid;grid-template-columns:270px 1fr;min-height:100vh}.sidebar{height:100vh;position:sticky;top:0;background:#08182e;border-left:1px solid #1d3d64;padding:18px;z-index:30}
+.sidebar .brand{margin-bottom:24px}.nav{display:flex;flex-direction:column;gap:7px}.nav button{border:0;background:transparent;color:var(--muted);padding:11px 12px;border-radius:12px;text-align:right;display:flex;align-items:center;gap:10px}.nav button.active,.nav button:hover{background:#102b4e;color:#fff}.nav .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.sidebar-foot{position:absolute;left:18px;right:18px;bottom:18px}.userbox{padding:12px;border:1px solid #234a78;background:#0e2747;border-radius:14px;margin-bottom:10px}.userbox b{display:block;font-size:13px}.userbox span{font-size:11px;color:var(--muted)}
+.main{min-width:0}.topbar{height:80px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid rgba(61,111,171,.28);background:rgba(5,16,34,.88);backdrop-filter:blur(18px);position:sticky;top:0;z-index:20}
+.top-brand{display:flex;align-items:center;gap:12px}.router-logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(145deg,#1acbff,#1267f5);display:grid;place-items:center;box-shadow:0 0 24px rgba(24,146,255,.3);font-size:22px}.top-brand b{display:block;font-size:18px}.top-brand small{color:#9ab1ce}
+.content{padding:22px}.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:15px}.page-head h1{margin:0 0 5px;font-size:25px}
+.card{background:linear-gradient(180deg,#102a4a,#091c35);border:1px solid #224a79;border-radius:19px;box-shadow:var(--shadow)}.card-pad{padding:18px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}.kpi .label{font-size:12px;color:var(--muted)}.kpi .value{font-size:28px;font-weight:900;margin-top:7px}.kpi .sub{font-size:11px;color:var(--muted);margin-top:4px}
+.grid2{display:grid;grid-template-columns:1.25fr .75fr;gap:14px;margin-top:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.section-title{margin:0 0 12px;font-size:15px}
+.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:13px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:#0b203b}
+table{width:100%;border-collapse:collapse;min-width:880px}th,td{padding:12px 13px;border-bottom:1px solid #1f426b;text-align:right;font-size:13px;white-space:nowrap}th{background:#102b4e;color:#9eb3cf}tbody tr:hover{background:#0f2949}
+.badge{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:800;border:1px solid transparent}.badge.online,.badge.active,.badge.completed{background:rgba(0,201,143,.15);color:#45e1b1;border-color:rgba(0,201,143,.2)}.badge.offline,.badge.suspended,.badge.viewer{background:#19304f;color:#c4d0e0;border-color:#294c76}.badge.expired,.badge.failed,.badge.archived{background:rgba(255,64,88,.13);color:#ff7d8e;border-color:rgba(255,64,88,.18)}.badge.pending,.badge.executing,.badge.retry{background:rgba(255,174,34,.13);color:#ffc264;border-color:rgba(255,174,34,.18)}
+.neon-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.neon-stat{min-height:104px;border-radius:17px;padding:14px;color:#fff;box-shadow:0 13px 30px rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.10)}.neon-stat.blue{background:linear-gradient(145deg,#1d9cff,#1761dc)}.neon-stat.green{background:linear-gradient(145deg,#00d09a,#009f74)}.neon-stat.orange{background:linear-gradient(145deg,#ffb32b,#f1841c)}.neon-stat.red{background:linear-gradient(145deg,#ff5968,#d63354)}.n-icon{font-size:20px}.n-value{font-size:27px;font-weight:900;margin-top:7px}.n-label{font-size:11px;margin-top:3px}
+.search-panel{display:grid;grid-template-columns:1fr 52px;gap:10px;margin-bottom:10px}.search-panel .input{height:52px;border-radius:15px;background:#102a4a}.filter-chips{display:flex;gap:8px;overflow:auto;padding:1px 0 12px;scrollbar-width:none}.filter-chips::-webkit-scrollbar{display:none}.filter-chip{border:1px solid #28517e;background:#0c203c;color:#d8e4f3;border-radius:999px;padding:8px 13px;white-space:nowrap}.filter-chip.active{background:linear-gradient(145deg,#f2f8ff,#9ed8ff);color:#08213d;border-color:#a5dcff;font-weight:900}
+.subscriber-desktop-table{display:block}.subscriber-mobile-list{display:none;gap:9px}.subscriber-mobile-card{background:linear-gradient(135deg,#102b4d,#0a203b);border:1px solid #234b78;border-radius:16px;padding:11px;box-shadow:0 10px 22px rgba(0,0,0,.18)}.sm-head{display:flex;align-items:center;justify-content:space-between;gap:9px}.sm-person{display:flex;align-items:center;gap:10px;min-width:0}.avatar-circle{width:45px;height:45px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#2db9ff,#2871f5);font-weight:900;font-size:18px;box-shadow:0 7px 17px rgba(30,112,255,.24)}.avatar-circle.p2{background:linear-gradient(145deg,#b18aff,#6756e6)}.avatar-circle.p3{background:linear-gradient(145deg,#1ddccc,#13aabb)}.avatar-circle.p4{background:linear-gradient(145deg,#69c0ff,#5a7ae6)}.sm-name{font-size:14px;font-weight:900}.sm-phone,.sm-user{font-size:11px;color:#a9bed9;margin-top:2px}.sm-actions{margin:0}.action-trigger{width:39px;height:39px;padding:0!important;font-size:20px;border-radius:12px!important}.pkg-pill{display:inline-flex;background:linear-gradient(145deg,#147fff,#0d58d7);color:#fff;border:1px solid #3b9cff;border-radius:9px;padding:5px 9px;font-size:11px;font-weight:900}.expiry-line{display:flex;align-items:center;gap:5px;font-size:11px;color:#e1ebf8}.expiry-line .cal{color:#ff5c67}
 .bottom-nav{display:none}
-.action-sheet-list{display:flex;flex-direction:column;gap:9px}
-.action-sheet-item{display:grid;grid-template-columns:46px 1fr 24px;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(180deg,rgba(21,48,84,.94),rgba(10,30,58,.94));color:var(--text);text-align:right}
-.action-sheet-item:hover{border-color:rgba(62,159,255,.55);box-shadow:var(--glow)}
-.action-sheet-item .a-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:18px;color:#fff}
-.a-blue{background:linear-gradient(135deg,#1d94ff,#1863ff)}.a-green{background:linear-gradient(135deg,#05cf8c,#00a76e)}
-.a-purple{background:linear-gradient(135deg,#a365ff,#7137e8)}.a-orange{background:linear-gradient(135deg,#ffb32d,#ff7e1f)}
-.a-yellow{background:linear-gradient(135deg,#ffc246,#ff9718)}.a-red{background:linear-gradient(135deg,#ff5c6d,#e82d49)}
-.package-choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.package-choice{position:relative;border:1px solid var(--line);border-radius:15px;padding:13px;background:rgba(15,38,71,.9);cursor:pointer;text-align:center}
-.package-choice input{position:absolute;opacity:0;pointer-events:none}
-.package-choice:has(input:checked){border-color:#30a9ff;box-shadow:0 0 0 2px rgba(48,169,255,.16),0 0 24px rgba(48,169,255,.18);background:linear-gradient(180deg,rgba(18,73,133,.96),rgba(10,44,87,.96))}
-.package-choice .pc-name{font-weight:900;margin-bottom:6px}
-.package-choice .pc-speed{font-size:11px;color:var(--muted)}
-.package-current{padding:13px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,rgba(24,57,99,.95),rgba(11,35,68,.95));margin-bottom:14px}
-.subscriber-mobile-list{display:none;gap:12px}
-.subscriber-mobile-card{background:linear-gradient(145deg,rgba(16,42,76,.96),rgba(8,28,55,.96));border:1px solid rgba(80,145,222,.25);border-radius:18px;padding:13px;box-shadow:0 14px 34px rgba(0,7,22,.26),inset 0 1px rgba(255,255,255,.03)}
-.subscriber-mobile-card .sm-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.subscriber-mobile-card .sm-person{display:flex;align-items:center;gap:11px;min-width:0}
-.subscriber-mobile-card .sm-name{font-weight:900;font-size:15px}
-.subscriber-mobile-card .sm-phone{color:#aac0dc;font-size:11px;margin-top:3px}
-.subscriber-mobile-card .sm-user{color:#8ba8ca;font-size:11px;margin-top:2px}
-.subscriber-mobile-card .sm-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}
-.subscriber-mobile-card .sm-item{background:rgba(11,31,60,.76);border:1px solid rgba(73,133,205,.18);border-radius:11px;padding:9px;min-width:0}
-.subscriber-mobile-card .sm-item span{display:block;color:var(--muted);font-size:9px;margin-bottom:4px}
-.subscriber-mobile-card .sm-item b{display:block;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.subscriber-mobile-card .sm-actions{display:flex;justify-content:flex-end;margin-top:8px}
-.action-menu{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.action-menu .btn{width:100%;min-height:44px}
-.action-menu .btn.danger{grid-column:1/-1}
-.password-row{display:flex;gap:8px}
-.password-row input{flex:1}
+.modal{position:fixed;inset:0;background:rgba(1,7,17,.76);display:grid;place-items:center;padding:18px;z-index:70;backdrop-filter:blur(9px)}.modal-card{width:min(690px,100%);max-height:92vh;overflow:auto;background:linear-gradient(180deg,#102b4e,#081b34);border:1px solid #2b5d93;border-radius:22px;padding:21px;box-shadow:0 25px 70px rgba(0,0,0,.5),0 0 32px rgba(17,116,255,.13)}.modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}.modal-head h3{margin:0}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.password-row{display:flex;gap:8px}.password-row input{flex:1}
+.action-sheet-list{display:flex;flex-direction:column;gap:8px}.action-sheet-item{display:grid;grid-template-columns:44px 1fr 20px;align-items:center;gap:10px;width:100%;border:1px solid #234d7b;border-radius:14px;padding:9px;background:linear-gradient(180deg,#15365f,#0e2949);color:#fff;text-align:right}.a-icon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:18px}.a-blue{background:linear-gradient(145deg,#1c9eff,#1760f2)}.a-green{background:linear-gradient(145deg,#00cf91,#00a973)}.a-purple{background:linear-gradient(145deg,#9a63ff,#7138e8)}.a-orange{background:linear-gradient(145deg,#ffad2d,#ff7d1f)}.a-yellow{background:linear-gradient(145deg,#ffc84c,#ff9a18)}.a-red{background:linear-gradient(145deg,#ff5a6c,#e52d49)}
+.package-current{padding:13px;border:1px solid #2b5889;border-radius:14px;background:#102b4e;margin-bottom:13px}.package-choice-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.package-choice{position:relative;border:1px solid #2b5685;border-radius:13px;padding:12px 8px;background:#0e2747;text-align:center;cursor:pointer}.package-choice input{position:absolute;opacity:0}.package-choice:has(input:checked){border-color:#25a8ff;box-shadow:0 0 0 2px rgba(37,168,255,.17),0 0 23px rgba(37,168,255,.14);background:#113762}.pc-name{font-weight:900}.pc-speed{font-size:10px;color:#9eb3cf;margin-top:5px}
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.metric{background:#102a4a;border:1px solid #244b79;border-radius:13px;padding:11px}.metric span{font-size:10px;color:var(--muted)}.metric b{display:block;margin-top:5px}.mini-list{display:flex;flex-direction:column}.mini-item{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #1d3e65}.mini-item:last-child{border-bottom:0}.empty{padding:28px;text-align:center;color:var(--muted)}.package-card .speed{font-size:28px;font-weight:900}.package-card .price{color:#41e2ae;font-weight:900;margin-top:8px}.package-card .meta{font-size:11px;color:var(--muted);margin-top:5px}.toast{position:fixed;left:18px;bottom:18px;max-width:380px;background:#102b4e;border:1px solid #2b5d93;padding:12px 15px;border-radius:14px;z-index:90;box-shadow:var(--shadow)}.toast.error{border-color:#ff4c63}.chip{font-size:10px;padding:4px 8px;border:1px solid #28517e;border-radius:999px;color:#b9c9dd}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}}
 @media(max-width:780px){
-  .subscriber-desktop-table{display:none!important}
-  .content{padding:14px 14px 96px!important}
-  .topbar{min-height:78px;padding:0 14px!important}
-  .topbar #pageTitle{font-size:18px}
-  .topbar #pageSubtitle{font-size:10px!important}
-  .topbar .row:last-child{gap:6px}
-  #themeBtn{display:none}
-  .neon-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
-  .neon-stat{min-height:88px;padding:10px 7px;border-radius:14px;text-align:center}
-  .neon-stat .n-icon{font-size:17px;margin-bottom:4px}.neon-stat .n-value{font-size:21px}.neon-stat .n-label{font-size:9px}
-  .page-head{margin-bottom:13px}
-  .page-head h1{font-size:25px}
-  .search-panel{grid-template-columns:1fr 48px}
-  .search-panel .btn{width:48px!important;padding:0}
-  .subscriber-mobile-card .sm-grid{display:none}
-  .subscriber-mobile-card{padding:12px}
-  .subscriber-mobile-card .sm-head{margin:0}
-  .subscriber-mobile-card .sm-actions{margin:0}
-  .bottom-nav{
-    display:grid;grid-template-columns:repeat(4,1fr);position:fixed;right:12px;left:12px;bottom:10px;z-index:35;
-    background:rgba(5,18,38,.94);border:1px solid rgba(90,151,228,.25);border-radius:20px;padding:7px 8px;
-    box-shadow:0 18px 50px rgba(0,0,0,.52),inset 0 1px rgba(255,255,255,.04);backdrop-filter:blur(22px)
-  }
-  .bottom-nav button{border:0;background:transparent;color:#8fa9ca;padding:7px 4px;border-radius:14px;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:4px}
-  .bottom-nav button .bn-icon{font-size:19px;line-height:1}
-  .bottom-nav button.active{color:#fff;background:linear-gradient(135deg,#175cff,#143ec5);box-shadow:0 8px 18px rgba(21,83,255,.28)}
-  .bottom-nav button.active .bn-icon{color:#54b7ff}
-  .sidebar{display:none!important}
-  .mobile-menu{display:none!important}
-  .shell{grid-template-columns:1fr!important}
-
-  .subscriber-mobile-list{display:grid}
-  .action-menu{grid-template-columns:1fr}
-  .action-menu .btn.danger{grid-column:auto}
-  .toolbar{display:grid;grid-template-columns:1fr}
-  .toolbar .input,.toolbar .btn{width:100%!important;min-width:0!important;flex:none!important}
-  .page-head .btn.primary{width:100%}
-  .modal{align-items:end;padding:0}
-  .modal-card{width:100%;max-width:none;border-radius:22px 22px 0 0;max-height:88vh;padding:18px}
-}
-@media(max-width:1100px){
-  .cards{grid-template-columns:repeat(2,1fr)}
-  .grid2{grid-template-columns:1fr}
-  .grid3{grid-template-columns:1fr 1fr}
-}
-@media(max-width:780px){
-  .shell{grid-template-columns:1fr}
-  .sidebar{position:fixed;right:0;top:0;width:280px;transform:translateX(105%);transition:.2s}
-  .sidebar.open{transform:none}
-  .mobile-menu{display:inline-flex}
-  .content{padding:16px}
-  .topbar{padding:0 16px}
-  .cards,.grid3{grid-template-columns:1fr}
-  .page-head{flex-direction:column}
-  .form-grid{grid-template-columns:1fr}
+  .shell{grid-template-columns:1fr}.sidebar{position:fixed;right:0;top:0;width:280px;height:100vh;transform:translateX(105%);transition:.2s;box-shadow:-18px 0 50px rgba(0,0,0,.45)}.sidebar.open{transform:none}
+  .mobile-menu{display:inline-flex}.content{padding:14px 13px 94px}.topbar{height:88px;padding:0 13px}.top-brand b{font-size:17px}.top-brand small{font-size:10px}.router-logo{width:43px;height:43px}.topbar #routerBadge{display:none}
+  .cards,.grid3{grid-template-columns:1fr}.page-head{margin-bottom:12px}.page-head h1{font-size:24px}.page-head .btn.primary{display:none}
+  .neon-stats{grid-template-columns:repeat(4,1fr);gap:7px}.neon-stat{min-height:88px;padding:9px 5px;text-align:center;border-radius:13px}.n-icon{font-size:16px}.n-value{font-size:20px;margin-top:4px}.n-label{font-size:8px}
+  .search-panel{grid-template-columns:1fr 48px}.search-panel .btn{width:48px;padding:0}.filter-chip{font-size:11px;padding:7px 12px}
+  .subscriber-desktop-table{display:none}.subscriber-mobile-list{display:grid}.subscriber-mobile-card{padding:10px}.sm-head{align-items:center}.badge{font-size:9px;padding:4px 7px}
+  .package-choice-grid{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}
+  .modal{align-items:end;padding:0}.modal-card{width:100%;max-width:none;border-radius:22px 22px 0 0;max-height:90vh;padding:17px}
+  .bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;right:10px;left:10px;bottom:9px;z-index:45;background:rgba(5,18,38,.96);border:1px solid #234a78;border-radius:20px;padding:7px;box-shadow:0 18px 46px rgba(0,0,0,.45);backdrop-filter:blur(18px)}
+  .bottom-nav button{border:0;background:transparent;color:#8fa9ca;padding:7px 4px;border-radius:13px;font-size:9px;display:flex;flex-direction:column;align-items:center;gap:4px}.bottom-nav .bn-icon{font-size:19px}.bottom-nav button.active{background:linear-gradient(135deg,#175dff,#143fc7);color:#fff}
+  .floating-add{display:flex!important;position:fixed;left:50%;transform:translateX(-50%);bottom:69px;z-index:46;align-items:center;gap:0}.floating-add .plus{width:55px;height:55px;border-radius:50%;background:linear-gradient(145deg,#1b91ff,#154ff2);display:grid;place-items:center;font-size:32px;color:white;box-shadow:0 10px 28px rgba(20,93,255,.4);border:1px solid #56b4ff}.floating-add .label{background:rgba(14,39,72,.95);border:1px solid #26537f;color:#fff;padding:11px 18px 11px 27px;border-radius:14px 0 0 14px;margin-right:-8px;font-size:12px}
+  .toast{bottom:90px;left:12px;right:12px;max-width:none}
 }
 </style>
 </head>
@@ -355,15 +155,14 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
 
   <main class="main">
     <header class="topbar">
-      <div class="row">
-        <button id="mobileMenuBtn" class="btn icon-btn mobile-menu" type="button">☰</button>
-        <div>
-          <div class="glass-title"><div class="network-logo">▣</div><div><b id="pageTitle">الرئيسية</b><div id="pageSubtitle" class="muted" style="font-size:11px"></div></div></div>
-        </div>
+      <div class="top-brand">
+        <div class="router-logo">▥</div>
+        <div><b>MikroTik • ISP</b><small>إدارة المشتركين والاشتراكات</small></div>
       </div>
       <div class="row">
+        <button class="btn icon-btn" type="button" title="الإشعارات">🔔</button>
+        <button id="mobileMenuBtn" class="btn icon-btn" type="button">☰</button>
         <span id="routerBadge" class="badge offline">MikroTik غير متصل</span>
-        <button id="themeBtn" class="btn icon-btn" type="button">◐</button>
       </div>
     </header>
 
@@ -371,6 +170,7 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
   </main>
 </div>
 
+<div id="floatingAdd" class="floating-add hidden" onclick="openAddSubscriber()"><div class="plus">＋</div><div class="label">مشترك جديد</div></div>
 <nav id="bottomNav" class="bottom-nav">
   <button data-page="dashboard" class="active"><span class="bn-icon">⌂</span><span>الرئيسية</span></button>
   <button data-page="subscribers"><span class="bn-icon">♙</span><span>المشتركين</span></button>
@@ -725,6 +525,8 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
   function visibleSubscribers(){return state.subscribers.filter(x=>!x.archived_at)}
 
   function render(){
+    const floating=$('#floatingAdd'); if(floating) floating.classList.add('hidden');
+
     const titles={
       dashboard:['الرئيسية','نظرة عامة على الشبكة والاشتراكات'],
       subscribers:['المشتركين','إدارة PPPoE والاشتراكات'],
@@ -813,30 +615,25 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
       return u&&!u.archived_at&&x.expires_at&&new Date(x.expires_at)>new Date()&&new Date(x.expires_at)<=in7;
     }).length;
 
+    $('#floatingAdd').classList.toggle('hidden',!canManage());
     $('#content').innerHTML=
-      '<div class="page-head">'+
-        '<div><h1>المشتركين</h1><div class="muted">إدارة PPPoE والاشتراكات</div></div>'+
-        (canManage()?'<button class="btn primary" onclick="openAddSubscriber()">＋ مشترك جديد</button>':'')+
-      '</div>'+
       '<div class="neon-stats">'+
-        '<div class="neon-stat blue"><div class="n-icon">♙</div><div class="n-value">'+subs.length+'</div><div class="n-label">المشتركين</div></div>'+
+        '<div class="neon-stat blue"><div class="n-icon">♟</div><div class="n-value">'+subs.length+'</div><div class="n-label">المشتركين</div></div>'+
         '<div class="neon-stat green"><div class="n-icon">◉</div><div class="n-value">'+online+'</div><div class="n-label">متصل الآن</div></div>'+
         '<div class="neon-stat orange"><div class="n-icon">◔</div><div class="n-value">'+soon+'</div><div class="n-label">منتهي قريباً</div></div>'+
-        '<div class="neon-stat red"><div class="n-icon">!</div><div class="n-value">'+suspended+'</div><div class="n-label">موقوفين</div></div>'+
+        '<div class="neon-stat red"><div class="n-icon">!</div><div class="n-value">'+suspended+'</div><div class="n-label">متوقفين</div></div>'+
       '</div>'+
       '<div class="search-panel">'+
         '<input id="subscriberSearch" class="input" placeholder="بحث بالاسم أو الهاتف أو PPPoE...">'+
-        '<button class="btn" onclick="refreshAll()" title="تحديث">↻</button>'+
+        '<button class="btn" type="button" onclick="toggleFilterRow()" title="فلترة">☷</button>'+
       '</div>'+
       '<input id="subscriberStatus" type="hidden" value="">'+
-      '<div class="filter-chips">'+
+      '<div id="filterRow" class="filter-chips">'+
         '<button class="filter-chip active" data-filter="">الكل</button>'+
-        '<button class="filter-chip" data-filter="ACTIVE">متصل</button>'+
+        '<button class="filter-chip" data-filter="ONLINE">متصل</button>'+
         '<button class="filter-chip" data-filter="OFFLINE">غير متصل</button>'+
         '<button class="filter-chip" data-filter="SOON">منتهي قريباً</button>'+
         '<button class="filter-chip" data-filter="EXPIRED">منتهي</button>'+
-        '<button class="filter-chip" data-filter="SUSPENDED">موقوف</button>'+
-        '<button class="filter-chip" data-filter="ARCHIVED">مؤرشف</button>'+
       '</div>'+
       '<div id="subscriberTable"></div>';
 
@@ -849,97 +646,62 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
     drawSubscriberTable();
   }
 
+  window.toggleFilterRow=function(){
+    const row=$('#filterRow');
+    row.style.display=row.style.display==='none'?'flex':'flex';
+  }
+
   function subscriberActionButton(s){
     if(s.archived_at)return '<span class="muted">مؤرشف</span>';
     if(!canRenew()&&!canManage())return '<span class="muted">—</span>';
-    return '<button class="btn small primary action-trigger" title="الإجراءات" onclick="openSubscriberActions(\''+s.id+'\')">⋮</button>';
+    return '<button class="btn action-trigger" title="الإجراءات" onclick="openSubscriberActions(\''+s.id+'\')">⋮</button>';
   }
 
   function drawSubscriberTable(){
     const query=($('#subscriberSearch')?.value||'').trim().toLowerCase();
     const filter=$('#subscriberStatus')?.value||'';
-
     const rows=state.subscribers.filter(s=>{
       const archived=!!s.archived_at;
-      if(filter==='ARCHIVED'&&!archived)return false;
+      if(filter==='ONLINE'&&(archived||!s.is_online))return false;
       if(filter==='OFFLINE'&&(archived||s.is_online))return false;
-      if(filter==='ACTIVE'&&(archived||!s.is_online))return false;
       if(filter==='SOON'){
-        const ss=subscriptionBySubscriber(s.id);
-        const end=ss?.expires_at?new Date(ss.expires_at):null;
-        const in7=new Date(Date.now()+7*86400000);
+        const ss=subscriptionBySubscriber(s.id),end=ss?.expires_at?new Date(ss.expires_at):null,in7=new Date(Date.now()+7*86400000);
         if(archived||!end||end<=new Date()||end>in7)return false;
       }
-      if(filter&&['EXPIRED','SUSPENDED','PENDING'].includes(filter)&&s.status!==filter)return false;
+      if(filter==='EXPIRED'&&s.status!=='EXPIRED')return false;
       if(!filter&&archived)return false;
       if(query&&!([s.full_name,s.phone,s.pppoe_username].some(v=>String(v||'').toLowerCase().includes(query))))return false;
       return true;
     });
 
-    const desktop=
-      '<div class="table-wrap subscriber-desktop-table"><table><thead><tr>'+
-      '<th>المشترك</th><th>PPPoE</th><th>الباقة</th><th>الانتهاء</th><th>الحالة</th><th>الاتصال</th><th>الإجراءات</th>'+
-      '</tr></thead><tbody>'+
-      rows.map(s=>{
-        const sub=subscriptionBySubscriber(s.id);
-        const p=packageById(s.package_id);
-        return '<tr>'+
-          '<td><b>'+esc(s.full_name)+'</b><div class="muted">'+esc(s.phone)+'</div></td>'+
-          '<td><span class="mono">'+esc(s.pppoe_username)+'</span></td>'+
-          '<td>'+esc(p?.name||'—')+'</td>'+
-          '<td>'+esc(fmtDate(sub?.expires_at))+'</td>'+
-          '<td>'+statusBadge(s.status,s.archived_at)+'</td>'+
-          '<td><span class="badge '+(s.is_online?'online':'offline')+'">'+(s.is_online?'Online':'Offline')+'</span></td>'+
-          '<td>'+subscriberActionButton(s)+'</td>'+
-        '</tr>';
-      }).join('')+
-      '</tbody></table>'+(rows.length?'':'<div class="empty">لا توجد نتائج</div>')+'</div>';
+    const desktop='<div class="table-wrap subscriber-desktop-table"><table><thead><tr><th>المشترك</th><th>PPPoE</th><th>الباقة</th><th>الانتهاء</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>'+
+      rows.map(s=>{const sub=subscriptionBySubscriber(s.id),p=packageById(s.package_id);return '<tr><td><b>'+esc(s.full_name)+'</b><div class="muted">'+esc(s.phone)+'</div></td><td class="mono">'+esc(s.pppoe_username)+'</td><td><span class="pkg-pill">'+esc(p?.name||'—')+'</span></td><td>'+esc(fmtDate(sub?.expires_at))+'</td><td>'+(s.is_online?'<span class="badge online">متصل</span>':'<span class="badge offline">غير متصل</span>')+'</td><td>'+subscriberActionButton(s)+'</td></tr>'}).join('')+
+      '</tbody></table></div>';
 
-    const mobile=
-      '<div class="subscriber-mobile-list">'+
-      rows.map(s=>{
-        const sub=subscriptionBySubscriber(s.id);
-        const p=packageById(s.package_id);
-        const initials=String(s.full_name||'?').trim().charAt(0)||'?';
-        const avatarClass=['','p2','p3','p4'][Math.abs(String(s.id).charCodeAt(0)||0)%4];
-        return '<div class="subscriber-mobile-card">'+
-          '<div class="sm-head">'+
-            '<div class="sm-person"><div class="avatar-circle '+avatarClass+'">'+esc(initials)+'</div><div><div class="sm-name">'+esc(s.full_name)+'</div><div class="sm-phone">'+esc(s.phone)+'</div><div class="sm-user mono">'+esc(s.pppoe_username)+'</div></div></div>'+
-            '<div class="row">'+(s.is_online?'<span class="badge online">متصل</span>':'<span class="badge offline">غير متصل</span>')+' '+subscriberActionButton(s)+'</div>'+
-          '</div>'+
-          '<div class="sm-grid">'+
-            '<div class="sm-item"><span>الباقة</span><b><span class="pkg-pill">'+esc(p?.name||'—')+'</span></b></div>'+
-            '<div class="sm-item"><span>الانتهاء</span><b>'+esc(fmtDate(sub?.expires_at))+'</b></div>'+
-          '</div>'+
-        '</div>';
-      }).join('')+
-      (rows.length?'':'<div class="empty">لا توجد نتائج</div>')+
-      '</div>';
+    const mobile='<div class="subscriber-mobile-list">'+rows.map((s,idx)=>{
+      const sub=subscriptionBySubscriber(s.id),p=packageById(s.package_id),initial=String(s.full_name||'?').trim().charAt(0)||'?',avatarClass=['','p2','p3','p4'][idx%4];
+      return '<div class="subscriber-mobile-card"><div class="sm-head">'+
+        '<div class="sm-person"><div class="avatar-circle '+avatarClass+'">'+esc(initial)+'</div><div><div class="sm-name">'+esc(s.full_name)+'</div><div class="sm-phone">'+esc(s.phone)+'</div><div class="sm-user mono">'+esc(s.pppoe_username)+'</div></div></div>'+
+        '<div class="row">'+(s.is_online?'<span class="badge online">متصل</span>':'<span class="badge offline">غير متصل</span>')+'<span class="pkg-pill">'+esc(p?.name||'—')+'</span>'+subscriberActionButton(s)+'</div>'+
+      '</div><div class="expiry-line"><span class="cal">▣</span><span>'+esc(fmtDate(sub?.expires_at))+'</span></div></div>';
+    }).join('')+(rows.length?'':'<div class="empty">لا توجد نتائج</div>')+'</div>';
 
     $('#subscriberTable').innerHTML=desktop+mobile;
   }
 
   window.openSubscriberActions=function(id){
-    const s=subscriberById(id);
-    if(!s||s.archived_at)return;
-    const packageName=packageById(s.package_id)?.name||'—';
-
-    const rows=[
-      canManage()?['✎','a-blue','تعديل البيانات',"closeModal();openEditSubscriber('"+id+"')"] : null,
-      canRenew()?['↻','a-green','تجديد الاشتراك',"closeModal();openRenew('"+id+"')"] : null,
-      canManage()?['▰','a-purple','تغيير الباقة',"closeModal();openChangePackage('"+id+"')"] : null,
-      canManage()?['◴','a-orange','تغيير السرعة',"closeModal();openSpeed('"+id+"')"] : null,
-      canManage()?['Ⅱ','a-yellow',(s.status==='SUSPENDED'?'تفعيل المشترك':'تعليق المشترك'),"closeModal();toggleSuspend('"+id+"',"+(s.status!=='SUSPENDED')+")"] : null,
-      canManage()?['⌁','a-red','فصل الجلسة',"closeModal();disconnectSubscriber('"+id+"')"] : null,
-      canManage()?['⌫','a-red','أرشفة المشترك',"closeModal();archiveSubscriber('"+id+"')"] : null
+    const s=subscriberById(id); if(!s||s.archived_at)return;
+    const actions=[
+      canManage()?['✎','a-blue','تعديل البيانات',"closeModal();openEditSubscriber('"+id+"')"]:null,
+      canRenew()?['↻','a-green','تجديد الاشتراك',"closeModal();openRenew('"+id+"')"]:null,
+      canManage()?['▰','a-purple','تغيير الباقة',"closeModal();openChangePackage('"+id+"')"]:null,
+      canManage()?['◴','a-orange','تغيير السرعة',"closeModal();openSpeed('"+id+"')"]:null,
+      canManage()?['Ⅱ','a-yellow',(s.status==='SUSPENDED'?'تفعيل المشترك':'تعليق / تفعيل'),"closeModal();toggleSuspend('"+id+"',"+(s.status!=='SUSPENDED')+")"]:null,
+      canManage()?['⌁','a-red','فصل الجلسة',"closeModal();disconnectSubscriber('"+id+"')"]:null,
+      canManage()?['⌫','a-red','أرشفة المشترك',"closeModal();archiveSubscriber('"+id+"')"]:null
     ].filter(Boolean);
-
-    openModal(
-      '<div class="modal-head"><div><h3>الإجراءات</h3><div class="muted" style="font-size:12px;margin-top:4px">'+esc(s.full_name)+' • '+esc(s.pppoe_username)+'</div></div><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
-      '<div class="action-sheet-list">'+rows.map(r=>
-        '<button class="action-sheet-item" onclick="'+r[3]+'"><span class="a-icon '+r[1]+'">'+r[0]+'</span><b>'+r[2]+'</b><span class="muted">‹</span></button>'
-      ).join('')+'</div>'
-    );
+    openModal('<div class="modal-head"><div><h3>الإجراءات</h3><div class="muted" style="font-size:12px">'+esc(s.full_name)+' - '+esc(s.pppoe_username)+'</div></div><button class="btn icon-btn" onclick="closeModal()">✕</button></div>'+
+      '<div class="action-sheet-list">'+actions.map(a=>'<button class="action-sheet-item" onclick="'+a[3]+'"><span class="a-icon '+a[1]+'">'+a[0]+'</span><b>'+a[2]+'</b><span class="muted">‹</span></button>').join('')+'</div>');
   }
 
   function renderPackages(){
@@ -1127,92 +889,44 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
 
   window.openEditSubscriber=async function(id){
     if(!canManage())return;
-    const s=subscriberById(id);
-    if(!s)return;
-
-    toast('جاري تحميل بيانات المشترك...');
-    let password='';
-    try{
-      password=await rpc('get_subscriber_pppoe_password',{p_subscriber_id:id});
-    }catch(err){
-      toast('تعذر تحميل رمز PPPoE: '+err.message,true);
-      return;
-    }
-
+    const s=subscriberById(id); if(!s)return;
+    let password=''; try{password=await rpc('get_subscriber_pppoe_password',{p_subscriber_id:id})}catch(err){toast(err.message,true);return}
     const p=packageById(s.package_id);
-
     openModal(
-      '<div class="modal-head"><h3>تعديل بيانات المشترك</h3><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<div class="modal-head"><button class="btn icon-btn" type="button" onclick="closeModal()">✕</button><div style="text-align:center"><h3>تعديل المشترك</h3><div class="muted" style="font-size:11px">تعديل بيانات المشترك ومعلومات الاتصال</div></div><button form="editSubscriberForm" class="btn primary" type="submit">حفظ ▣</button></div>'+
       '<form id="editSubscriberForm">'+
-        '<div class="form-grid">'+
-          '<div class="field"><label>الاسم الكامل</label><input name="full_name" value="'+esc(s.full_name)+'" required></div>'+
-          '<div class="field"><label>رقم الهاتف</label><input name="phone" value="'+esc(s.phone)+'" required></div>'+
-          '<div class="field"><label>PPPoE Username</label><input name="username" value="'+esc(s.pppoe_username)+'" required></div>'+
-          '<div class="field"><label>رمز PPPoE</label><input name="password" value="'+esc(password)+'" autocomplete="off" required></div>'+
-          '<div class="field"><label>الباقة الحالية</label><input value="'+esc(p?.name||'—')+'" disabled></div>'+
-          '<div class="field"><label>ملاحظات</label><input name="notes" value="'+esc(s.notes||'')+'"></div>'+
-        '</div>'+
-        '<div class="alert info">يمكن تعديل اسم المستخدم ورمز PPPoE هنا. تغيير الباقة يتم من خيار «تغيير الباقة» حتى يبقى تاريخ انتهاء الاشتراك بدون أي تغيير.</div>'+
-        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">حفظ التعديلات</button></div>'+
+        '<div class="field"><label>الاسم الكامل</label><input name="full_name" value="'+esc(s.full_name)+'" required></div>'+
+        '<div class="field"><label>رقم الهاتف</label><input name="phone" value="'+esc(s.phone)+'" required></div>'+
+        '<div class="field"><label>اسم المستخدم PPPoE</label><input name="username" value="'+esc(s.pppoe_username)+'" required></div>'+
+        '<div class="field"><label>رمز المشترك PPPoE</label><div class="password-row"><input id="editPppPass" name="password" type="password" value="'+esc(password)+'" required><button class="btn icon-btn" type="button" onclick="const x=document.getElementById(\'editPppPass\');x.type=x.type===\'password\'?\'text\':\'password\'">◉</button></div></div>'+
+        '<div class="field"><label>الباقة الحالية</label><input value="'+esc(p?.name||'—')+'" disabled></div>'+
+        '<div class="field"><label>ملاحظات</label><textarea name="notes" placeholder="ملاحظات إضافية...">'+esc(s.notes||'')+'</textarea></div>'+
       '</form>'
     );
-
-    $('#editSubscriberForm').addEventListener('submit',async e=>{
-      e.preventDefault();
-      const btn=e.submitter;btn.disabled=true;
-      const f=new FormData(e.currentTarget);
-      try{
-        await rpc('update_subscriber_details',{
-          p_subscriber_id:id,
-          p_full_name:f.get('full_name').trim(),
-          p_phone:f.get('phone').trim(),
-          p_username:f.get('username').trim(),
-          p_notes:f.get('notes')?.trim()||null,
-          p_password:f.get('password')
-        });
-        closeModal();toast('تم تحديث بيانات المشترك');await refreshAll();
-      }catch(err){toast(err.message,true);btn.disabled=false}
-    });
+    $('#editSubscriberForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('[form="editSubscriberForm"]');btn.disabled=true;const f=new FormData(e.currentTarget);try{
+      await rpc('update_subscriber_details',{p_subscriber_id:id,p_full_name:f.get('full_name').trim(),p_phone:f.get('phone').trim(),p_username:f.get('username').trim(),p_notes:f.get('notes')?.trim()||null,p_password:f.get('password')});
+      closeModal();toast('تم تحديث بيانات المشترك');await refreshAll();
+    }catch(err){toast(err.message,true);btn.disabled=false}});
   }
 
   window.openChangePackage=function(id){
     if(!canManage())return;
-    const s=subscriberById(id);
-    const currentSub=subscriptionBySubscriber(id);
-    if(!s||!currentSub)return;
-
+    const s=subscriberById(id),currentSub=subscriptionBySubscriber(id); if(!s||!currentSub)return;
     const currentPackage=packageById(s.package_id);
-
     openModal(
-      '<div class="modal-head"><div><h3>تغيير الباقة</h3><div class="muted" style="font-size:12px">اختر الباقة الجديدة للمشترك</div></div><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<div class="modal-head"><button class="btn icon-btn" type="button" onclick="closeModal()">✕</button><div style="text-align:center"><h3>▰ تغيير الباقة</h3><div class="muted" style="font-size:11px">اختر الباقة الجديدة للمشترك</div></div><span style="width:42px"></span></div>'+
       '<form id="changePackageForm">'+
-        '<div class="package-current"><div class="muted" style="font-size:11px">الباقة الحالية</div><div class="row between" style="margin-top:6px"><b>'+esc(currentPackage?.name||'—')+'</b><span class="pkg-pill">'+esc(currentPackage?.download_mbps||s.download_mbps)+' / '+esc(currentPackage?.upload_mbps||s.upload_mbps)+' Mbps</span></div></div>'+
-        '<div class="field"><label>الباقة الجديدة</label><div class="package-choice-grid">'+
-          state.packages.filter(x=>x.active).map(p=>
-            '<label class="package-choice"><input type="radio" name="package_id" value="'+esc(p.id)+'" '+(p.id===s.package_id?'checked':'')+'><div class="pc-name">'+esc(p.name)+'</div><div class="pc-speed">'+esc(p.download_mbps)+' / '+esc(p.upload_mbps)+' Mbps</div></label>'
-          ).join('')+
-        '</div></div>'+
-        '<label class="row" style="margin-top:10px"><input name="disconnect" type="checkbox" checked> فصل الجلسة بعد التغيير لتطبيق الباقة فوراً</label>'+
-        '<div class="alert info" style="margin-top:14px">تاريخ الانتهاء سيبقى كما هو: <b>'+esc(fmtDate(currentSub.expires_at))+'</b><br>تغيير الباقة لا يضيف مدة ولا يعتبر تجديداً.</div>'+
-        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">✓ تغيير الباقة</button></div>'+
+        '<div class="package-current"><div class="row between"><b>الباقة الحالية</b><span class="pkg-pill">'+esc(currentPackage?.name||'—')+'</span></div></div>'+
+        '<div class="field"><label>الباقة الجديدة</label><div class="package-choice-grid">'+state.packages.filter(x=>x.active).map((p,i)=>'<label class="package-choice"><input type="radio" name="package_id" value="'+esc(p.id)+'" '+(p.id===s.package_id?'checked':'')+'><div class="pc-name">'+esc(p.name)+'</div><div class="pc-speed">'+esc(p.download_mbps)+' / '+esc(p.upload_mbps)+' Mbps</div></label>').join('')+'</div></div>'+
+        '<div class="package-current"><div class="muted" style="font-size:10px">تاريخ الانتهاء سيبقى كما هو</div><div class="row between" style="margin-top:6px"><b>'+esc(fmtDate(currentSub.expires_at))+'</b><span>▣</span></div></div>'+
+        '<label class="row"><input name="disconnect" type="checkbox" checked> تطبيق الباقة فوراً عبر فصل الجلسة</label>'+
+        '<div class="row" style="margin-top:16px"><button type="button" class="btn grow" onclick="closeModal()">إلغاء</button><button class="btn primary grow">✓ تغيير الباقة</button></div>'+
       '</form>'
     );
-
-    $('#changePackageForm').addEventListener('submit',async e=>{
-      e.preventDefault();
-      const btn=e.submitter;btn.disabled=true;
-      const f=new FormData(e.currentTarget);
-      try{
-        const preserved=await rpc('change_subscriber_package',{
-          p_subscriber_id:id,
-          p_package_id:f.get('package_id'),
-          p_disconnect:f.get('disconnect')==='on'
-        });
-        closeModal();
-        toast('تم تغيير الباقة. تاريخ الانتهاء بقي '+fmtDate(preserved));
-        await refreshAll();
-      }catch(err){toast(err.message,true);btn.disabled=false}
-    });
+    $('#changePackageForm').addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;const f=new FormData(e.currentTarget);try{
+      const preserved=await rpc('change_subscriber_package',{p_subscriber_id:id,p_package_id:f.get('package_id'),p_disconnect:f.get('disconnect')==='on'});
+      closeModal();toast('تم تغيير الباقة بدون تغيير تاريخ الانتهاء');await refreshAll();
+    }catch(err){toast(err.message,true);btn.disabled=false}});
   }
 
   window.openSpeed=function(id){
