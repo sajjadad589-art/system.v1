@@ -1,0 +1,30 @@
+{
+  "name": "ISP Control",
+  "short_name": "ISP",
+  "id": "./index.html",
+  "start_url": "./index.html?pwa=1",
+  "scope": "./",
+  "lang": "ar",
+  "dir": "rtl",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#030a16",
+  "theme_color": "#06172d",
+  "orientation": "portrait-primary",
+  "description": "إدارة المشتركين والاشتراكات والترافيك عبر MikroTik",
+  "categories": [
+    "business",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-control-assets/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
