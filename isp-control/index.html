@@ -142,6 +142,33 @@ tbody tr:last-child td{border-bottom:0}
 .chip{font-size:11px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
 hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 code{font-family:Consolas,Monaco,monospace;font-size:12px}
+
+.subscriber-mobile-list{display:none;gap:12px}
+.subscriber-mobile-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--shadow)}
+.subscriber-mobile-card .sm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:13px}
+.subscriber-mobile-card .sm-name{font-weight:800;font-size:16px}
+.subscriber-mobile-card .sm-phone{color:var(--muted);font-size:12px;margin-top:3px}
+.subscriber-mobile-card .sm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.subscriber-mobile-card .sm-item{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:10px;min-width:0}
+.subscriber-mobile-card .sm-item span{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}
+.subscriber-mobile-card .sm-item b{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.subscriber-mobile-card .sm-actions{display:grid;grid-template-columns:1fr;margin-top:12px}
+.action-menu{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.action-menu .btn{width:100%;min-height:44px}
+.action-menu .btn.danger{grid-column:1/-1}
+.password-row{display:flex;gap:8px}
+.password-row input{flex:1}
+@media(max-width:780px){
+  .subscriber-desktop-table{display:none!important}
+  .subscriber-mobile-list{display:grid}
+  .action-menu{grid-template-columns:1fr}
+  .action-menu .btn.danger{grid-column:auto}
+  .toolbar{display:grid;grid-template-columns:1fr}
+  .toolbar .input,.toolbar .btn{width:100%!important;min-width:0!important;flex:none!important}
+  .page-head .btn.primary{width:100%}
+  .modal{align-items:end;padding:0}
+  .modal-card{width:100%;max-width:none;border-radius:22px 22px 0 0;max-height:88vh;padding:18px}
+}
 @media(max-width:1100px){
   .cards{grid-template-columns:repeat(2,1fr)}
   .grid2{grid-template-columns:1fr}
@@ -703,6 +730,12 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
     drawSubscriberTable();
   }
 
+  function subscriberActionButton(s){
+    if(s.archived_at)return '<span class="muted">مؤرشف</span>';
+    if(!canRenew()&&!canManage())return '<span class="muted">—</span>';
+    return '<button class="btn small primary" onclick="openSubscriberActions(\''+s.id+'\')">الإجراءات ▾</button>';
+  }
+
   function drawSubscriberTable(){
     const query=($('#subscriberSearch')?.value||'').trim().toLowerCase();
     const filter=$('#subscriberStatus')?.value||'';
@@ -716,39 +749,66 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
       return true;
     });
 
-    const html=
-      '<div class="table-wrap"><table><thead><tr>'+
-      '<th>المشترك</th><th>PPPoE</th><th>الباقة</th><th>السرعة</th><th>الانتهاء</th><th>المتبقي</th><th>الحالة</th><th>الاتصال</th><th>إجراءات</th>'+
+    const desktop=
+      '<div class="table-wrap subscriber-desktop-table"><table><thead><tr>'+
+      '<th>المشترك</th><th>PPPoE</th><th>الباقة</th><th>الانتهاء</th><th>الحالة</th><th>الاتصال</th><th>الإجراءات</th>'+
       '</tr></thead><tbody>'+
       rows.map(s=>{
         const sub=subscriptionBySubscriber(s.id);
         const p=packageById(s.package_id);
-        const actions=s.archived_at
-          ? '<span class="muted">مؤرشف</span>'
-          : [
-              canRenew()?'<button class="btn small success" onclick="openRenew(\''+s.id+'\')">تجديد</button>':'',
-              canManage()?'<button class="btn small" onclick="openEditSubscriber(\''+s.id+'\')">تعديل</button>':'',
-              canManage()?'<button class="btn small" onclick="openSpeed(\''+s.id+'\')">سرعة</button>':'',
-              canManage()?'<button class="btn small" onclick="toggleSuspend(\''+s.id+'\','+(s.status!=='SUSPENDED')+')">'+(s.status==='SUSPENDED'?'تفعيل':'تعليق')+'</button>':'',
-              canManage()?'<button class="btn small" onclick="disconnectSubscriber(\''+s.id+'\')">فصل</button>':'',
-              canManage()?'<button class="btn small danger" onclick="archiveSubscriber(\''+s.id+'\')">أرشفة</button>':''
-            ].join('');
-
         return '<tr>'+
           '<td><b>'+esc(s.full_name)+'</b><div class="muted">'+esc(s.phone)+'</div></td>'+
           '<td><span class="mono">'+esc(s.pppoe_username)+'</span></td>'+
           '<td>'+esc(p?.name||'—')+'</td>'+
-          '<td>'+esc(s.download_mbps)+'/'+esc(s.upload_mbps)+' Mbps</td>'+
           '<td>'+esc(fmtDate(sub?.expires_at))+'</td>'+
-          '<td>'+esc(remaining(sub?.expires_at))+'</td>'+
           '<td>'+statusBadge(s.status,s.archived_at)+'</td>'+
           '<td><span class="badge '+(s.is_online?'online':'offline')+'">'+(s.is_online?'Online':'Offline')+'</span></td>'+
-          '<td><div class="actions">'+actions+'</div></td>'+
+          '<td>'+subscriberActionButton(s)+'</td>'+
         '</tr>';
       }).join('')+
       '</tbody></table>'+(rows.length?'':'<div class="empty">لا توجد نتائج</div>')+'</div>';
 
-    $('#subscriberTable').innerHTML=html;
+    const mobile=
+      '<div class="subscriber-mobile-list">'+
+      rows.map(s=>{
+        const sub=subscriptionBySubscriber(s.id);
+        const p=packageById(s.package_id);
+        return '<div class="subscriber-mobile-card">'+
+          '<div class="sm-head"><div><div class="sm-name">'+esc(s.full_name)+'</div><div class="sm-phone">'+esc(s.phone)+'</div></div>'+statusBadge(s.status,s.archived_at)+'</div>'+
+          '<div class="sm-grid">'+
+            '<div class="sm-item"><span>PPPoE</span><b class="mono">'+esc(s.pppoe_username)+'</b></div>'+
+            '<div class="sm-item"><span>الباقة</span><b>'+esc(p?.name||'—')+'</b></div>'+
+            '<div class="sm-item"><span>الانتهاء</span><b>'+esc(fmtDate(sub?.expires_at))+'</b></div>'+
+            '<div class="sm-item"><span>الاتصال</span><b>'+(s.is_online?'Online':'Offline')+'</b></div>'+
+          '</div>'+
+          '<div class="sm-actions">'+subscriberActionButton(s)+'</div>'+
+        '</div>';
+      }).join('')+
+      (rows.length?'':'<div class="empty">لا توجد نتائج</div>')+
+      '</div>';
+
+    $('#subscriberTable').innerHTML=desktop+mobile;
+  }
+
+  window.openSubscriberActions=function(id){
+    const s=subscriberById(id);
+    if(!s||s.archived_at)return;
+    const packageName=packageById(s.package_id)?.name||'—';
+
+    const buttons=[
+      canManage()?'<button class="btn" onclick="closeModal();openEditSubscriber(\''+id+'\')">تعديل البيانات</button>':'',
+      canRenew()?'<button class="btn success" onclick="closeModal();openRenew(\''+id+'\')">تجديد الاشتراك</button>':'',
+      canManage()?'<button class="btn" onclick="closeModal();openChangePackage(\''+id+'\')">تغيير الباقة</button>':'',
+      canManage()?'<button class="btn" onclick="closeModal();openSpeed(\''+id+'\')">تغيير السرعة</button>':'',
+      canManage()?'<button class="btn" onclick="closeModal();toggleSuspend(\''+id+'\','+(s.status!=='SUSPENDED')+')">'+(s.status==='SUSPENDED'?'تفعيل المشترك':'تعليق المشترك')+'</button>':'',
+      canManage()?'<button class="btn" onclick="closeModal();disconnectSubscriber(\''+id+'\')">فصل الاتصال</button>':'',
+      canManage()?'<button class="btn danger" onclick="closeModal();archiveSubscriber(\''+id+'\')">أرشفة المشترك</button>':''
+    ].filter(Boolean).join('');
+
+    openModal(
+      '<div class="modal-head"><div><h3>إجراءات المشترك</h3><div class="muted" style="font-size:12px;margin-top:4px">'+esc(s.full_name)+' • '+esc(packageName)+'</div></div><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<div class="action-menu">'+buttons+'</div>'
+    );
   }
 
   function renderPackages(){
@@ -934,10 +994,21 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
     });
   }
 
-  window.openEditSubscriber=function(id){
+  window.openEditSubscriber=async function(id){
     if(!canManage())return;
     const s=subscriberById(id);
     if(!s)return;
+
+    toast('جاري تحميل بيانات المشترك...');
+    let password='';
+    try{
+      password=await rpc('get_subscriber_pppoe_password',{p_subscriber_id:id});
+    }catch(err){
+      toast('تعذر تحميل رمز PPPoE: '+err.message,true);
+      return;
+    }
+
+    const p=packageById(s.package_id);
 
     openModal(
       '<div class="modal-head"><h3>تعديل بيانات المشترك</h3><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
@@ -946,10 +1017,12 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
           '<div class="field"><label>الاسم الكامل</label><input name="full_name" value="'+esc(s.full_name)+'" required></div>'+
           '<div class="field"><label>رقم الهاتف</label><input name="phone" value="'+esc(s.phone)+'" required></div>'+
           '<div class="field"><label>PPPoE Username</label><input name="username" value="'+esc(s.pppoe_username)+'" required></div>'+
+          '<div class="field"><label>رمز PPPoE</label><input name="password" value="'+esc(password)+'" autocomplete="off" required></div>'+
+          '<div class="field"><label>الباقة الحالية</label><input value="'+esc(p?.name||'—')+'" disabled></div>'+
           '<div class="field"><label>ملاحظات</label><input name="notes" value="'+esc(s.notes||'')+'"></div>'+
         '</div>'+
-        '<div class="hint">تغيير PPPoE Username ينشئ أمر UPDATE_PPPOE تلقائياً. كلمة المرور محفوظة في جدول خاص ولا تظهر بالواجهة.</div>'+
-        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">حفظ</button></div>'+
+        '<div class="alert info">يمكن تعديل اسم المستخدم ورمز PPPoE هنا. تغيير الباقة يتم من خيار «تغيير الباقة» حتى يبقى تاريخ انتهاء الاشتراك بدون أي تغيير.</div>'+
+        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">حفظ التعديلات</button></div>'+
       '</form>'
     );
 
@@ -963,9 +1036,52 @@ code{font-family:Consolas,Monaco,monospace;font-size:12px}
           p_full_name:f.get('full_name').trim(),
           p_phone:f.get('phone').trim(),
           p_username:f.get('username').trim(),
-          p_notes:f.get('notes')?.trim()||null
+          p_notes:f.get('notes')?.trim()||null,
+          p_password:f.get('password')
         });
         closeModal();toast('تم تحديث بيانات المشترك');await refreshAll();
+      }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+  }
+
+  window.openChangePackage=function(id){
+    if(!canManage())return;
+    const s=subscriberById(id);
+    const currentSub=subscriptionBySubscriber(id);
+    if(!s||!currentSub)return;
+
+    const currentPackage=packageById(s.package_id);
+
+    openModal(
+      '<div class="modal-head"><h3>تغيير الباقة</h3><button class="btn icon-btn small" type="button" onclick="closeModal()">✕</button></div>'+
+      '<form id="changePackageForm">'+
+        '<div class="field"><label>المشترك</label><input value="'+esc(s.full_name)+'" disabled></div>'+
+        '<div class="field"><label>الباقة الجديدة</label><select name="package_id" required>'+
+          state.packages.filter(x=>x.active).map(p=>'<option value="'+esc(p.id)+'" '+(p.id===s.package_id?'selected':'')+'>'+esc(p.name)+' • '+esc(p.download_mbps)+'/'+esc(p.upload_mbps)+' Mbps</option>').join('')+
+        '</select></div>'+
+        '<label class="row" style="margin-top:8px"><input name="disconnect" type="checkbox" checked> فصل الجلسة بعد التغيير لتطبيق الباقة فوراً</label>'+
+        '<div class="alert info" style="margin-top:14px">'+
+          'الباقة الحالية: <b>'+esc(currentPackage?.name||'—')+'</b><br>'+
+          'تاريخ الانتهاء: <b>'+esc(fmtDate(currentSub.expires_at))+'</b><br>'+
+          'تغيير الباقة سيغيّر الخطة والسرعة فقط، ولن يضيف مدة ولن يغيّر تاريخ الانتهاء.'+
+        '</div>'+
+        '<div class="row" style="justify-content:flex-end;margin-top:16px"><button type="button" class="btn" onclick="closeModal()">إلغاء</button><button class="btn primary">تأكيد تغيير الباقة</button></div>'+
+      '</form>'
+    );
+
+    $('#changePackageForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=e.submitter;btn.disabled=true;
+      const f=new FormData(e.currentTarget);
+      try{
+        const preserved=await rpc('change_subscriber_package',{
+          p_subscriber_id:id,
+          p_package_id:f.get('package_id'),
+          p_disconnect:f.get('disconnect')==='on'
+        });
+        closeModal();
+        toast('تم تغيير الباقة. تاريخ الانتهاء بقي '+fmtDate(preserved));
+        await refreshAll();
       }catch(err){toast(err.message,true);btn.disabled=false}
     });
   }
