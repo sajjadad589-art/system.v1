@@ -2,8 +2,17 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark light">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#06172d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ISP Control">
+<meta name="application-name" content="ISP Control">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-control-assets/icon.png">
+<link rel="icon" type="image/png" href="https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-control-assets/icon.png">
 <title>ISP Control</title>
 <style>
 :root{
@@ -208,13 +217,51 @@ body[data-page="logs"] .table-wrap{border-top:2px solid #9a5cff}body[data-page="
   .modal-card{border-top:1px solid #377bc3;background:linear-gradient(180deg,#102d51,#06172e)}
   .auth-card{padding:22px 18px;border-radius:24px}
 }
+
+/* ===== iPhone PWA + adopted ISP logo ===== */
+.logo-image,.router-logo.logo-image{
+  overflow:hidden;padding:0;background:#071a32!important;border:1px solid rgba(88,156,238,.42);
+}
+.logo-image img,.router-logo.logo-image img{
+  width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit;
+}
+.auth-card .logo-image{
+  width:88px!important;height:88px!important;border-radius:24px!important;
+  box-shadow:0 16px 46px rgba(32,105,255,.28),0 0 32px rgba(255,67,90,.11)!important;
+}
+.sidebar .logo-image{width:48px;height:48px;border-radius:14px}
+.topbar .router-logo.logo-image{width:48px;height:48px;border-radius:14px}
+.pwa-install-card{
+  margin-top:15px;padding:11px 12px;border:1px solid rgba(69,132,210,.38);border-radius:14px;
+  background:linear-gradient(135deg,rgba(18,52,94,.82),rgba(21,32,72,.88));
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.pwa-install-card b{display:block;font-size:12px}.pwa-install-card span{display:block;color:#91a8c8;font-size:9px;margin-top:3px}
+html,body{overscroll-behavior-y:none}
+button,a{-webkit-tap-highlight-color:transparent}
+body.pwa-standalone{background-color:#030a16}
+body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
+@supports (padding: max(0px)){
+  body.pwa-standalone .content{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+  body.pwa-standalone .bottom-nav{bottom:calc(9px + env(safe-area-inset-bottom))}
+  body.pwa-standalone .toast{bottom:calc(92px + env(safe-area-inset-bottom))}
+  body.pwa-standalone .modal{padding-bottom:env(safe-area-inset-bottom)}
+}
+@media(max-width:780px){
+  @supports (padding-top: env(safe-area-inset-top)){
+    body.pwa-standalone .topbar{
+      height:calc(88px + env(safe-area-inset-top));
+      padding-top:env(safe-area-inset-top);
+    }
+  }
+}
 </style>
 </head>
 <body>
 <div id="authView" class="auth">
   <div class="auth-card">
     <div class="brand">
-      <div class="logo">ISP</div>
+      <div class="logo logo-image"><img src="https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-control-assets/icon.png" alt="ISP Control"></div>
       <div>
         <h2>ISP Control</h2>
         <div class="muted" style="font-size:12px">إدارة المشتركين والشبكة</div>
@@ -261,13 +308,20 @@ body[data-page="logs"] .table-wrap{border-top:2px solid #9a5cff}body[data-page="
     </form>
 
     <div id="authMessage" class="hint" style="margin-top:14px"></div>
+    <div id="iosInstallCard" class="pwa-install-card hidden">
+      <div>
+        <b>تثبيت ISP Control على iPhone</b>
+        <span>شغّله كتطبيق مستقل من الشاشة الرئيسية</span>
+      </div>
+      <button class="btn small primary" type="button" onclick="openIOSInstallGuide()">تثبيت</button>
+    </div>
   </div>
 </div>
 
 <div id="appView" class="shell hidden">
   <aside id="sidebar" class="sidebar">
     <div class="brand">
-      <div class="logo">ISP</div>
+      <div class="logo logo-image"><img src="https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-control-assets/icon.png" alt="ISP Control"></div>
       <div>
         <b>ISP Control</b>
         <div class="muted" style="font-size:11px">Network Management</div>
@@ -298,7 +352,7 @@ body[data-page="logs"] .table-wrap{border-top:2px solid #9a5cff}body[data-page="
   <main class="main">
     <header class="topbar">
       <div class="top-brand">
-        <div class="router-logo">▥</div>
+        <div class="router-logo logo-image"><img src="https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-control-assets/icon.png" alt="ISP Control"></div>
         <div><b>MikroTik • ISP</b><small>إدارة المشتركين والاشتراكات</small></div>
       </div>
       <div class="row">
@@ -1469,8 +1523,42 @@ body[data-page="logs"] .table-wrap{border-top:2px solid #9a5cff}body[data-page="
   setInterval(()=>{
     if(!$('#appView').classList.contains('hidden'))refreshAll();
   },60000);
+  function isStandalonePWA(){
+    return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;
+  }
+
+  window.openIOSInstallGuide=function(){
+    openModal(
+      '<div class="modal-head"><div><h3>تثبيت ISP Control على iPhone</h3><div class="muted" style="font-size:10px">يظهر كتطبيق مستقل بدون شريط المتصفح</div></div><button class="btn icon-btn" onclick="closeModal()">✕</button></div>'+
+      '<div class="mini-list">'+
+        '<div class="mini-item"><div><b>1. افتح الرابط في Safari</b><div class="muted">إذا فاتحه داخل ChatGPT اختَر فتح في Safari.</div></div><span class="chip">Safari</span></div>'+
+        '<div class="mini-item"><div><b>2. اضغط زر المشاركة</b><div class="muted">أيقونة المربع والسهم في Safari.</div></div><span class="chip">↥</span></div>'+
+        '<div class="mini-item"><div><b>3. اختر «إضافة إلى الشاشة الرئيسية»</b><div class="muted">Add to Home Screen ثم اضغط إضافة.</div></div><span class="chip">＋</span></div>'+
+      '</div>'+
+      '<div class="alert info" style="margin-top:12px">بعد التثبيت راح يفتح ISP Control بواجهة تطبيق مستقلة ويستخدم اللوكو المعتمد كأيقونة.</div>'
+    );
+  };
+
+  function setupPWA(){
+    if(isStandalonePWA())document.body.classList.add('pwa-standalone');
+
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./service-worker.js',{scope:'./'}).catch(()=>{});
+    }
+
+    const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const card=$('#iosInstallCard');
+    if(card&&ios&&!isStandalonePWA())card.classList.remove('hidden');
+
+    window.matchMedia?.('(display-mode: standalone)').addEventListener?.('change',e=>{
+      document.body.classList.toggle('pwa-standalone',e.matches);
+      if(card&&e.matches)card.classList.add('hidden');
+    });
+  }
+
   setInterval(refreshTraffic,2000);
 
+  setupPWA();
   boot();
 })();
 </script>
