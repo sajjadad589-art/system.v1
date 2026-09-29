@@ -1140,17 +1140,17 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
 
   function paintSystemHealth(){
     for(const r of state.routers){
-      $('[data-router-status-badge="'+r.id+'"]').forEach(el=>{
+      $$('[data-router-status-badge="'+r.id+'"]').forEach(el=>{
         el.className='badge '+routerStatusClass(r.router_status);
         el.textContent=routerStatusLabel(r.router_status);
       });
-      $('[data-router-temp="'+r.id+'"]').forEach(el=>{
+      $$('[data-router-temp="'+r.id+'"]').forEach(el=>{
         el.className=temperatureClass(r);
         el.textContent=temperatureLabel(r);
       });
-      $('[data-router-cpu="'+r.id+'"]').forEach(el=>el.textContent=r.cpu_load==null?'—':Number(r.cpu_load).toFixed(0)+'%');
-      $('[data-router-ram="'+r.id+'"]').forEach(el=>el.textContent=r.ram_used_percent==null?'—':Number(r.ram_used_percent).toFixed(0)+'%');
-      $('[data-router-seen="'+r.id+'"]').forEach(el=>el.textContent=fmtDate(r.last_seen_at));
+      $$('[data-router-cpu="'+r.id+'"]').forEach(el=>el.textContent=r.cpu_load==null?'—':Number(r.cpu_load).toFixed(0)+'%');
+      $$('[data-router-ram="'+r.id+'"]').forEach(el=>el.textContent=r.ram_used_percent==null?'—':Number(r.ram_used_percent).toFixed(0)+'%');
+      $$('[data-router-seen="'+r.id+'"]').forEach(el=>el.textContent=fmtDate(r.last_seen_at));
     }
   }
 
