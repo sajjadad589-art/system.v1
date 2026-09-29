@@ -1,4 +1,4 @@
-const CACHE='isp-control-pwa-v2';
+const CACHE='isp-control-pwa-v3';
 const CORE=['./index.html','./manifest.json'];
 const ICON='https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-control-assets/icon.png';
 
@@ -37,7 +37,7 @@ self.addEventListener('fetch',event=>{
     return;
   }
 
-  if(url.origin===self.location.origin && (url.pathname.endsWith('/manifest.webmanifest') || url.pathname.endsWith('/index.html'))){
+  if(url.origin===self.location.origin && (url.pathname.endsWith('/manifest.json') || url.pathname.endsWith('/index.html'))){
     event.respondWith((async()=>{
       const cached=await caches.match(req);
       if(cached)return cached;
@@ -47,4 +47,43 @@ self.addEventListener('fetch',event=>{
       return fresh;
     })());
   }
+});
+
+self.addEventListener('push',event=>{
+  let data={};
+  try{ data=event.data?.json()||{}; }
+  catch{ data={title:'ISP Control',body:event.data?.text()||'تحديث جديد في حالة الشبكة'}; }
+
+  const title=data.title||'ISP Control';
+  const options={
+    body:data.body||'تحديث جديد في حالة الشبكة',
+    icon:data.icon||ICON,
+    badge:data.badge||ICON,
+    tag:data.tag||'isp-router-status',
+    renotify:true,
+    requireInteraction:false,
+    data:{
+      url:data.url||'./index.html?pwa=1',
+      ...(data.data||{})
+    }
+  };
+
+  event.waitUntil(self.registration.showNotification(title,options));
+});
+
+self.addEventListener('notificationclick',event=>{
+  event.notification.close();
+  const target=new URL(event.notification?.data?.url||'./index.html?pwa=1',self.location.href).href;
+  event.waitUntil((async()=>{
+    const all=await clients.matchAll({type:'window',includeUncontrolled:true});
+    for(const client of all){
+      if('focus' in client){
+        try{
+          if('navigate' in client) await client.navigate(target);
+        }catch{}
+        return client.focus();
+      }
+    }
+    if(clients.openWindow)return clients.openWindow(target);
+  })());
 });
