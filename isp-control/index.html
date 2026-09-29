@@ -773,13 +773,16 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
   function subscriberById(id){return state.subscribers.find(x=>x.id===id)}
   function visibleSubscribers(){return state.subscribers.filter(x=>!x.archived_at)}
   function routerByRole(role){return state.routers.find(x=>x.device_role===role)}
-  function routerStatusLabel(status){
+  function routerStatusLabel(status,adapterMode){
+    if(adapterMode==='MOCK')return 'MOCK';
     return status==='ONLINE'?'متصل':status==='UNKNOWN'?'غير معروف':'غير متصل';
   }
-  function routerStatusClass(status){
+  function routerStatusClass(status,adapterMode){
+    if(adapterMode==='MOCK')return 'pending';
     return status==='ONLINE'?'online':status==='UNKNOWN'?'pending':'offline';
   }
   function temperatureLabel(r){
+    if(r?.adapter_mode==='MOCK')return 'بانتظار الربط';
     if(!r?.temperature_supported)return 'غير مدعومة';
     if(r.temperature_c===null||r.temperature_c===undefined)return '—';
     return Number(r.temperature_c).toFixed(1)+'°C';
@@ -808,7 +811,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     return routers.map(r=>
       '<div class="device-health-card" data-router-health="'+esc(r.id)+'">'+
         '<div class="device-health-head"><div><b>'+(r.device_role==='CORE'?'RB1100AHx4':'RB951 Connector')+'</b><span>'+esc(r.management_ip||'—')+'</span></div>'+
-          '<span class="badge '+routerStatusClass(r.router_status)+'" data-router-status-badge="'+esc(r.id)+'">'+esc(routerStatusLabel(r.router_status))+'</span></div>'+
+          '<span class="badge '+routerStatusClass(r.router_status,r.adapter_mode)+'" data-router-status-badge="'+esc(r.id)+'">'+esc(routerStatusLabel(r.router_status,r.adapter_mode))+'</span></div>'+
         '<div class="device-health-metrics">'+
           '<div><span>🌡️ الحرارة</span><b class="'+temperatureClass(r)+'" data-router-temp="'+esc(r.id)+'">'+esc(temperatureLabel(r))+'</b></div>'+
           '<div><span>CPU</span><b data-router-cpu="'+esc(r.id)+'">'+esc(r.cpu_load??'—')+(r.cpu_load==null?'':'%')+'</b></div>'+
@@ -1141,8 +1144,8 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
   function paintSystemHealth(){
     for(const r of state.routers){
       $$('[data-router-status-badge="'+r.id+'"]').forEach(el=>{
-        el.className='badge '+routerStatusClass(r.router_status);
-        el.textContent=routerStatusLabel(r.router_status);
+        el.className='badge '+routerStatusClass(r.router_status,r.adapter_mode);
+        el.textContent=routerStatusLabel(r.router_status,r.adapter_mode);
       });
       $$('[data-router-temp="'+r.id+'"]').forEach(el=>{
         el.className=temperatureClass(r);
