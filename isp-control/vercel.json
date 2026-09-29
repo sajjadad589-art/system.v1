@@ -1,4 +1,6 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
@@ -11,6 +13,12 @@
     },
     {
       "source": "/manifest.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/manifest+json" }
+      ]
+    },
+    {
+      "source": "/manifest.webmanifest",
       "headers": [
         { "key": "Content-Type", "value": "application/manifest+json" }
       ]
