@@ -255,6 +255,19 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     }
   }
 }
+
+/* ===== Router Health + PWA Push v18 ===== */
+.device-health-list{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.device-health-card{border:1px solid #27517e;border-radius:16px;padding:13px;background:linear-gradient(145deg,rgba(18,51,91,.92),rgba(8,29,55,.94));box-shadow:0 10px 26px rgba(0,5,18,.22)}
+.device-health-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.device-health-head b{display:block;font-size:13px}.device-health-head span:not(.badge){display:block;font-size:9px;color:#91a8c8;margin-top:3px}
+.device-health-metrics{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:7px;margin-top:11px}.device-health-metrics>div{border:1px solid rgba(70,119,173,.38);background:rgba(7,25,49,.72);border-radius:11px;padding:8px}.device-health-metrics span{display:block;color:#8fa8c7;font-size:8px}.device-health-metrics b{display:block;font-size:13px;margin-top:4px}
+.temp-normal{color:#45e1b1}.temp-warm{color:#ffc260}.temp-hot{color:#ff6375;text-shadow:0 0 14px rgba(255,64,88,.28)}.temp-na{color:#91a8c8}
+.device-health-foot{display:flex;justify-content:space-between;gap:10px;margin-top:9px;color:#8099b9;font-size:8px}.device-health-foot b{color:#a9bdd7;font-weight:600}
+.status-report-head{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid rgba(54,97,149,.35);font-size:11px}.status-events{display:flex;flex-direction:column;gap:7px;margin-top:8px}.status-event{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:8px 9px;border:1px solid rgba(54,97,149,.34);border-radius:11px;background:rgba(8,28,53,.55)}.status-event b{display:block;font-size:10px}.status-event span{display:block;color:#8fa8c7;font-size:8px;margin-top:3px}.event-dot{width:8px;height:8px;border-radius:50%;background:#7387a3;flex:0 0 auto}.event-dot.online,.event-dot.temp_normal{background:#00d197;box-shadow:0 0 10px rgba(0,209,151,.45)}.event-dot.offline,.event-dot.temp_high{background:#ff4f66;box-shadow:0 0 10px rgba(255,79,102,.42)}.event-dot.unknown{background:#ffae35}.compact-empty{padding:12px;font-size:10px}
+.settings-stack{display:flex;flex-direction:column;gap:14px}.router-link-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.router-link-summary>div{padding:9px;border:1px solid #244b79;border-radius:11px;background:#0b223f}.router-link-summary span{display:block;font-size:8px;color:#8fa8c7}.router-link-summary b{display:block;font-size:11px;margin-top:4px}
+#notificationBtn.success{border-color:rgba(0,209,151,.7);box-shadow:0 0 0 2px rgba(0,209,151,.08),0 8px 22px rgba(0,209,151,.12)}
+@media(max-width:780px){.device-health-list{grid-template-columns:1fr}.device-health-metrics{grid-template-columns:1.2fr .8fr .8fr}.router-link-summary{grid-template-columns:1fr}.router-health-card{margin-top:0}}
+
 </style>
 </head>
 <body>
@@ -356,7 +369,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
         <div><b>MikroTik • ISP</b><small>إدارة المشتركين والاشتراكات</small></div>
       </div>
       <div class="row">
-        <button class="btn icon-btn" type="button" title="الإشعارات">🔔</button>
+        <button id="notificationBtn" class="btn icon-btn" type="button" title="إشعارات حالة الشبكة" onclick="togglePushNotifications()"><span id="notificationBell">🔔</span></button>
         <button id="mobileMenuBtn" class="btn icon-btn" type="button">☰</button>
         <span id="routerBadge" class="badge offline">MikroTik غير متصل</span>
       </div>
@@ -398,7 +411,8 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     routers:[],
     settings:[],
     profiles:[],
-    invites:[]
+    invites:[],
+    routerEvents:[]
   };
 
   let session=loadSession();
@@ -691,7 +705,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
 
   async function refreshAll(){
     try{
-      const [packages,subscribers,subscriptions,payments,commands,logs,routers,settings,profiles,invites]=await Promise.all([
+      const [packages,subscribers,subscriptions,payments,commands,logs,routers,settings,profiles,invites,routerEvents]=await Promise.all([
         table('packages','select=*&order=created_at.asc'),
         table('subscribers','select=*&order=created_at.desc'),
         table('subscriptions','select=*'),
@@ -701,7 +715,8 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
         table('routers','select=*&order=created_at.asc'),
         table('settings','select=*&order=key.asc'),
         table('profiles','select=*&order=created_at.asc'),
-        isOwner()?table('user_invites','select=*&order=created_at.desc') : Promise.resolve([])
+        isOwner()?table('user_invites','select=*&order=created_at.desc') : Promise.resolve([]),
+        table('router_status_events','select=*&order=created_at.desc&limit=40')
       ]);
 
       state.packages=packages||[];
@@ -714,9 +729,11 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
       state.settings=settings||[];
       state.profiles=profiles||[];
       state.invites=invites||[];
+      state.routerEvents=routerEvents||[];
 
       updateRouterBadge();
       render();
+      updateNotificationUi();
     }catch(err){
       $('#content').innerHTML='<div class="card card-pad"><b>تعذر تحميل البيانات</b><div class="muted" style="margin-top:8px">'+esc(err.message)+'</div></div>';
       toast(err.message,true);
@@ -724,26 +741,91 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
   }
 
   function updateRouterBadge(){
-    const r=state.routers[0];
+    const core=routerByRole('CORE')||state.routers[0];
+    const connector=routerByRole('CONNECTOR');
     const el=$('#routerBadge');
-    if(!r){
+    if(!core&&!connector){
       el.className='badge offline';
       el.textContent='لا يوجد Router';
       return;
     }
-    if(r.adapter_mode==='MOCK'){
+    if((core?.adapter_mode||'MOCK')==='MOCK'&&(connector?.adapter_mode||'MOCK')==='MOCK'){
       el.className='badge pending';
       el.textContent='MikroTik • MOCK';
       return;
     }
-    el.className='badge '+(r.router_status==='ONLINE'?'online':'offline');
-    el.textContent=r.router_status==='ONLINE'?'MikroTik متصل':'MikroTik غير متصل';
+    if(connector&&connector.router_status!=='ONLINE'){
+      el.className='badge offline';
+      el.textContent='RB951 غير متصل';
+      return;
+    }
+    if(core?.router_status==='UNKNOWN'){
+      el.className='badge pending';
+      el.textContent='RB1100 • غير معروف';
+      return;
+    }
+    el.className='badge '+(core?.router_status==='ONLINE'?'online':'offline');
+    el.textContent=core?.router_status==='ONLINE'?'MikroTik • متصل':'RB1100 غير متصل';
   }
 
   function packageById(id){return state.packages.find(x=>x.id===id)}
   function subscriptionBySubscriber(id){return state.subscriptions.find(x=>x.subscriber_id===id)}
   function subscriberById(id){return state.subscribers.find(x=>x.id===id)}
   function visibleSubscribers(){return state.subscribers.filter(x=>!x.archived_at)}
+  function routerByRole(role){return state.routers.find(x=>x.device_role===role)}
+  function routerStatusLabel(status){
+    return status==='ONLINE'?'متصل':status==='UNKNOWN'?'غير معروف':'غير متصل';
+  }
+  function routerStatusClass(status){
+    return status==='ONLINE'?'online':status==='UNKNOWN'?'pending':'offline';
+  }
+  function temperatureLabel(r){
+    if(!r?.temperature_supported)return 'غير مدعومة';
+    if(r.temperature_c===null||r.temperature_c===undefined)return '—';
+    return Number(r.temperature_c).toFixed(1)+'°C';
+  }
+  function temperatureClass(r){
+    if(!r?.temperature_supported||r.temperature_c===null||r.temperature_c===undefined)return 'temp-na';
+    const t=Number(r.temperature_c);
+    if(t>=Number(r.temp_warn_c||70))return 'temp-hot';
+    if(t>=Number(r.temp_recover_c||65))return 'temp-warm';
+    return 'temp-normal';
+  }
+  function eventText(e){
+    const r=state.routers.find(x=>x.id===e.router_id);
+    const device=r?.device_role==='CONNECTOR'?'RB951':'RB1100';
+    if(e.event_type==='ONLINE')return '🟢 '+device+' عاد Online'+(e.outage_seconds?' • انقطاع '+fmtDuration(e.outage_seconds):'');
+    if(e.event_type==='OFFLINE')return '🔴 '+device+' أصبح Offline';
+    if(e.event_type==='UNKNOWN')return '🟠 '+device+' حالته غير معروفة لأن رابط الـConnector مفقود';
+    if(e.event_type==='TEMP_HIGH')return '🔥 '+device+' حرارة مرتفعة • '+Number(e.temperature_c||0).toFixed(1)+'°C';
+    if(e.event_type==='TEMP_NORMAL')return '✅ '+device+' الحرارة رجعت طبيعية • '+Number(e.temperature_c||0).toFixed(1)+'°C';
+    return e.event_type;
+  }
+  function renderRouterHealthCards(){
+    const order=['CORE','CONNECTOR'];
+    const routers=order.map(routerByRole).filter(Boolean);
+    if(!routers.length)return '<div class="empty">لا توجد أجهزة MikroTik مسجلة</div>';
+    return routers.map(r=>
+      '<div class="device-health-card" data-router-health="'+esc(r.id)+'">'+
+        '<div class="device-health-head"><div><b>'+(r.device_role==='CORE'?'RB1100AHx4':'RB951 Connector')+'</b><span>'+esc(r.management_ip||'—')+'</span></div>'+
+          '<span class="badge '+routerStatusClass(r.router_status)+'" data-router-status-badge="'+esc(r.id)+'">'+esc(routerStatusLabel(r.router_status))+'</span></div>'+
+        '<div class="device-health-metrics">'+
+          '<div><span>🌡️ الحرارة</span><b class="'+temperatureClass(r)+'" data-router-temp="'+esc(r.id)+'">'+esc(temperatureLabel(r))+'</b></div>'+
+          '<div><span>CPU</span><b data-router-cpu="'+esc(r.id)+'">'+esc(r.cpu_load??'—')+(r.cpu_load==null?'':'%')+'</b></div>'+
+          '<div><span>RAM</span><b data-router-ram="'+esc(r.id)+'">'+esc(r.ram_used_percent??'—')+(r.ram_used_percent==null?'':'%')+'</b></div>'+
+        '</div>'+
+        '<div class="device-health-foot"><span>آخر تحديث</span><b data-router-seen="'+esc(r.id)+'">'+esc(fmtDate(r.last_seen_at))+'</b></div>'+
+      '</div>'
+    ).join('');
+  }
+  function renderRouterEvents(limit=6){
+    const events=(state.routerEvents||[]).slice(0,limit);
+    if(!events.length)return '<div class="empty compact-empty">ماكو أحداث فعلية بعد. تبدأ السجلات من أول ربط حقيقي للراوترات.</div>';
+    return events.map(e=>
+      '<div class="status-event"><div><b>'+esc(eventText(e))+'</b><span>'+esc(fmtDate(e.created_at))+'</span></div>'+
+      '<span class="event-dot '+String(e.event_type||'').toLowerCase()+'"></span></div>'
+    ).join('');
+  }
 
   function render(){
     const floating=$('#floatingAdd'); if(floating) floating.classList.add('hidden');
@@ -796,7 +878,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
       .sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at))
       .slice(0,7);
 
-    const router=state.routers[0]||{};
+    const router=routerByRole('CORE')||state.routers[0]||{};
     const pendingCommands=state.commands.filter(x=>['PENDING','RETRY','EXECUTING'].includes(x.status)).length;
     const providerFresh=trafficFresh(router.traffic_updated_at);
 
@@ -831,13 +913,10 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
         '<div class="card card-pad premium-card"><div class="row between"><h3 class="section-title">أقرب مواعيد الانتهاء</h3><button class="mini-link" onclick="document.querySelector(\'[data-page=subscribers]\').click()">عرض المشتركين</button></div>'+
           '<div class="mini-list">'+(upcoming.length?upcoming.map(s=>{const u=subscriberById(s.subscriber_id);return '<div class="mini-item"><div><b>'+esc(u?.full_name||'—')+'</b><div class="muted">'+esc(u?.pppoe_username||'')+'</div></div><div><b>'+esc(remaining(s.expires_at))+'</b><div class="muted">'+esc(fmtDate(s.expires_at))+'</div></div></div>'}).join(''):'<div class="empty">لا توجد اشتراكات فعالة قريبة الانتهاء</div>')+'</div>'+
         '</div>'+
-        '<div class="card card-pad premium-card router-health-card"><div class="row between"><h3 class="section-title">حالة النظام</h3><span class="status-orb '+(router.router_status==='ONLINE'?'ok':'')+'"></span></div>'+
-          '<div class="metric-grid">'+
-            '<div class="metric"><span>الراوتر</span><b>'+esc(router.router_status||'OFFLINE')+'</b></div>'+
-            '<div class="metric"><span>Adapter</span><b>'+esc(router.adapter_mode||'MOCK')+'</b></div>'+
-            '<div class="metric"><span>CPU</span><b>'+esc(router.cpu_load??0)+'%</b></div>'+
-            '<div class="metric"><span>RAM</span><b>'+esc(router.ram_used_percent??0)+'%</b></div>'+
-          '</div>'+
+        '<div class="card card-pad premium-card router-health-card"><div class="row between"><div><h3 class="section-title">حالة النظام</h3><div class="muted" style="font-size:10px">RB1100 + RB951 • تحديث لحظي</div></div><button class="btn small" onclick="togglePushNotifications()">🔔 التنبيهات</button></div>'+
+          '<div class="device-health-list">'+renderRouterHealthCards()+'</div>'+
+          '<div class="status-report-head"><b>تقرير الحالة</b><span class="muted">آخر الأحداث</span></div>'+
+          '<div class="status-events">'+renderRouterEvents(5)+'</div>'+
         '</div>'+
       '</div>';
   }
@@ -982,7 +1061,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
   }
 
   function renderTraffic(){
-    const r=state.routers[0]||{};
+    const r=routerByRole('CORE')||state.routers[0]||{};
     const fresh=trafficFresh(r.traffic_updated_at);
     const lineMbps=Number(r.line_speed_mbps||0);
     const online=state.subscribers.filter(s=>!s.archived_at&&s.is_online)
@@ -1021,15 +1100,21 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     try{
       const [subs,routers]=await Promise.all([
         table('subscribers','select=id,is_online,current_rx_bps,current_tx_bps,session_rx_bytes,session_tx_bytes,total_rx_bytes,total_tx_bytes,traffic_updated_at,usage_updated_at,current_ip&archived_at=is.null'),
-        table('routers','select=id,provider_rx_bps,provider_tx_bps,traffic_updated_at,line_speed_mbps,internet_provider,adapter_mode&order=created_at.asc')
+        table('routers','select=id,name,model,device_role,management_ip,router_status,adapter_mode,last_seen_at,cpu_load,ram_used_percent,temperature_c,temperature_supported,temperature_updated_at,temp_warn_c,temp_recover_c,provider_rx_bps,provider_tx_bps,traffic_updated_at,line_speed_mbps,internet_provider&order=created_at.asc')
       ]);
 
       const map=new Map((subs||[]).map(x=>[x.id,x]));
       state.subscribers=state.subscribers.map(s=>map.has(s.id)?{...s,...map.get(s.id)}:s);
-      if(routers?.length&&state.routers.length) state.routers[0]={...state.routers[0],...routers[0]};
-      else if(routers?.length) state.routers=routers;
+      if(routers?.length){
+        const rmap=new Map(routers.map(x=>[x.id,x]));
+        state.routers=state.routers.length
+          ? state.routers.map(r=>rmap.has(r.id)?{...r,...rmap.get(r.id)}:r)
+          : routers;
+      }
 
+      updateRouterBadge();
       paintTraffic();
+      paintSystemHealth();
     }catch{}
   }
 
@@ -1042,7 +1127,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
       $$('[data-sub-tx="'+s.id+'"]').forEach(el=>el.textContent='TX '+(fresh?tx:'—'));
       $$('[data-sub-rx="'+s.id+'"]').forEach(el=>el.textContent='RX '+(fresh?rx:'—'));
     }
-    const r=state.routers[0];
+    const r=routerByRole('CORE')||state.routers[0];
     if(r){
       const fresh=trafficFresh(r.traffic_updated_at);
       const rx=$('#providerRx'),tx=$('#providerTx'),live=$('#trafficLiveState'),last=$('#trafficLastUpdate');
@@ -1050,6 +1135,22 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
       if(tx)tx.textContent=fresh?fmtRate(r.provider_tx_bps):'—';
       if(live){live.textContent=fresh?'مباشر':'غير متصل';live.classList.toggle('live',fresh)}
       if(last)last.textContent='آخر عينة: '+(fresh?fmtDate(r.traffic_updated_at):'لا توجد عينة حقيقية بعد');
+    }
+  }
+
+  function paintSystemHealth(){
+    for(const r of state.routers){
+      $('[data-router-status-badge="'+r.id+'"]').forEach(el=>{
+        el.className='badge '+routerStatusClass(r.router_status);
+        el.textContent=routerStatusLabel(r.router_status);
+      });
+      $('[data-router-temp="'+r.id+'"]').forEach(el=>{
+        el.className=temperatureClass(r);
+        el.textContent=temperatureLabel(r);
+      });
+      $('[data-router-cpu="'+r.id+'"]').forEach(el=>el.textContent=r.cpu_load==null?'—':Number(r.cpu_load).toFixed(0)+'%');
+      $('[data-router-ram="'+r.id+'"]').forEach(el=>el.textContent=r.ram_used_percent==null?'—':Number(r.ram_used_percent).toFixed(0)+'%');
+      $('[data-router-seen="'+r.id+'"]').forEach(el=>el.textContent=fmtDate(r.last_seen_at));
     }
   }
 
@@ -1185,30 +1286,32 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
   }
 
   function renderSettings(){
-    const r=state.routers[0]||{};
+    const core=routerByRole('CORE')||{};
+    const connector=routerByRole('CONNECTOR')||{};
 
     $('#content').innerHTML=
-      '<div class="page-head"><div><h1>الإعدادات</h1><div class="muted">النظام حالياً مستقل عن MikroTik إلى أن يتم الربط</div></div></div>'+
+      '<div class="page-head"><div><h1>الإعدادات</h1><div class="muted">إعدادات ISP Control، الربط، والتنبيهات</div></div></div>'+
       '<div class="grid2">'+
         '<div class="card card-pad"><div class="row between"><h3 class="section-title">إعدادات عامة</h3><button class="btn small primary" onclick="openLoginSettings()">تغيير بيانات الدخول</button></div>'+
           '<div class="mini-list">'+state.settings.map(s=>
             '<div class="mini-item"><div><b>'+esc(s.key)+'</b><div class="muted">'+esc(s.description||'')+'</div></div><div class="row"><code>'+esc(typeof s.value==='string'?s.value:JSON.stringify(s.value))+'</code>'+(isOwner()?'<button class="btn small" onclick="openSetting(\''+esc(s.key)+'\')">تعديل</button>':'')+'</div></div>'
           ).join('')+'</div>'+
         '</div>'+
-        '<div class="card card-pad"><h3 class="section-title">MikroTik</h3>'+
-          '<div class="mini-list">'+
-            '<div class="mini-item"><span>الاسم</span><b>'+esc(r.name||'—')+'</b></div>'+
-            '<div class="mini-item"><span>الموديل</span><b>'+esc(r.model||'—')+'</b></div>'+
-            '<div class="mini-item"><span>Management IP</span><b class="mono">'+esc(r.management_ip||'—')+'</b></div>'+
-            '<div class="mini-item"><span>WAN</span><b>'+esc(r.wan_interface||'—')+'</b></div>'+
-            '<div class="mini-item"><span>PPPoE Port</span><b>'+esc(r.distribution_interface||'—')+'</b></div>'+
-            '<div class="mini-item"><span>Provider</span><b>'+esc(r.internet_provider||'—')+'</b></div>'+
-            '<div class="mini-item"><span>Adapter</span><b>'+esc(r.adapter_mode||'MOCK')+'</b></div>'+
-            '<div class="mini-item"><span>آخر ظهور</span><b>'+esc(fmtDate(r.last_seen_at))+'</b></div>'+
+        '<div class="settings-stack">'+
+          '<div class="card card-pad"><div class="row between"><div><h3 class="section-title">إشعارات حالة الشبكة</h3><div class="muted" style="font-size:11px">تنبيه عند Offline / Online وارتفاع حرارة RB1100</div></div><button id="settingsPushBtn" class="btn primary small" onclick="togglePushNotifications()">تفعيل الإشعارات</button></div>'+
+            '<div class="alert info" style="margin-top:12px">على iPhone لازم يكون الـPWA مضاف للشاشة الرئيسية. الإشعار يوصلك حتى إذا التطبيق مغلق بعد منح الإذن.</div>'+
           '</div>'+
-          '<div class="alert info" style="margin-top:14px">لن نعتمد تشغيل المشتركين على السحابة. بعد الربط، الراوتر يبقى يشغّل PPPoE والانتهاء والسرعات محلياً حتى إذا توقف الموقع.</div>'+
+          '<div class="card card-pad"><div class="row between"><div><h3 class="section-title">أجهزة MikroTik</h3><div class="muted" style="font-size:10px">قراءات الحالة والحرارة لحظة بلحظة</div></div><span class="chip">2 أجهزة</span></div>'+
+            '<div class="device-health-list">'+renderRouterHealthCards()+'</div>'+
+            '<div class="router-link-summary">'+
+              '<div><span>RB1100</span><b class="mono">'+esc(core.management_ip||'10.10.5.1')+'</b></div>'+
+              '<div><span>RB951 Connector</span><b class="mono">'+esc(connector.management_ip||'10.10.5.2')+'</b></div>'+
+            '</div>'+
+          '</div>'+
+          '<div class="card card-pad"><div class="row between"><h3 class="section-title">تقرير الحالة</h3><span class="muted" style="font-size:10px">Online / Offline / Temperature</span></div><div class="status-events">'+renderRouterEvents(12)+'</div></div>'+
         '</div>'+
       '</div>';
+    updateNotificationUi();
   }
 
   window.openAddSubscriber=function(){
@@ -1537,6 +1640,95 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
       '</div>'+
       '<div class="alert info" style="margin-top:12px">بعد التثبيت راح يفتح ISP Control بواجهة تطبيق مستقلة ويستخدم اللوكو المعتمد كأيقونة.</div>'
     );
+  };
+
+  function urlBase64ToUint8Array(base64String){
+    const padding='='.repeat((4-base64String.length%4)%4);
+    const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+    const raw=atob(base64);
+    return Uint8Array.from([...raw].map(ch=>ch.charCodeAt(0)));
+  }
+
+  async function currentPushSubscription(){
+    if(!('serviceWorker' in navigator)||!('PushManager' in window))return null;
+    try{
+      const reg=await navigator.serviceWorker.ready;
+      return await reg.pushManager.getSubscription();
+    }catch{return null}
+  }
+
+  async function updateNotificationUi(){
+    const bell=$('#notificationBell');
+    const top=$('#notificationBtn');
+    const settingsBtn=$('#settingsPushBtn');
+    const supported='Notification' in window&&'serviceWorker' in navigator&&'PushManager' in window;
+    const sub=supported?await currentPushSubscription():null;
+    const active=!!sub&&Notification.permission==='granted';
+    if(bell)bell.textContent=active?'🔔':'🔕';
+    if(top){
+      top.classList.toggle('success',active);
+      top.title=active?'إشعارات حالة الشبكة مفعلة':'تفعيل إشعارات حالة الشبكة';
+    }
+    if(settingsBtn){
+      settingsBtn.textContent=active?'إيقاف الإشعارات':'تفعيل الإشعارات';
+      settingsBtn.classList.toggle('success',active);
+      settingsBtn.classList.toggle('primary',!active);
+    }
+  }
+
+  window.togglePushNotifications=async function(){
+    try{
+      if(!('Notification' in window)||!('serviceWorker' in navigator)||!('PushManager' in window)){
+        toast('هذا الجهاز أو المتصفح لا يدعم Web Push',true);
+        return;
+      }
+      const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if(ios&&!isStandalonePWA()){
+        openIOSInstallGuide();
+        toast('ثبت التطبيق على الشاشة الرئيسية أولاً');
+        return;
+      }
+      if(!session?.access_token){
+        toast('سجّل الدخول أولاً',true);
+        return;
+      }
+
+      const reg=await navigator.serviceWorker.ready;
+      let sub=await reg.pushManager.getSubscription();
+      if(sub){
+        const endpoint=sub.endpoint;
+        await sub.unsubscribe();
+        try{await rpc('remove_my_push_subscription',{p_endpoint:endpoint})}catch{}
+        toast('تم إيقاف إشعارات حالة الشبكة');
+        await updateNotificationUi();
+        return;
+      }
+
+      const permission=await Notification.requestPermission();
+      if(permission!=='granted'){
+        toast('لم يتم السماح بالإشعارات',true);
+        await updateNotificationUi();
+        return;
+      }
+
+      const vapidKey=await rpc('get_vapid_public_key',{});
+      sub=await reg.pushManager.subscribe({
+        userVisibleOnly:true,
+        applicationServerKey:urlBase64ToUint8Array(vapidKey)
+      });
+      const json=sub.toJSON();
+      await rpc('save_push_subscription',{
+        p_endpoint:sub.endpoint,
+        p_p256dh:json.keys?.p256dh||'',
+        p_auth:json.keys?.auth||'',
+        p_user_agent:navigator.userAgent
+      });
+
+      toast('تم تفعيل إشعارات RB1100 وRB951');
+      await updateNotificationUi();
+    }catch(err){
+      toast('تعذر تفعيل الإشعارات: '+err.message,true);
+    }
   };
 
   function setupPWA(){
