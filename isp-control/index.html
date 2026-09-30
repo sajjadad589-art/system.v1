@@ -793,6 +793,14 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
   function subscriberById(id){return state.subscribers.find(x=>x.id===id)}
   function visibleSubscribers(){return state.subscribers.filter(x=>!x.archived_at)}
   function routerByRole(role){return state.routers.find(x=>x.device_role===role)}
+  function subscriberSnapshotFresh(){
+    const core=routerByRole('CORE');
+    if(!core)return false;
+    const rows=visibleSubscribers().filter(x=>x.source_router_id===core.id&&x.router_synced_at);
+    if(!rows.length)return false;
+    const latest=Math.max(...rows.map(x=>new Date(x.router_synced_at).getTime()).filter(Number.isFinite));
+    return Number.isFinite(latest) && (Date.now()-latest)<=15000;
+  }
   function routerStatusLabel(status,adapterMode){
     if(adapterMode==='MOCK')return 'MOCK';
     return status==='ONLINE'?'متصل':status==='UNKNOWN'?'غير معروف':'غير متصل';
@@ -888,6 +896,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     const expired=subs.filter(x=>x.status==='EXPIRED').length;
     const suspended=subs.filter(x=>x.status==='SUSPENDED').length;
     const online=subs.filter(x=>x.is_online).length;
+    const syncFresh=subscriberSnapshotFresh();
 
     const monthStart=new Date();
     monthStart.setDate(1);monthStart.setHours(0,0,0,0);
@@ -912,7 +921,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
       '</div>'+
       '<div class="dash-color-cards">'+
         '<div class="dash-color-card dc-blue"><div class="dc-icon">♙</div><div><b>'+subs.length+'</b><span>المشتركين</span></div></div>'+
-        '<div class="dash-color-card dc-green"><div class="dc-icon">◉</div><div><b>'+online+'</b><span>متصل الآن</span></div></div>'+
+        '<div class="dash-color-card dc-green"><div class="dc-icon">◉</div><div><b>'+(syncFresh?online:'—')+'</b><span>'+(syncFresh?'متصل الآن':'المزامنة متأخرة')+'</span></div></div>'+
         '<div class="dash-color-card dc-orange"><div class="dc-icon">◔</div><div><b>'+expired+'</b><span>منتهي</span></div></div>'+
         '<div class="dash-color-card dc-pink"><div class="dc-icon">!</div><div><b>'+suspended+'</b><span>موقوف</span></div></div>'+
       '</div>'+
@@ -924,7 +933,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
             '<div><span>↑ TX</span><b>'+esc(providerFresh?fmtRate(router.provider_tx_bps):fmtRate(router.upload_mbps*1000000||0))+'</b></div>'+
           '</div>'+
           '<div class="dash-sparkline"><svg viewBox="0 0 560 120" preserveAspectRatio="none"><defs><linearGradient id="gDashB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#25b9ff" stop-opacity=".34"/><stop offset="100%" stop-color="#25b9ff" stop-opacity="0"/></linearGradient><linearGradient id="gDashG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#32e0ad" stop-opacity=".25"/><stop offset="100%" stop-color="#32e0ad" stop-opacity="0"/></linearGradient></defs><path d="M0 92 C40 84 62 40 96 66 S150 95 185 54 S240 28 275 64 S330 100 365 58 S424 42 458 18 S520 66 560 38 L560 120 L0 120 Z" fill="url(#gDashB)"/><path d="M0 92 C40 84 62 40 96 66 S150 95 185 54 S240 28 275 64 S330 100 365 58 S424 42 458 18 S520 66 560 38" fill="none" stroke="#31b8ff" stroke-width="3"/><path d="M0 103 C42 78 76 98 110 78 S170 54 205 82 S270 98 306 72 S365 52 398 79 S458 88 494 62 S535 74 560 55 L560 120 L0 120 Z" fill="url(#gDashG)"/><path d="M0 103 C42 78 76 98 110 78 S170 54 205 82 S270 98 306 72 S365 52 398 79 S458 88 494 62 S535 74 560 55" fill="none" stroke="#35dfa9" stroke-width="3"/></svg></div>'+
-          '<div class="isp-meta"><span>الخط <b>'+esc(router.line_speed_mbps||0)+' Mbps</b></span><span>PPPoE <b>'+online+'</b></span><span>أوامر معلقة <b>'+pendingCommands+'</b></span></div>'+
+          '<div class="isp-meta"><span>الخط <b>'+esc(router.line_speed_mbps||0)+' Mbps</b></span><span>PPPoE <b>'+(syncFresh?online:'—')+'</b></span><span>أوامر معلقة <b>'+pendingCommands+'</b></span></div>'+
         '</div>'+
         '<div class="finance-glass-card">'+
           '<div class="eyebrow">المالية</div><div class="finance-value">'+fmtIQD(monthRevenue)+'</div><div class="muted">إيراد هذا الشهر</div>'+
@@ -947,6 +956,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
   function renderSubscribers(){
     const subs=visibleSubscribers();
     const online=subs.filter(x=>x.is_online).length;
+    const syncFresh=subscriberSnapshotFresh();
     const suspended=subs.filter(x=>x.status==='SUSPENDED').length;
     const in7=new Date(Date.now()+7*86400000);
     const soon=state.subscriptions.filter(x=>{
@@ -958,7 +968,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     $('#content').innerHTML=
       '<div class="neon-stats">'+
         '<div class="neon-stat blue"><div class="n-icon">♟</div><div class="n-value">'+subs.length+'</div><div class="n-label">المشتركين</div></div>'+
-        '<div class="neon-stat green"><div class="n-icon">◉</div><div class="n-value">'+online+'</div><div class="n-label">متصل الآن</div></div>'+
+        '<div class="neon-stat green"><div class="n-icon">◉</div><div class="n-value">'+(syncFresh?online:'—')+'</div><div class="n-label">'+(syncFresh?'متصل الآن':'المزامنة متأخرة')+'</div></div>'+
         '<div class="neon-stat orange"><div class="n-icon">◔</div><div class="n-value">'+soon+'</div><div class="n-label">منتهي قريباً</div></div>'+
         '<div class="neon-stat red"><div class="n-icon">!</div><div class="n-value">'+suspended+'</div><div class="n-label">متوقفين</div></div>'+
       '</div>'+
