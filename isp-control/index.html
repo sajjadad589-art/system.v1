@@ -740,6 +740,26 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     }
   }
 
+  async function refreshLive(){
+    if(!session?.access_token || $('#appView').classList.contains('hidden'))return;
+    try{
+      const [subscribers,subscriptions,routers]=await Promise.all([
+        table('subscribers','select=*&order=created_at.desc'),
+        table('subscriptions','select=*'),
+        table('routers','select=*&order=created_at.asc')
+      ]);
+      state.subscribers=subscribers||[];
+      state.subscriptions=subscriptions||[];
+      state.routers=routers||[];
+      updateRouterBadge();
+
+      const tag=document.activeElement?.tagName||'';
+      const editing=['INPUT','SELECT','TEXTAREA'].includes(tag);
+      const modalOpen=!!document.querySelector('.modal:not(.hidden)');
+      if(!editing&&!modalOpen)render();
+    }catch{}
+  }
+
   function updateRouterBadge(){
     const core=routerByRole('CORE')||state.routers[0];
     const connector=routerByRole('CONNECTOR');
@@ -1626,9 +1646,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
 
   window.refreshAll=refreshAll;
 
-  setInterval(()=>{
-    if(!$('#appView').classList.contains('hidden'))refreshAll();
-  },60000);
+  setInterval(refreshLive,3000);
   function isStandalonePWA(){
     return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;
   }
