@@ -1044,9 +1044,9 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
       state.subscriberSearch=e.currentTarget.value||'';
       drawSubscriberTable();
     });
-    $('.filter-chip').forEach(chip=>chip.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-chip').forEach(chip=>chip.addEventListener('click',()=>{
       state.subscriberFilter=chip.dataset.filter||'';
-      $('.filter-chip').forEach(x=>x.classList.toggle('active',x===chip));
+      document.querySelectorAll('.filter-chip').forEach(x=>x.classList.toggle('active',x===chip));
       $('#subscriberStatus').value=state.subscriberFilter;
       drawSubscriberTable();
     }));
