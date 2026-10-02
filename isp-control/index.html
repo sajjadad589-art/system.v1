@@ -412,7 +412,11 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     settings:[],
     profiles:[],
     invites:[],
-    routerEvents:[]
+    routerEvents:[],
+    subscriberFilter:'',
+    subscriberSearch:'',
+    subscriberOrder:[],
+    trafficOnlineSignature:''
   };
 
   let session=loadSession();
@@ -721,6 +725,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
 
       state.packages=packages||[];
       state.subscribers=subscribers||[];
+      rememberSubscriberOrder();
       state.subscriptions=subscriptions||[];
       state.payments=payments||[];
       state.commands=commands||[];
@@ -749,6 +754,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
         table('routers','select=*&order=created_at.asc')
       ]);
       state.subscribers=subscribers||[];
+      rememberSubscriberOrder();
       state.subscriptions=subscriptions||[];
       state.routers=routers||[];
       updateRouterBadge();
@@ -756,6 +762,19 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
       const tag=document.activeElement?.tagName||'';
       const editing=['INPUT','SELECT','TEXTAREA'].includes(tag);
       const modalOpen=!!document.querySelector('.modal:not(.hidden)');
+
+      if(state.page==='subscribers'){
+        if(!editing&&!modalOpen)drawSubscriberTable();
+        paintTraffic();
+        return;
+      }
+      if(state.page==='traffic'){
+        const sig=currentTrafficOnlineSignature();
+        if(!modalOpen&&sig!==state.trafficOnlineSignature)renderTraffic();
+        else paintTraffic();
+        paintSystemHealth();
+        return;
+      }
       if(!editing&&!modalOpen)render();
     }catch{}
   }
@@ -792,6 +811,23 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
   function subscriptionBySubscriber(id){return state.subscriptions.find(x=>x.subscriber_id===id)}
   function subscriberById(id){return state.subscribers.find(x=>x.id===id)}
   function visibleSubscribers(){return state.subscribers.filter(x=>!x.archived_at)}
+  function rememberSubscriberOrder(){
+    const current=new Set(state.subscribers.map(x=>x.id));
+    const kept=state.subscriberOrder.filter(id=>current.has(id));
+    const known=new Set(kept);
+    const added=state.subscribers
+      .filter(x=>!known.has(x.id))
+      .sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))
+      .map(x=>x.id);
+    state.subscriberOrder=[...added,...kept];
+  }
+  function stableSubscriberRows(rows){
+    const pos=new Map(state.subscriberOrder.map((id,i)=>[id,i]));
+    return [...rows].sort((a,b)=>(pos.get(a.id)??999999)-(pos.get(b.id)??999999)||String(a.id).localeCompare(String(b.id)));
+  }
+  function currentTrafficOnlineSignature(){
+    return stableSubscriberRows(state.subscribers.filter(s=>!s.archived_at&&s.is_online)).map(s=>s.id).join('|');
+  }
   function routerByRole(role){return state.routers.find(x=>x.device_role===role)}
   function subscriberSnapshotFresh(){
     const core=routerByRole('CORE');
@@ -973,25 +1009,29 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
         '<div class="neon-stat red"><div class="n-icon">!</div><div class="n-value">'+suspended+'</div><div class="n-label">متوقفين</div></div>'+
       '</div>'+
       '<div class="search-panel">'+
-        '<input id="subscriberSearch" class="input" placeholder="بحث بالاسم أو الهاتف أو PPPoE...">'+
+        '<input id="subscriberSearch" class="input" value="'+esc(state.subscriberSearch)+'" placeholder="بحث بالاسم أو الهاتف أو PPPoE...">'+
         '<button class="btn" type="button" onclick="toggleFilterRow()" title="فلترة">☷</button>'+
         (canManage()?'<button class="btn primary add-inline" type="button" onclick="openAddSubscriber()" title="مشترك جديد">＋ مشترك جديد</button>':'<span></span>')+
       '</div>'+
-      '<input id="subscriberStatus" type="hidden" value="">'+
+      '<input id="subscriberStatus" type="hidden" value="'+esc(state.subscriberFilter)+'">'+
       '<div id="filterRow" class="filter-chips">'+
-        '<button class="filter-chip active" data-filter="">الكل</button>'+
-        '<button class="filter-chip" data-filter="ONLINE">متصل</button>'+
-        '<button class="filter-chip" data-filter="OFFLINE">غير متصل</button>'+
-        '<button class="filter-chip" data-filter="SOON">منتهي قريباً</button>'+
-        '<button class="filter-chip" data-filter="EXPIRED">منتهي</button>'+
-        '<button class="filter-chip" data-filter="ARCHIVED">المؤرشفين</button>'+
+        '<button class="filter-chip '+(state.subscriberFilter===''?'active':'')+'" data-filter="">الكل</button>'+
+        '<button class="filter-chip '+(state.subscriberFilter==='ONLINE'?'active':'')+'" data-filter="ONLINE">متصل</button>'+
+        '<button class="filter-chip '+(state.subscriberFilter==='OFFLINE'?'active':'')+'" data-filter="OFFLINE">غير متصل</button>'+
+        '<button class="filter-chip '+(state.subscriberFilter==='SOON'?'active':'')+'" data-filter="SOON">منتهي قريباً</button>'+
+        '<button class="filter-chip '+(state.subscriberFilter==='EXPIRED'?'active':'')+'" data-filter="EXPIRED">منتهي</button>'+
+        '<button class="filter-chip '+(state.subscriberFilter==='ARCHIVED'?'active':'')+'" data-filter="ARCHIVED">المؤرشفين</button>'+
       '</div>'+
       '<div id="subscriberTable"></div>';
 
-    $('#subscriberSearch').addEventListener('input',drawSubscriberTable);
-    $$('.filter-chip').forEach(chip=>chip.addEventListener('click',()=>{
-      $$('.filter-chip').forEach(x=>x.classList.toggle('active',x===chip));
-      $('#subscriberStatus').value=chip.dataset.filter||'';
+    $('#subscriberSearch').addEventListener('input',e=>{
+      state.subscriberSearch=e.currentTarget.value||'';
+      drawSubscriberTable();
+    });
+    $('.filter-chip').forEach(chip=>chip.addEventListener('click',()=>{
+      state.subscriberFilter=chip.dataset.filter||'';
+      $('.filter-chip').forEach(x=>x.classList.toggle('active',x===chip));
+      $('#subscriberStatus').value=state.subscriberFilter;
       drawSubscriberTable();
     }));
     drawSubscriberTable();
@@ -1019,9 +1059,9 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
   }
 
   function drawSubscriberTable(){
-    const query=($('#subscriberSearch')?.value||'').trim().toLowerCase();
-    const filter=$('#subscriberStatus')?.value||'';
-    const rows=state.subscribers.filter(s=>{
+    const query=String(state.subscriberSearch||'').trim().toLowerCase();
+    const filter=state.subscriberFilter||'';
+    const rows=stableSubscriberRows(state.subscribers.filter(s=>{
       const archived=!!s.archived_at;
       if(filter==='ARCHIVED'){
         if(!archived)return false;
@@ -1037,7 +1077,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
       if(filter==='EXPIRED'&&s.status!=='EXPIRED')return false;
       if(query&&!([s.full_name,s.phone,s.pppoe_username].some(v=>String(v||'').toLowerCase().includes(query))))return false;
       return true;
-    });
+    }));
 
     const desktop='<div class="table-wrap subscriber-desktop-table"><table><thead><tr><th>المشترك</th><th>PPPoE</th><th>الباقة</th><th>الانتهاء</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>'+
       rows.map(s=>{const sub=subscriptionBySubscriber(s.id),p=packageById(s.package_id);return '<tr><td><b>'+esc(s.full_name)+'</b><div class="muted">'+esc(s.phone)+'</div></td><td class="mono">'+esc(s.pppoe_username)+'</td><td><span class="pkg-pill">'+esc(p?.name||'—')+'</span></td><td>'+esc(fmtDate(sub?.expires_at))+'</td><td>'+subscriberStatusBadge(s)+'</td><td>'+subscriberActionButton(s)+'</td></tr>'}).join('')+
@@ -1112,11 +1152,11 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     const r=routerByRole('CORE')||state.routers[0]||{};
     const fresh=trafficFresh(r.traffic_updated_at);
     const lineMbps=Number(r.line_speed_mbps||0);
-    const online=state.subscribers.filter(s=>!s.archived_at&&s.is_online)
-      .sort((a,b)=>Number(b.current_tx_bps||0)+Number(b.current_rx_bps||0)-Number(a.current_tx_bps||0)-Number(a.current_rx_bps||0));
+    const online=stableSubscriberRows(state.subscribers.filter(s=>!s.archived_at&&s.is_online));
+    state.trafficOnlineSignature=online.map(s=>s.id).join('|');
 
     $('#content').innerHTML=
-      '<div class="page-head"><div><h1>الترافيك المباشر</h1><div class="muted">تحديث تلقائي كل ثانيتين</div></div><span class="badge '+(fresh?'online':'pending')+'">'+(fresh?'LIVE':'بانتظار MikroTik')+'</span></div>'+
+      '<div class="page-head"><div><h1>الترافيك المباشر</h1><div class="muted">تحديث تلقائي كل ثانية مع ترتيب ثابت</div></div><span class="badge '+(fresh?'online':'pending')+'">'+(fresh?'LIVE':'بانتظار MikroTik')+'</span></div>'+
       '<div class="traffic-hero">'+
         '<div class="traffic-provider">'+
           '<div class="traffic-provider-head"><div><div class="muted" style="font-size:10px">مزود الإنترنت</div><div class="traffic-provider-name">'+esc(r.internet_provider||'HRiNS FTTH')+'</div></div><span id="trafficLiveState" class="traffic-live-dot '+(fresh?'live':'')+'">'+(fresh?'مباشر':'غير متصل')+'</span></div>'+
@@ -1161,7 +1201,9 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
       }
 
       updateRouterBadge();
-      paintTraffic();
+      const sig=currentTrafficOnlineSignature();
+      if(state.page==='traffic'&&sig!==state.trafficOnlineSignature)renderTraffic();
+      else paintTraffic();
       paintSystemHealth();
     }catch{}
   }
@@ -1683,7 +1725,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
 
   window.refreshAll=refreshAll;
 
-  setInterval(refreshLive,3000);
+  setInterval(refreshLive,1500);
   function isStandalonePWA(){
     return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;
   }
@@ -1806,7 +1848,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     });
   }
 
-  setInterval(refreshTraffic,2000);
+  setInterval(refreshTraffic,1000);
 
   setupPWA();
   boot();
