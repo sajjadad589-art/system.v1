@@ -303,6 +303,67 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
 #notificationBtn.success{border-color:rgba(0,209,151,.7);box-shadow:0 0 0 2px rgba(0,209,151,.08),0 8px 22px rgba(0,209,151,.12)}
 @media(max-width:780px){.device-health-list{grid-template-columns:1fr}.device-health-metrics{grid-template-columns:1.2fr .8fr .8fr}.router-link-summary{grid-template-columns:1fr}.router-health-card{margin-top:0}}
 
+
+/* Final subscriber-table 3D skin: keep this last so generic theme rules cannot override it */
+body[data-page="subscribers"] .subscriber-status-pill,
+body[data-page="subscribers"] .pkg-pill{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:40px!important;
+  padding:7px 17px!important;
+  border-radius:999px!important;
+  color:#fff!important;
+  font-size:12px!important;
+  font-weight:900!important;
+  white-space:nowrap!important;
+  background:linear-gradient(180deg,#27b5ff 0%,#0a82f5 48%,#075dcc 100%)!important;
+  border:1px solid #79d2ff!important;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,.50),
+    inset 0 -4px 8px rgba(0,45,132,.34),
+    0 7px 14px rgba(0,25,82,.38),
+    0 0 0 1px rgba(0,27,83,.22)!important;
+  text-shadow:0 2px 2px rgba(0,28,82,.48)!important;
+}
+body[data-page="subscribers"] .subscriber-status-pill{min-width:126px!important}
+body[data-page="subscribers"] .pkg-pill{min-width:96px!important}
+body[data-page="subscribers"] .action-trigger{
+  background:linear-gradient(180deg,#19568f 0%,#0c3768 55%,#082850 100%)!important;
+  border-color:#3d83c4!important;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.16),inset 0 -3px 7px rgba(0,15,46,.35),0 7px 14px rgba(0,11,35,.36)!important;
+}
+body[data-page="subscribers"] .expiry-en{
+  direction:ltr!important;
+  unicode-bidi:isolate!important;
+  font-family:Consolas,"Courier New",monospace!important;
+  font-variant-numeric:tabular-nums!important;
+  font-weight:900!important;
+  color:#fff!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.28);
+}
+body[data-page="subscribers"] .subscriber-desktop-table tbody tr{
+  transform:translateZ(0);
+  filter:drop-shadow(0 8px 9px rgba(0,5,20,.34));
+}
+body[data-page="subscribers"] .subscriber-desktop-table tbody tr td{
+  padding-top:14px;
+  padding-bottom:14px;
+}
+body[data-page="subscribers"] .subscriber-mobile-card{
+  border-width:1px;
+  position:relative;
+  overflow:hidden;
+}
+body[data-page="subscribers"] .subscriber-mobile-card:before{
+  content:"";
+  position:absolute;
+  left:8px;right:8px;top:3px;
+  height:28%;
+  border-radius:14px 14px 50% 50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.19),rgba(255,255,255,0));
+  pointer-events:none;
+}
 </style>
 </head>
 <body>
