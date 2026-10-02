@@ -984,6 +984,7 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
         '<button class="filter-chip" data-filter="OFFLINE">غير متصل</button>'+
         '<button class="filter-chip" data-filter="SOON">منتهي قريباً</button>'+
         '<button class="filter-chip" data-filter="EXPIRED">منتهي</button>'+
+        '<button class="filter-chip" data-filter="ARCHIVED">المؤرشفين</button>'+
       '</div>'+
       '<div id="subscriberTable"></div>';
 
@@ -1002,9 +1003,19 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
   }
 
   function subscriberActionButton(s){
-    if(s.archived_at)return '<span class="muted">مؤرشف</span>';
+    if(s.archived_at){
+      if(!canManage())return '<span class="muted">مؤرشف</span>';
+      return '<button class="btn success small" title="استرجاع المشترك" onclick="restoreArchivedSubscriber(\''+s.id+'\')">↺ استرجاع</button>';
+    }
     if(!canRenew()&&!canManage())return '<span class="muted">—</span>';
     return '<button class="btn action-trigger" title="الإجراءات" onclick="openSubscriberActions(\''+s.id+'\')">⋮</button>';
+  }
+
+  function subscriberStatusBadge(s){
+    if(s.archived_at)return '<span class="badge pending">مؤرشف</span>';
+    if(s.status==='EXPIRED')return '<span class="badge offline">منتهي</span>';
+    if(s.status==='SUSPENDED')return '<span class="badge pending">موقوف</span>';
+    return s.is_online?'<span class="badge online">متصل</span>':'<span class="badge offline">غير متصل</span>';
   }
 
   function drawSubscriberTable(){
@@ -1012,27 +1023,31 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     const filter=$('#subscriberStatus')?.value||'';
     const rows=state.subscribers.filter(s=>{
       const archived=!!s.archived_at;
-      if(filter==='ONLINE'&&(archived||!s.is_online))return false;
-      if(filter==='OFFLINE'&&(archived||s.is_online))return false;
+      if(filter==='ARCHIVED'){
+        if(!archived)return false;
+      }else if(archived){
+        return false;
+      }
+      if(filter==='ONLINE'&&!s.is_online)return false;
+      if(filter==='OFFLINE'&&s.is_online)return false;
       if(filter==='SOON'){
         const ss=subscriptionBySubscriber(s.id),end=ss?.expires_at?new Date(ss.expires_at):null,in7=new Date(Date.now()+7*86400000);
-        if(archived||!end||end<=new Date()||end>in7)return false;
+        if(!end||end<=new Date()||end>in7)return false;
       }
       if(filter==='EXPIRED'&&s.status!=='EXPIRED')return false;
-      if(!filter&&archived)return false;
       if(query&&!([s.full_name,s.phone,s.pppoe_username].some(v=>String(v||'').toLowerCase().includes(query))))return false;
       return true;
     });
 
     const desktop='<div class="table-wrap subscriber-desktop-table"><table><thead><tr><th>المشترك</th><th>PPPoE</th><th>الباقة</th><th>الانتهاء</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>'+
-      rows.map(s=>{const sub=subscriptionBySubscriber(s.id),p=packageById(s.package_id);return '<tr><td><b>'+esc(s.full_name)+'</b><div class="muted">'+esc(s.phone)+'</div></td><td class="mono">'+esc(s.pppoe_username)+'</td><td><span class="pkg-pill">'+esc(p?.name||'—')+'</span></td><td>'+esc(fmtDate(sub?.expires_at))+'</td><td>'+(s.is_online?'<span class="badge online">متصل</span>':'<span class="badge offline">غير متصل</span>')+'</td><td>'+subscriberActionButton(s)+'</td></tr>'}).join('')+
+      rows.map(s=>{const sub=subscriptionBySubscriber(s.id),p=packageById(s.package_id);return '<tr><td><b>'+esc(s.full_name)+'</b><div class="muted">'+esc(s.phone)+'</div></td><td class="mono">'+esc(s.pppoe_username)+'</td><td><span class="pkg-pill">'+esc(p?.name||'—')+'</span></td><td>'+esc(fmtDate(sub?.expires_at))+'</td><td>'+subscriberStatusBadge(s)+'</td><td>'+subscriberActionButton(s)+'</td></tr>'}).join('')+
       '</tbody></table></div>';
 
     const mobile='<div class="subscriber-mobile-list">'+rows.map((s,idx)=>{
       const sub=subscriptionBySubscriber(s.id),p=packageById(s.package_id),initial=String(s.full_name||'?').trim().charAt(0)||'?',avatarClass=['','p2','p3','p4'][idx%4];
       return '<div class="subscriber-mobile-card"><div class="sm-head">'+
         '<div class="sm-person"><div class="avatar-circle '+avatarClass+'">'+esc(initial)+'</div><div><div class="sm-name">'+esc(s.full_name)+'</div><div class="sm-phone">'+esc(s.phone)+'</div><div class="sm-user mono">'+esc(s.pppoe_username)+'</div></div></div>'+
-        '<div class="row">'+(s.is_online?'<span class="badge online">متصل</span>':'<span class="badge offline">غير متصل</span>')+'<span class="pkg-pill">'+esc(p?.name||'—')+'</span>'+subscriberActionButton(s)+'</div>'+
+        '<div class="row">'+subscriberStatusBadge(s)+'<span class="pkg-pill">'+esc(p?.name||'—')+'</span>'+subscriberActionButton(s)+'</div>'+
       '</div><div class="row between"><div class="expiry-line"><span class="cal">▣</span><span>'+esc(fmtDate(sub?.expires_at))+'</span></div><div class="traffic-mini"><span class="traffic-chip tx" data-sub-tx="'+s.id+'">TX '+esc(trafficFresh(s.traffic_updated_at)?fmtRate(s.current_tx_bps):'—')+'</span><span class="traffic-chip rx" data-sub-rx="'+s.id+'">RX '+esc(trafficFresh(s.traffic_updated_at)?fmtRate(s.current_rx_bps):'—')+'</span></div></div></div>';
     }).join('')+(rows.length?'':'<div class="empty">لا توجد نتائج</div>')+'</div>';
 
@@ -1519,6 +1534,18 @@ body.pwa-standalone .topbar{user-select:none;-webkit-user-select:none}
     try{
       await rpc('archive_subscriber',{p_subscriber_id:id});
       toast('تمت أرشفة المشترك');
+      await refreshAll();
+    }catch(err){toast(err.message,true)}
+  }
+
+  window.restoreArchivedSubscriber=async function(id){
+    if(!canManage())return;
+    const s=subscriberById(id);
+    if(!s||!s.archived_at)return;
+    if(!confirm('استرجاع '+s.full_name+' من الأرشيف؟\nإذا اشتراكه بعده صالح سيتم تفعيله مباشرة. إذا منتهي سيعود للقائمة بحالة منتهي حتى يتم تجديده.'))return;
+    try{
+      const status=await rpc('restore_archived_subscriber',{p_subscriber_id:id});
+      toast(status==='ACTIVE'?'تم استرجاع المشترك وتفعيله':'تم استرجاع المشترك ويحتاج تجديد');
       await refreshAll();
     }catch(err){toast(err.message,true)}
   }
