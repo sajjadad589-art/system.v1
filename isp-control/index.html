@@ -495,6 +495,10 @@ body.pwa-standalone{background:#f4f8fc!important}
   .modal-card{background:#fff!important}
 }
 
+
+@media(min-width:1101px){body[data-page="packages"] .grid3{grid-template-columns:repeat(4,1fr)!important}}
+@media(max-width:780px){body[data-page="packages"] .grid3{grid-template-columns:1fr!important}}
+
 </style>
 </head>
 <body>
@@ -644,6 +648,7 @@ body.pwa-standalone{background:#f4f8fc!important}
     subscriberOrder:[],
     trafficOnlineSignature:'',
     activePackageFilter:'',
+    activeStatusFilter:'ACTIVE',
     activeSearch:''
   };
 
@@ -1162,7 +1167,8 @@ body.pwa-standalone{background:#f4f8fc!important}
     return {state:'bad',label:'قناة الأوامر متوقفة',age};
   }
   function latestCommandForSubscriber(id){
-    return state.commands.find(x=>x.subscriber_id===id)||null;
+    const cutoff=Date.now()-15*60*1000;
+    return state.commands.find(x=>x.subscriber_id===id&&new Date(x.created_at).getTime()>=cutoff)||null;
   }
   function commandStatusText(c){
     if(!c)return '';
@@ -1257,9 +1263,10 @@ body.pwa-standalone{background:#f4f8fc!important}
     const suspended=all.filter(x=>x.status==='SUSPENDED').length;
     const search=String(state.activeSearch||'').trim().toLowerCase();
     const pkgFilter=state.activePackageFilter||'';
-    const rows=stableSubscriberRows(active.filter(s=>{
+    const statusFilter=state.activeStatusFilter||'ACTIVE';
+    const rows=stableSubscriberRows(all.filter(s=>{
       const text=(s.full_name+' '+s.pppoe_username+' '+(s.phone||'')).toLowerCase();
-      return (!search||text.includes(search))&&(!pkgFilter||s.package_id===pkgFilter);
+      return (!search||text.includes(search))&&(!pkgFilter||s.package_id===pkgFilter)&&(!statusFilter||s.status===statusFilter);
     }));
     $('#content').innerHTML=
       '<div class="calm-head"><div><h1>المشتركون الفعالون</h1><div class="muted">قائمة واضحة للمشتركين الذين اشتراكاتهم فعالة حالياً</div></div></div>'+
@@ -1270,6 +1277,7 @@ body.pwa-standalone{background:#f4f8fc!important}
       '</div>'+
       '<div class="calm-toolbar">'+
         '<input id="activeSearch" class="input" placeholder="بحث بالاسم أو الهاتف أو PPPoE..." value="'+esc(state.activeSearch||'')+'">'+
+        '<select id="activeStatus"><option value="ACTIVE" '+(statusFilter==='ACTIVE'?'selected':'')+'>الفعالون</option><option value="EXPIRED" '+(statusFilter==='EXPIRED'?'selected':'')+'>المنتهون</option><option value="SUSPENDED" '+(statusFilter==='SUSPENDED'?'selected':'')+'>الموقوفون</option><option value="" '+(statusFilter===''?'selected':'')+'>الكل</option></select>'+
         '<select id="activePackage"><option value="">جميع الباقات</option>'+state.packages.filter(x=>x.active).map(p=>'<option value="'+p.id+'" '+(pkgFilter===p.id?'selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select>'+
         (canManage()?'<button class="btn primary" onclick="openAddSubscriber()">+ إضافة مشترك</button>':'')+
       '</div>'+
@@ -1287,7 +1295,13 @@ body.pwa-standalone{background:#f4f8fc!important}
         (cmd&&cmd.status!=='COMPLETED'?'<div class="mr-meta" style="margin-top:8px">'+esc(commandStatusText(cmd))+'</div>':'')+
         '<div class="mr-actions"><button class="btn" onclick="openSubscriberActions(\''+s.id+'\')">إدارة المشترك</button></div></div>'}).join('')+
       (rows.length?'':'<div class="empty">لا توجد نتائج</div>')+'</div>';
-    const searchEl=$('#activeSearch');if(searchEl)searchEl.addEventListener('input',e=>{state.activeSearch=e.target.value;renderActiveSubscribers()});
+    const searchEl=$('#activeSearch');if(searchEl)searchEl.addEventListener('input',e=>{
+      state.activeSearch=e.target.value;
+      const pos=e.target.selectionStart;
+      renderActiveSubscribers();
+      const next=$('#activeSearch');if(next){next.focus();try{next.setSelectionRange(pos,pos)}catch{}}
+    });
+    const statusEl=$('#activeStatus');if(statusEl)statusEl.addEventListener('change',e=>{state.activeStatusFilter=e.target.value;renderActiveSubscribers()});
     const pkgEl=$('#activePackage');if(pkgEl)pkgEl.addEventListener('change',e=>{state.activePackageFilter=e.target.value;renderActiveSubscribers()});
   }
 
@@ -1508,7 +1522,7 @@ body.pwa-standalone{background:#f4f8fc!important}
   function renderPackages(){
     $('#content').innerHTML=
       '<div class="page-head">'+
-        '<div><h1>الباقات</h1><div class="muted">يمكن تعديل الاسم والسعر والسرعة والمدة بأي وقت</div></div>'+
+        '<div><h1>الاشتراكات والباقات</h1><div class="muted">إدارة الباقات والأسعار والسرعة والمدة</div></div>'+
         (canManage()?'<button class="btn primary" onclick="openPackage()">+ باقة جديدة</button>':'')+
       '</div>'+
       '<div class="grid3">'+state.packages.map(p=>
@@ -1526,21 +1540,19 @@ body.pwa-standalone{background:#f4f8fc!important}
   function renderPayments(){
     const total=state.payments.reduce((a,x)=>a+Number(x.amount_iqd||0),0);
     const monthStart=new Date();monthStart.setDate(1);monthStart.setHours(0,0,0,0);
+    const todayStart=new Date();todayStart.setHours(0,0,0,0);
     const month=state.payments.filter(x=>new Date(x.paid_at)>=monthStart).reduce((a,x)=>a+Number(x.amount_iqd||0),0);
+    const today=state.payments.filter(x=>new Date(x.paid_at)>=todayStart).reduce((a,x)=>a+Number(x.amount_iqd||0),0);
 
     $('#content').innerHTML=
-      '<div class="page-head"><div><h1>المالية</h1><div class="muted">سجل كامل لعمليات التفعيل والتجديد</div></div></div>'+
-      '<div class="cards" style="margin-bottom:14px">'+
-        '<div class="card card-pad kpi"><div class="label">الإجمالي المسجل</div><div class="value" style="font-size:23px">'+fmtIQD(total)+'</div></div>'+
-        '<div class="card card-pad kpi"><div class="label">هذا الشهر</div><div class="value" style="font-size:23px">'+fmtIQD(month)+'</div></div>'+
-        '<div class="card card-pad kpi"><div class="label">عدد العمليات</div><div class="value">'+state.payments.length+'</div></div>'+
-        '<div class="card card-pad kpi"><div class="label">العملة</div><div class="value" style="font-size:23px">IQD</div></div>'+
+      '<div class="calm-head"><div><h1>المدفوعات</h1><div class="muted">سجل التسديدات والتفعيل والتجديد بشكل مبسط</div></div></div>'+
+      '<div class="soft-stats">'+
+        '<div class="soft-stat green"><div class="stat-icon">▥</div><div><b>'+fmtIQD(today)+'</b><span>دفعات اليوم</span></div></div>'+
+        '<div class="soft-stat"><div class="stat-icon">◫</div><div><b>'+fmtIQD(month)+'</b><span>هذا الشهر</span></div></div>'+
+        '<div class="soft-stat purple"><div class="stat-icon">#</div><div><b>'+state.payments.length+'</b><span>إجمالي العمليات</span></div></div>'+
       '</div>'+
-      '<div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>المشترك</th><th>الباقة</th><th>المبلغ</th><th>الانتهاء السابق</th><th>الانتهاء الجديد</th><th>ملاحظة</th></tr></thead><tbody>'+
-      state.payments.map(p=>{
-        const s=subscriberById(p.subscriber_id);
-        return '<tr><td>'+esc(fmtDate(p.paid_at))+'</td><td>'+esc(s?.full_name||'—')+'</td><td>'+esc(p.package_name_snapshot||'—')+'</td><td><b>'+fmtIQD(p.amount_iqd)+'</b></td><td>'+esc(fmtDate(p.old_expiry))+'</td><td>'+esc(fmtDate(p.new_expiry))+'</td><td>'+esc(p.notes||'—')+'</td></tr>'
-      }).join('')+
+      '<div class="calm-table" style="display:block"><table><thead><tr><th>التاريخ</th><th>المشترك</th><th>الباقة</th><th>المبلغ</th><th>الانتهاء السابق</th><th>الانتهاء الجديد</th><th>ملاحظة</th></tr></thead><tbody>'+
+      state.payments.map(p=>{const s=subscriberById(p.subscriber_id);return '<tr><td>'+esc(fmtDate(p.paid_at))+'</td><td><div class="name-main">'+esc(s?.full_name||'—')+'</div></td><td>'+esc(p.package_name_snapshot||'—')+'</td><td><b>'+fmtIQD(p.amount_iqd)+'</b></td><td>'+esc(fmtDate(p.old_expiry))+'</td><td>'+esc(fmtDate(p.new_expiry))+'</td><td>'+esc(p.notes||'—')+'</td></tr>'}).join('')+
       '</tbody></table>'+(state.payments.length?'':'<div class="empty">لا توجد مدفوعات</div>')+'</div>';
   }
 
