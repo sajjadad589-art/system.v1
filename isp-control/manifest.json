@@ -11,10 +11,10 @@
     "standalone",
     "minimal-ui"
   ],
-  "background_color": "#030a16",
-  "theme_color": "#06172d",
+  "background_color": "#f4f8fc",
+  "theme_color": "#ffffff",
   "orientation": "portrait-primary",
-  "description": "إدارة المشتركين والاشتراكات والترافيك عبر MikroTik",
+  "description": "إدارة المشتركين والاشتراكات والأجهزة والتنبيهات عبر MikroTik",
   "categories": [
     "business",
     "utilities"
