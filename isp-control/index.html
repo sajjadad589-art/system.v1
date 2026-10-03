@@ -367,6 +367,134 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
   background:linear-gradient(180deg,rgba(255,255,255,.19),rgba(255,255,255,0));
   pointer-events:none;
 }
+
+/* ===== ISP Control Calm UI v30 ===== */
+:root{
+  --bg:#f4f8fc!important;--bg2:#eef4fa!important;--panel:#ffffff!important;--panel2:#f7faff!important;--panel3:#eef5fd!important;
+  --line:#dce7f2!important;--text:#10264b!important;--muted:#70839f!important;--blue:#1677ff!important;--blue2:#0c63d8!important;
+  --green:#10a66f!important;--orange:#e99519!important;--red:#e34b5f!important;--purple:#7858d8!important;--yellow:#dda51c!important;
+  --shadow:0 8px 28px rgba(32,76,122,.08)!important
+}
+html,body{background:#f4f8fc!important;color:#10264b!important}
+body{background:linear-gradient(180deg,#f8fbff 0%,#f3f7fb 100%)!important;background-attachment:fixed!important}
+.auth{background:#f4f8fc!important}
+.auth-card,.card,.modal-card,.table-wrap,.traffic-provider,.traffic-capacity,.metric,.package-current,.package-choice,.device-health-card{
+  background:#fff!important;border-color:#dce7f2!important;color:#10264b!important;box-shadow:0 8px 28px rgba(32,76,122,.08)!important
+}
+.auth-card{max-width:440px!important}
+.auth-card:before{display:none!important}
+.auth-card .brand .logo{box-shadow:none!important}
+.auth-tabs{background:#f1f6fb!important;border-color:#dce7f2!important}
+.auth-tabs .btn{color:#526b8d!important}
+.auth-tabs .active{background:#fff!important;color:#1677ff!important;box-shadow:0 2px 10px rgba(32,76,122,.08)!important}
+.shell{grid-template-columns:250px 1fr!important}
+.sidebar{background:#fff!important;border-left:1px solid #e0e9f3!important;box-shadow:none!important;padding:20px 16px!important}
+.sidebar .brand{padding:0 7px 18px;border-bottom:1px solid #edf2f7;margin-bottom:18px!important}
+.sidebar .brand b{color:#10264b!important;font-size:18px}
+.sidebar .brand .muted{color:#8192aa!important}
+.nav{gap:5px!important}
+.nav button{color:#526b8d!important;border:0!important;border-radius:11px!important;padding:12px 13px!important;font-weight:700!important}
+.nav button:hover{background:#f4f8fd!important;color:#1677ff!important}
+.nav button.active{background:#eaf3ff!important;color:#126de8!important;box-shadow:inset -3px 0 #1677ff!important}
+.nav .dot{display:none!important}
+.nav-ico{width:24px;height:24px;display:grid;place-items:center;border-radius:8px;background:#f0f5fb;color:#617796;font-size:14px}
+.nav button.active .nav-ico{background:#d9eaff;color:#126de8}
+.sidebar-foot{left:16px!important;right:16px!important}
+.userbox{background:#f7faff!important;border-color:#e0e9f3!important;color:#10264b!important}
+.topbar{height:72px!important;background:rgba(255,255,255,.94)!important;border-bottom:1px solid #e5edf5!important;box-shadow:0 2px 12px rgba(32,76,122,.04)!important;padding:0 22px!important}
+.top-brand b{color:#10264b!important;font-size:16px!important}.top-brand small{color:#8192aa!important}
+.topbar .icon-btn{background:#fff!important;border-color:#dce7f2!important;color:#526b8d!important;box-shadow:none!important}
+.topbar .icon-btn:first-of-type:after{display:none!important}
+.content{max-width:1460px!important;padding:24px!important}
+.muted,.hint,.field label{color:#70839f!important}
+.btn{background:#fff!important;border-color:#d7e3ef!important;color:#24456d!important;box-shadow:none!important}
+.btn:hover{border-color:#9fc7f7!important;transform:none!important;background:#f8fbff!important}
+.btn.primary{background:#1677ff!important;border-color:#1677ff!important;color:#fff!important;box-shadow:0 5px 14px rgba(22,119,255,.18)!important}
+.btn.success{background:#13a873!important;border-color:#13a873!important;color:#fff!important}
+.btn.danger{background:#fff3f4!important;border-color:#ffd2d8!important;color:#d94055!important}
+.input,.field input,.field select,.field textarea,.modal-card .field input,.modal-card .field select,.modal-card .field textarea{
+  background:#fff!important;border-color:#d7e3ef!important;color:#10264b!important;box-shadow:none!important
+}
+.input:focus,.field input:focus,.field select:focus,.field textarea:focus{border-color:#7bb4f5!important;box-shadow:0 0 0 3px rgba(22,119,255,.08)!important}
+.alert,.alert.info{background:#f4f8fd!important;border-color:#dce8f4!important;color:#405a7d!important}
+.badge{border:none!important;box-shadow:none!important;text-shadow:none!important}
+.badge.online,.badge.active,.badge.completed{background:#e8f8f1!important;color:#16845c!important}
+.badge.offline,.badge.suspended,.badge.viewer{background:#f0f3f7!important;color:#697c96!important}
+.badge.expired,.badge.failed,.badge.archived{background:#fff0f2!important;color:#d74759!important}
+.badge.pending,.badge.executing,.badge.retry{background:#fff7e8!important;color:#c57d10!important}
+.page-head{align-items:center!important;margin-bottom:18px!important}
+.page-head h1{font-size:26px!important;color:#10264b!important;letter-spacing:0!important}
+.section-title{color:#10264b!important}
+.eyebrow{color:#1677ff!important;letter-spacing:.7px!important}
+.cards,.soft-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.soft-stat{background:#fff;border:1px solid #e0e9f3;border-radius:16px;padding:16px 17px;display:flex;align-items:center;gap:13px;min-height:92px}
+.soft-stat .stat-icon{width:45px;height:45px;border-radius:14px;display:grid;place-items:center;background:#eaf3ff;color:#1677ff;font-size:20px;flex:0 0 auto}
+.soft-stat.green .stat-icon{background:#e8f8f1;color:#10a66f}.soft-stat.orange .stat-icon{background:#fff5e5;color:#e99519}.soft-stat.red .stat-icon{background:#fff0f2;color:#e34b5f}.soft-stat.purple .stat-icon{background:#f1edff;color:#7858d8}
+.soft-stat b{display:block;font-size:24px;color:#10264b}.soft-stat span{display:block;color:#70839f;font-size:11px;margin-top:3px}
+.calm-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}.calm-head h1{margin:0 0 5px;font-size:27px}.calm-head .muted{font-size:12px}
+.section-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.section-entry{border:1px solid #e0e9f3;background:#fff;border-radius:18px;padding:21px;min-height:160px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:.15s;box-shadow:0 7px 22px rgba(32,76,122,.055)}
+.section-entry:hover{transform:translateY(-2px);border-color:#bbd7f5;box-shadow:0 11px 28px rgba(32,76,122,.09)}
+.section-entry .section-icon{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;font-size:22px;background:#eaf3ff;color:#1677ff}
+.section-entry.green .section-icon{background:#e8f8f1;color:#10a66f}.section-entry.purple .section-icon{background:#f0edff;color:#7858d8}.section-entry.orange .section-icon{background:#fff4df;color:#e99519}.section-entry.red .section-icon{background:#fff0f2;color:#e34b5f}
+.section-entry h3{margin:15px 0 5px;font-size:17px}.section-entry p{margin:0;color:#70839f;font-size:12px;line-height:1.8}.section-entry .open-link{margin-top:15px;color:#1677ff;font-size:11px;font-weight:800}
+.activity-strip{margin-top:16px;background:#fff;border:1px solid #e0e9f3;border-radius:16px;padding:15px 17px}
+.activity-strip .activity-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-top:1px solid #edf2f7;font-size:11px}.activity-strip .activity-row:first-of-type{border-top:0}
+.activity-dot{width:9px;height:9px;border-radius:50%;background:#1677ff;flex:0 0 auto}.activity-dot.ok{background:#10a66f}.activity-dot.warn{background:#e99519}.activity-dot.bad{background:#e34b5f}
+.calm-toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:12px;background:#fff;border:1px solid #e0e9f3;border-radius:15px;padding:10px}
+.calm-toolbar .input{min-width:260px;flex:1}.calm-toolbar select{min-width:140px;background:#fff;border:1px solid #d7e3ef;color:#24456d;border-radius:11px;padding:10px}
+.calm-table{overflow:auto;background:#fff;border:1px solid #e0e9f3;border-radius:16px}
+.calm-table table{min-width:920px!important;border-collapse:collapse!important;border-spacing:0!important;background:#fff!important}
+.calm-table th{background:#f6f9fc!important;color:#627692!important;font-size:11px!important;border-bottom:1px solid #e5edf5!important;padding:12px!important}
+.calm-table td{background:#fff!important;color:#203b60!important;border-bottom:1px solid #edf2f7!important;padding:13px 12px!important;font-size:12px!important;font-weight:400!important;box-shadow:none!important}
+.calm-table tbody tr:hover td{background:#fbfdff!important;filter:none!important}
+.calm-table .name-main{font-weight:800;color:#10264b}.calm-table .subline{font-size:10px;color:#8796aa;margin-top:3px}
+.mobile-records{display:none;gap:9px}
+.mobile-record{background:#fff;border:1px solid #e0e9f3;border-radius:15px;padding:13px;box-shadow:0 5px 16px rgba(32,76,122,.05)}
+.mobile-record .mr-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.mobile-record .mr-name{font-weight:800;color:#10264b;font-size:13px}.mobile-record .mr-meta{font-size:10px;color:#7b8da6;margin-top:4px}
+.mobile-record .mr-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.mobile-record .mr-cell{background:#f7faff;border-radius:10px;padding:8px}.mobile-record .mr-cell span{display:block;color:#8292a9;font-size:9px}.mobile-record .mr-cell b{display:block;margin-top:3px;color:#24456d;font-size:11px}
+.mobile-record .mr-actions{display:flex;gap:7px;margin-top:10px}.mobile-record .mr-actions .btn{flex:1;padding:8px;font-size:10px}
+.device-card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.device-calm-card{background:#fff;border:1px solid #e0e9f3;border-radius:18px;padding:18px}
+.device-calm-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.device-calm-head h3{margin:0;font-size:16px}.device-calm-head small{color:#7a8da7}
+.device-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:15px}.device-metric{background:#f7faff;border-radius:11px;padding:9px}.device-metric span{display:block;color:#8292a9;font-size:9px}.device-metric b{display:block;margin-top:4px;font-size:12px;color:#24456d}
+.progress-line{height:5px;background:#eaf0f6;border-radius:99px;overflow:hidden;margin-top:6px}.progress-line i{display:block;height:100%;background:#5a9df0;border-radius:99px}
+.device-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:13px;padding-top:12px;border-top:1px solid #edf2f7;font-size:10px;color:#778aa4}
+.channel-ok{color:#16845c!important}.channel-bad{color:#d74759!important}.channel-warn{color:#c57d10!important}
+.alert-list{background:#fff;border:1px solid #e0e9f3;border-radius:16px;overflow:hidden}
+.alert-row{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;padding:13px 15px;border-top:1px solid #edf2f7}.alert-row:first-child{border-top:0}.alert-row .al-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#eaf3ff}.alert-row.offline .al-icon,.alert-row.failed .al-icon{background:#fff0f2}.alert-row.expiry .al-icon{background:#fff5e5}.alert-row.online .al-icon{background:#e8f8f1}
+.alert-row b{display:block;font-size:12px}.alert-row p{margin:3px 0 0;font-size:10px;color:#7d8fa8}.alert-row time{font-size:9px;color:#8a9ab0}
+.settings-simple{display:grid;grid-template-columns:1fr 1fr;gap:14px}.settings-simple .card{padding:18px}
+.diagnostic-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.package-card:before{display:none!important}.package-card .speed{color:#1677ff!important;background:none!important}.package-card .price{color:#16845c!important}
+.grid3{gap:12px!important}.grid3>.package-card{border-radius:16px!important}
+.table-wrap{background:#fff!important}table{background:#fff!important}th{background:#f6f9fc!important;color:#627692!important}td{color:#203b60!important;border-bottom-color:#edf2f7!important}tbody tr:hover{background:#fbfdff!important}
+.modal{background:rgba(24,45,72,.28)!important}.modal-card{background:#fff!important;border-color:#dce7f2!important;box-shadow:0 24px 70px rgba(28,58,93,.2)!important}.modal-head{border-bottom-color:#edf2f7!important}.modal-head h3{color:#10264b!important}
+.action-sheet-item{background:#fff!important;border-color:#e0e9f3!important;color:#24456d!important}.action-sheet-item:hover{transform:none!important;background:#f8fbff!important}.a-icon{color:#fff}
+.metric{background:#f7faff!important}.mini-item{border-bottom-color:#edf2f7!important}.mini-item:hover{background:#fafcff!important}
+.device-health-card{background:#fff!important}.device-health-metrics>div{background:#f7faff!important;border-color:#e3ebf3!important}.device-health-foot{color:#8292a9!important}
+.router-link-summary>div{background:#f7faff!important;border-color:#e0e9f3!important}
+.status-event{background:#f9fbfd!important;border-color:#e2eaf3!important}.status-event b{color:#24456d!important}
+.bottom-nav{background:rgba(255,255,255,.97)!important;border-color:#dce7f2!important;box-shadow:0 8px 30px rgba(28,58,93,.14)!important}.bottom-nav button{color:#6f829e!important}.bottom-nav button.active{background:#eaf3ff!important;color:#126de8!important;box-shadow:none!important}
+.toast{background:#15375f!important;color:#fff!important;border:0!important}
+body.pwa-standalone{background:#f4f8fc!important}
+@media(max-width:1100px){.section-grid{grid-template-columns:1fr 1fr}.device-card-grid{grid-template-columns:1fr}}
+@media(max-width:780px){
+  .shell{grid-template-columns:1fr!important}.sidebar{width:278px!important;box-shadow:-16px 0 40px rgba(28,58,93,.16)!important}
+  .topbar{height:64px!important;padding:0 12px!important}.topbar .router-logo.logo-image{width:38px!important;height:38px!important;border-radius:11px!important}.top-brand small{display:none}.content{padding:14px 11px 88px!important}
+  .section-grid{grid-template-columns:1fr 1fr;gap:9px}.section-entry{padding:14px;min-height:138px;border-radius:15px}.section-entry .section-icon{width:39px;height:39px;border-radius:12px;font-size:18px}.section-entry h3{font-size:13px;margin-top:12px}.section-entry p{font-size:9px;line-height:1.6}.section-entry .open-link{font-size:9px;margin-top:9px}
+  .calm-head{margin-bottom:13px}.calm-head h1{font-size:21px}.calm-head .muted{font-size:10px}
+  .soft-stats{grid-template-columns:repeat(3,1fr);gap:7px}.soft-stat{display:block;text-align:center;min-height:92px;padding:10px 5px}.soft-stat .stat-icon{width:31px;height:31px;border-radius:10px;margin:0 auto 6px;font-size:14px}.soft-stat b{font-size:18px}.soft-stat span{font-size:8px}
+  .calm-toolbar{padding:8px;gap:7px}.calm-toolbar .input{min-width:100%;height:42px}.calm-toolbar select{flex:1;min-width:0;padding:8px;font-size:10px}.calm-toolbar .btn.primary{width:44px;font-size:0;padding:0;height:40px}.calm-toolbar .btn.primary:before{content:"＋";font-size:20px}
+  .calm-table{display:none}.mobile-records{display:grid}.device-card-grid{grid-template-columns:1fr}.device-metrics{grid-template-columns:1fr 1fr}
+  .settings-simple{grid-template-columns:1fr}.activity-strip{padding:12px}.activity-strip .activity-row{font-size:10px}
+  .page-head h1{font-size:21px!important}.cards{grid-template-columns:1fr 1fr!important}
+  .grid3{grid-template-columns:1fr!important}.package-card{padding:15px!important}
+  .bottom-nav{right:7px!important;left:7px!important;bottom:7px!important;border-radius:17px!important;padding:5px!important}
+  .bottom-nav button{padding:6px 2px!important;font-size:8px!important}.bottom-nav .bn-icon{font-size:17px!important}
+  .modal-card{background:#fff!important}
+}
+
 </style>
 </head>
 <body>
@@ -441,15 +569,14 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
     </div>
 
     <nav class="nav">
-      <button data-page="dashboard" class="active"><span class="dot"></span>الرئيسية</button>
-      <button data-page="subscribers"><span class="dot"></span>المشتركين</button>
-      <button data-page="packages"><span class="dot"></span>الباقات</button>
-      <button data-page="payments"><span class="dot"></span>المالية</button>
-      <button data-page="traffic"><span class="dot"></span>الترافيك المباشر</button>
-      <button data-page="commands"><span class="dot"></span>أوامر الراوتر</button>
-      <button data-page="logs"><span class="dot"></span>السجلات</button>
-      <button data-page="users"><span class="dot"></span>المستخدمين</button>
-      <button data-page="settings"><span class="dot"></span>الإعدادات</button>
+      <button data-page="dashboard" class="active"><span class="nav-ico">⌂</span>الرئيسية</button>
+      <button data-page="active"><span class="nav-ico">♙</span>المشتركون الفعالون</button>
+      <button data-page="online"><span class="nav-ico">◉</span>المشتركون المتصلون</button>
+      <button data-page="packages"><span class="nav-ico">▰</span>الاشتراكات والباقات</button>
+      <button data-page="devices"><span class="nav-ico">⌁</span>الأجهزة والراوترات</button>
+      <button data-page="payments"><span class="nav-ico">▥</span>المدفوعات</button>
+      <button data-page="alerts"><span class="nav-ico">♢</span>التنبيهات</button>
+      <button data-page="settings"><span class="nav-ico">⚙</span>الإعدادات</button>
     </nav>
 
     <div class="sidebar-foot">
@@ -480,10 +607,10 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
   <div id="floatingAdd" class="floating-add hidden" onclick="openAddSubscriber()"><div class="plus">＋</div><div class="label">مشترك جديد</div></div>
   <nav id="bottomNav" class="bottom-nav">
     <button data-page="dashboard" class="active"><span class="bn-icon">⌂</span><span>الرئيسية</span></button>
-    <button data-page="subscribers"><span class="bn-icon">♙</span><span>المشتركين</span></button>
-    <button data-page="traffic"><span class="bn-icon">⇅</span><span>الترافيك</span></button>
-    <button data-page="payments"><span class="bn-icon">▥</span><span>التقارير</span></button>
-    <button data-page="settings"><span class="bn-icon">⚙</span><span>الإعدادات</span></button>
+    <button data-page="active"><span class="bn-icon">♙</span><span>المشتركين</span></button>
+    <button data-page="devices"><span class="bn-icon">⌁</span><span>الأجهزة</span></button>
+    <button data-page="payments"><span class="bn-icon">▥</span><span>المدفوعات</span></button>
+    <button data-page="settings"><span class="bn-icon">•••</span><span>المزيد</span></button>
   </nav>
 </div>
 
@@ -515,7 +642,9 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
     subscriberFilter:'',
     subscriberSearch:'',
     subscriberOrder:[],
-    trafficOnlineSignature:''
+    trafficOnlineSignature:'',
+    activePackageFilter:'',
+    activeSearch:''
   };
 
   let session=loadSession();
@@ -780,7 +909,8 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
     $('#sidebar').classList.remove('open');
     render();
   }
-  $$('.nav button').forEach(btn=>btn.addEventListener('click',()=>goPage(btn.dataset.page)));
+  window.goPage=goPage;
+  $('.nav button').forEach(btn=>btn.addEventListener('click',()=>goPage(btn.dataset.page)));
   $$('#bottomNav button').forEach(btn=>btn.addEventListener('click',()=>goPage(btn.dataset.page)));
 
   async function boot(){
@@ -860,34 +990,33 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
   async function refreshLive(){
     if(!session?.access_token || $('#appView').classList.contains('hidden'))return;
     try{
-      const [subscribers,subscriptions,routers]=await Promise.all([
+      const [subscribers,subscriptions,routers,commands,routerEvents]=await Promise.all([
         table('subscribers','select=*&order=created_at.desc'),
         table('subscriptions','select=*'),
-        table('routers','select=*&order=created_at.asc')
+        table('routers','select=*&order=created_at.asc'),
+        table('router_commands','select=*&order=created_at.desc&limit=120'),
+        table('router_status_events','select=*&order=created_at.desc&limit=40')
       ]);
       state.subscribers=subscribers||[];
       rememberSubscriberOrder();
       state.subscriptions=subscriptions||[];
       state.routers=routers||[];
+      state.commands=commands||[];
+      state.routerEvents=routerEvents||[];
       updateRouterBadge();
 
       const tag=document.activeElement?.tagName||'';
       const editing=['INPUT','SELECT','TEXTAREA'].includes(tag);
       const modalOpen=!!document.querySelector('.modal:not(.hidden)');
+      if(editing||modalOpen)return;
 
-      if(state.page==='subscribers'){
-        if(!editing&&!modalOpen)drawSubscriberTable();
-        paintTraffic();
-        return;
-      }
-      if(state.page==='traffic'){
+      if(['dashboard','active','online','devices','alerts'].includes(state.page))render();
+      else if(state.page==='traffic'){
         const sig=currentTrafficOnlineSignature();
-        if(!modalOpen&&sig!==state.trafficOnlineSignature)renderTraffic();
+        if(sig!==state.trafficOnlineSignature)renderTraffic();
         else paintTraffic();
         paintSystemHealth();
-        return;
       }
-      if(!editing&&!modalOpen)render();
     }catch{}
   }
 
@@ -1020,99 +1149,216 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
     ).join('');
   }
 
+  function commandChannelState(){
+    const connector=routerByRole('CONNECTOR');
+    const ts=connector?.command_channel_last_seen_at;
+    if(!connector||connector.adapter_mode!=='ROUTEROS')return {state:'idle',label:'غير مفعل',age:null};
+    if(!ts)return {state:'bad',label:'قناة الأوامر متوقفة',age:null};
+    const age=Math.max(0,Math.round((Date.now()-new Date(ts).getTime())/1000));
+    if(age<=15)return {state:'ok',label:'الأوامر متصلة',age};
+    if(age<=45)return {state:'warn',label:'الأوامر متأخرة',age};
+    return {state:'bad',label:'قناة الأوامر متوقفة',age};
+  }
+  function latestCommandForSubscriber(id){
+    return state.commands.find(x=>x.subscriber_id===id)||null;
+  }
+  function commandStatusText(c){
+    if(!c)return '';
+    if(c.status==='COMPLETED')return 'تم التطبيق';
+    if(c.status==='EXECUTING')return 'جاري التطبيق';
+    if(c.status==='PENDING'||c.status==='RETRY')return 'بانتظار الراوتر';
+    return c.error?.startsWith('transport:')?'قناة الأوامر غير متصلة':'فشل التنفيذ';
+  }
+  function commandStatusClass(c){
+    if(!c||c.status==='COMPLETED')return 'online';
+    if(c.status==='FAILED')return 'failed';
+    return 'pending';
+  }
+  function activeSoonCount(days=7){
+    const end=Date.now()+days*86400000;
+    return state.subscriptions.filter(x=>{
+      const s=subscriberById(x.subscriber_id);
+      const t=new Date(x.expires_at).getTime();
+      return s&&!s.archived_at&&s.status==='ACTIVE'&&t>Date.now()&&t<=end;
+    }).length;
+  }
+  function elapsed(v){
+    if(!v)return '—';
+    const sec=Math.max(0,Math.floor((Date.now()-new Date(v).getTime())/1000));
+    return fmtDuration(sec);
+  }
   function render(){
-    const floating=$('#floatingAdd'); if(floating) floating.classList.add('hidden');
+    const floating=$('#floatingAdd');if(floating)floating.classList.add('hidden');
     document.body.dataset.page=state.page;
-
     const titles={
-      dashboard:['الرئيسية','نظرة عامة على الشبكة والاشتراكات'],
-      subscribers:['المشتركين','إدارة PPPoE والاشتراكات'],
-      packages:['الباقات','السرعات والأسعار والمدد'],
-      payments:['المالية','سجل التجديدات والمدفوعات'],
-      traffic:['الترافيك المباشر','TX / RX لحظة بلحظة'],
-      commands:['أوامر الراوتر','طابور الأوامر المرسل إلى MikroTik'],
-      logs:['السجلات','كل التغييرات والعمليات الإدارية'],
-      users:['المستخدمين','الصلاحيات وحسابات النظام'],
-      settings:['الإعدادات','إعدادات ISP Control وحالة الراوتر']
+      dashboard:['الرئيسية','وصول سريع لكل أقسام النظام'],
+      active:['المشتركون الفعالون','إدارة المشتركين واشتراكاتهم'],
+      online:['المشتركون المتصلون','IP والسرعة والحالة الحالية'],
+      packages:['الاشتراكات والباقات','الباقات والأسعار والمدة والتجديد'],
+      devices:['الأجهزة والراوترات','حالة الأجهزة والاتصال والموارد'],
+      payments:['المدفوعات','سجل التسديدات والاشتراكات'],
+      alerts:['التنبيهات','انقطاع الأجهزة وانتهاء الاشتراكات والحالات المهمة'],
+      settings:['الإعدادات','إعدادات النظام والتنبيهات'],
+      commands:['تشخيص الأوامر','سجل نقل أوامر MikroTik'],
+      logs:['السجلات','السجل الإداري والتغييرات'],
+      users:['المستخدمون','الحسابات والصلاحيات'],
+      traffic:['الترافيك','القراءات اللحظية']
     };
     const current=titles[state.page]||titles.dashboard;
-    const pageTitle=$('#pageTitle');
-    const pageSubtitle=$('#pageSubtitle');
-    if(pageTitle) pageTitle.textContent=current[0];
-    if(pageSubtitle) pageSubtitle.textContent=current[1];
+    const pageTitle=$('#pageTitle');const pageSubtitle=$('#pageSubtitle');
+    if(pageTitle)pageTitle.textContent=current[0];if(pageSubtitle)pageSubtitle.textContent=current[1];
 
     if(state.page==='dashboard')renderDashboard();
-    else if(state.page==='subscribers')renderSubscribers();
+    else if(state.page==='active')renderActiveSubscribers();
+    else if(state.page==='online')renderOnlineSubscribers();
     else if(state.page==='packages')renderPackages();
+    else if(state.page==='devices')renderDevices();
     else if(state.page==='payments')renderPayments();
-    else if(state.page==='traffic')renderTraffic();
+    else if(state.page==='alerts')renderAlerts();
     else if(state.page==='commands')renderCommands();
     else if(state.page==='logs')renderLogs();
     else if(state.page==='users')renderUsers();
+    else if(state.page==='traffic')renderTraffic();
     else if(state.page==='settings')renderSettings();
   }
 
   function renderDashboard(){
-    const subs=visibleSubscribers();
-    const active=subs.filter(x=>x.status==='ACTIVE').length;
-    const expired=subs.filter(x=>x.status==='EXPIRED').length;
-    const suspended=subs.filter(x=>x.status==='SUSPENDED').length;
-    const online=subs.filter(x=>x.is_online).length;
-    const syncFresh=subscriberSnapshotFresh();
-
-    const monthStart=new Date();
-    monthStart.setDate(1);monthStart.setHours(0,0,0,0);
-    const monthRevenue=state.payments.filter(x=>new Date(x.paid_at)>=monthStart).reduce((a,x)=>a+Number(x.amount_iqd||0),0);
-
-    const todayStart=new Date();todayStart.setHours(0,0,0,0);
-    const todayRevenue=state.payments.filter(x=>new Date(x.paid_at)>=todayStart).reduce((a,x)=>a+Number(x.amount_iqd||0),0);
-
-    const upcoming=state.subscriptions
-      .filter(x=>x.status==='ACTIVE'&&new Date(x.expires_at)>new Date())
-      .sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at))
-      .slice(0,7);
-
-    const router=routerByRole('CORE')||state.routers[0]||{};
-    const pendingCommands=state.commands.filter(x=>['PENDING','RETRY','EXECUTING'].includes(x.status)).length;
-    const providerFresh=trafficFresh(router.traffic_updated_at);
-
+    const active=visibleSubscribers().filter(x=>x.status==='ACTIVE').length;
+    const online=visibleSubscribers().filter(x=>x.is_online).length;
+    const devices=state.routers.filter(x=>x.router_status==='ONLINE').length;
+    const unread=(state.routerEvents||[]).filter(x=>['OFFLINE','TEMP_HIGH','UNKNOWN'].includes(x.event_type)).slice(0,9).length;
+    const cards=[
+      ['active','♙','المشتركون الفعالون',active+' مشترك','إدارة بيانات المشتركين والتجديد والتعديل',''],
+      ['online','◉','المشتركون المتصلون',online+' متصل','عرض IP والسرعة والحالة المباشرة','green'],
+      ['packages','▰','الاشتراكات والباقات',state.packages.length+' باقات','الباقات والأسعار والمدة والتجديد','purple'],
+      ['devices','⌁','الأجهزة والراوترات',devices+' متصل','حالة الراوترات والموارد وقناة الأوامر',''],
+      ['payments','▥','المدفوعات',state.payments.length+' عملية','الدفعات وسجل التسديد','orange'],
+      ['alerts','♢','التنبيهات',unread+' حالة مهمة','انقطاع الأجهزة وانتهاء الاشتراكات','red']
+    ];
+    const activity=(state.routerEvents||[]).slice(0,4);
     $('#content').innerHTML=
-      '<div class="dashboard-welcome">'+
-        '<div><div class="eyebrow">ISP CONTROL</div><h1>لوحة التحكم</h1><div class="muted">إدارة الشبكة والمشتركين من مكان واحد</div></div>'+
-        '<div class="dashboard-clock"><span>آخر تحديث</span><b>'+esc(fmtDate(new Date()))+'</b></div>'+
-      '</div>'+
-      '<div class="dash-color-cards">'+
-        '<div class="dash-color-card dc-blue"><div class="dc-icon">♙</div><div><b>'+subs.length+'</b><span>المشتركين</span></div></div>'+
-        '<div class="dash-color-card dc-green"><div class="dc-icon">◉</div><div><b>'+(syncFresh?online:'—')+'</b><span>'+(syncFresh?'متصل الآن':'المزامنة متأخرة')+'</span></div></div>'+
-        '<div class="dash-color-card dc-orange"><div class="dc-icon">◔</div><div><b>'+expired+'</b><span>منتهي</span></div></div>'+
-        '<div class="dash-color-card dc-pink"><div class="dc-icon">!</div><div><b>'+suspended+'</b><span>موقوف</span></div></div>'+
-      '</div>'+
-      '<div class="dashboard-main-grid">'+
-        '<div class="isp-live-card">'+
-          '<div class="row between"><div><div class="eyebrow">مزود الإنترنت (WAN)</div><h3>'+esc(router.internet_provider||'ISP')+'</h3></div><span class="badge '+(providerFresh?'online':'pending')+'">'+(providerFresh?'LIVE':'MOCK')+'</span></div>'+
-          '<div class="isp-speeds">'+
-            '<div><span>↓ RX</span><b>'+esc(providerFresh?fmtRate(router.provider_rx_bps):fmtRate(router.download_mbps*1000000||0))+'</b></div>'+
-            '<div><span>↑ TX</span><b>'+esc(providerFresh?fmtRate(router.provider_tx_bps):fmtRate(router.upload_mbps*1000000||0))+'</b></div>'+
-          '</div>'+
-          '<div class="dash-sparkline"><svg viewBox="0 0 560 120" preserveAspectRatio="none"><defs><linearGradient id="gDashB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#25b9ff" stop-opacity=".34"/><stop offset="100%" stop-color="#25b9ff" stop-opacity="0"/></linearGradient><linearGradient id="gDashG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#32e0ad" stop-opacity=".25"/><stop offset="100%" stop-color="#32e0ad" stop-opacity="0"/></linearGradient></defs><path d="M0 92 C40 84 62 40 96 66 S150 95 185 54 S240 28 275 64 S330 100 365 58 S424 42 458 18 S520 66 560 38 L560 120 L0 120 Z" fill="url(#gDashB)"/><path d="M0 92 C40 84 62 40 96 66 S150 95 185 54 S240 28 275 64 S330 100 365 58 S424 42 458 18 S520 66 560 38" fill="none" stroke="#31b8ff" stroke-width="3"/><path d="M0 103 C42 78 76 98 110 78 S170 54 205 82 S270 98 306 72 S365 52 398 79 S458 88 494 62 S535 74 560 55 L560 120 L0 120 Z" fill="url(#gDashG)"/><path d="M0 103 C42 78 76 98 110 78 S170 54 205 82 S270 98 306 72 S365 52 398 79 S458 88 494 62 S535 74 560 55" fill="none" stroke="#35dfa9" stroke-width="3"/></svg></div>'+
-          '<div class="isp-meta"><span>الخط <b>'+esc(router.line_speed_mbps||0)+' Mbps</b></span><span>PPPoE <b>'+(syncFresh?online:'—')+'</b></span><span>أوامر معلقة <b>'+pendingCommands+'</b></span></div>'+
-        '</div>'+
-        '<div class="finance-glass-card">'+
-          '<div class="eyebrow">المالية</div><div class="finance-value">'+fmtIQD(monthRevenue)+'</div><div class="muted">إيراد هذا الشهر</div>'+
-          '<div class="finance-today"><span>اليوم</span><b>'+fmtIQD(todayRevenue)+'</b></div>'+
-          '<div class="finance-status"><span>فعال '+active+'</span><span>منتهي '+expired+'</span></div>'+
-        '</div>'+
-      '</div>'+
-      '<div class="dashboard-lower-grid">'+
-        '<div class="card card-pad premium-card"><div class="row between"><h3 class="section-title">أقرب مواعيد الانتهاء</h3><button class="mini-link" onclick="document.querySelector(\'[data-page=subscribers]\').click()">عرض المشتركين</button></div>'+
-          '<div class="mini-list">'+(upcoming.length?upcoming.map(s=>{const u=subscriberById(s.subscriber_id);return '<div class="mini-item"><div><b>'+esc(u?.full_name||'—')+'</b><div class="muted">'+esc(u?.pppoe_username||'')+'</div></div><div><b>'+esc(remaining(s.expires_at))+'</b><div class="muted">'+esc(fmtDate(s.expires_at))+'</div></div></div>'}).join(''):'<div class="empty">لا توجد اشتراكات فعالة قريبة الانتهاء</div>')+'</div>'+
-        '</div>'+
-        '<div class="card card-pad premium-card router-health-card"><div class="row between"><div><h3 class="section-title">حالة النظام</h3><div class="muted" style="font-size:10px">RB1100 + RB951 • تحديث لحظي</div></div><button class="btn small" onclick="togglePushNotifications()">🔔 التنبيهات</button></div>'+
-          '<div class="device-health-list">'+renderRouterHealthCards()+'</div>'+
-          '<div class="status-report-head"><b>تقرير الحالة</b><span class="muted">آخر الأحداث</span></div>'+
-          '<div class="status-events">'+renderRouterEvents(5)+'</div>'+
-        '</div>'+
+      '<div class="calm-head"><div><h1>مرحباً بك في ISP Control</h1><div class="muted">اختر القسم الذي تريد العمل عليه</div></div></div>'+
+      '<div class="section-grid">'+cards.map(c=>
+        '<div class="section-entry '+c[5]+'" onclick="goPage(\''+c[0]+'\')">'+
+          '<div><div class="section-icon">'+c[1]+'</div><h3>'+c[2]+'</h3><p>'+c[4]+'</p></div>'+
+          '<div class="open-link">'+esc(c[3])+' &nbsp; ← فتح القسم</div>'+
+        '</div>'
+      ).join('')+'</div>'+
+      '<div class="activity-strip"><div class="row between"><b>آخر الحالات</b><button class="btn small" onclick="goPage(\'alerts\')">عرض التنبيهات</button></div>'+
+        (activity.length?activity.map(e=>'<div class="activity-row"><span class="activity-dot '+(e.event_type==='ONLINE'?'ok':e.event_type==='OFFLINE'?'bad':'warn')+'"></span><span class="grow">'+esc(eventText(e))+'</span><span class="muted">'+esc(fmtDate(e.created_at))+'</span></div>').join(''):'<div class="empty compact-empty">لا توجد تنبيهات جديدة</div>')+
       '</div>';
+  }
+
+  function renderActiveSubscribers(){
+    const all=visibleSubscribers();
+    const active=all.filter(x=>x.status==='ACTIVE');
+    const suspended=all.filter(x=>x.status==='SUSPENDED').length;
+    const search=String(state.activeSearch||'').trim().toLowerCase();
+    const pkgFilter=state.activePackageFilter||'';
+    const rows=stableSubscriberRows(active.filter(s=>{
+      const text=(s.full_name+' '+s.pppoe_username+' '+(s.phone||'')).toLowerCase();
+      return (!search||text.includes(search))&&(!pkgFilter||s.package_id===pkgFilter);
+    }));
+    $('#content').innerHTML=
+      '<div class="calm-head"><div><h1>المشتركون الفعالون</h1><div class="muted">قائمة واضحة للمشتركين الذين اشتراكاتهم فعالة حالياً</div></div></div>'+
+      '<div class="soft-stats">'+
+        '<div class="soft-stat"><div class="stat-icon">♙</div><div><b>'+active.length+'</b><span>إجمالي الفعالين</span></div></div>'+
+        '<div class="soft-stat orange"><div class="stat-icon">◷</div><div><b>'+activeSoonCount(7)+'</b><span>ينتهون خلال 7 أيام</span></div></div>'+
+        '<div class="soft-stat red"><div class="stat-icon">Ⅱ</div><div><b>'+suspended+'</b><span>موقوفون مؤقتاً</span></div></div>'+
+      '</div>'+
+      '<div class="calm-toolbar">'+
+        '<input id="activeSearch" class="input" placeholder="بحث بالاسم أو الهاتف أو PPPoE..." value="'+esc(state.activeSearch||'')+'">'+
+        '<select id="activePackage"><option value="">جميع الباقات</option>'+state.packages.filter(x=>x.active).map(p=>'<option value="'+p.id+'" '+(pkgFilter===p.id?'selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select>'+
+        (canManage()?'<button class="btn primary" onclick="openAddSubscriber()">+ إضافة مشترك</button>':'')+
+      '</div>'+
+      '<div class="calm-table"><table><thead><tr><th>المشترك</th><th>اسم المستخدم</th><th>الباقة</th><th>تاريخ الانتهاء</th><th>الهاتف</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>'+
+        rows.map(s=>{const sub=subscriptionBySubscriber(s.id);const cmd=latestCommandForSubscriber(s.id);return '<tr>'+
+          '<td><div class="name-main">'+esc(s.full_name)+'</div><div class="subline">'+(s.is_online?'متصل الآن':'غير متصل')+'</div></td>'+
+          '<td class="mono">'+esc(s.pppoe_username)+'</td><td>'+esc(subscriberPackageLabel(s))+'</td>'+
+          '<td>'+esc(fmtExpiryDate(sub?.expires_at))+'</td><td>'+esc(s.phone||'—')+'</td>'+
+          '<td>'+statusBadge(s.status)+(cmd&&cmd.status!=='COMPLETED'?'<div class="subline">'+esc(commandStatusText(cmd))+'</div>':'')+'</td>'+
+          '<td><button class="btn small" onclick="openSubscriberActions(\''+s.id+'\')">إدارة</button></td></tr>'}).join('')+
+      '</tbody></table></div>'+
+      '<div class="mobile-records">'+rows.map(s=>{const sub=subscriptionBySubscriber(s.id);const cmd=latestCommandForSubscriber(s.id);return '<div class="mobile-record">'+
+        '<div class="mr-top"><div><div class="mr-name">'+esc(s.full_name)+'</div><div class="mr-meta">'+esc(s.pppoe_username)+' • '+esc(s.phone||'بدون هاتف')+'</div></div>'+statusBadge(s.status)+'</div>'+
+        '<div class="mr-grid"><div class="mr-cell"><span>الباقة</span><b>'+esc(subscriberPackageLabel(s))+'</b></div><div class="mr-cell"><span>الانتهاء</span><b>'+esc(fmtExpiryDate(sub?.expires_at))+'</b></div></div>'+
+        (cmd&&cmd.status!=='COMPLETED'?'<div class="mr-meta" style="margin-top:8px">'+esc(commandStatusText(cmd))+'</div>':'')+
+        '<div class="mr-actions"><button class="btn" onclick="openSubscriberActions(\''+s.id+'\')">إدارة المشترك</button></div></div>'}).join('')+
+      (rows.length?'':'<div class="empty">لا توجد نتائج</div>')+'</div>';
+    const searchEl=$('#activeSearch');if(searchEl)searchEl.addEventListener('input',e=>{state.activeSearch=e.target.value;renderActiveSubscribers()});
+    const pkgEl=$('#activePackage');if(pkgEl)pkgEl.addEventListener('change',e=>{state.activePackageFilter=e.target.value;renderActiveSubscribers()});
+  }
+
+  function renderOnlineSubscribers(){
+    const rows=stableSubscriberRows(visibleSubscribers().filter(s=>s.is_online));
+    const avg=rows.length?Math.round(rows.reduce((a,s)=>a+Number(s.download_mbps||0),0)/rows.length):0;
+    const fresh=subscriberSnapshotFresh();
+    const core=routerByRole('CORE');
+    $('#content').innerHTML=
+      '<div class="calm-head"><div><h1>المشتركون المتصلون</h1><div class="muted">IP والسرعة والحالة الحالية لكل جلسة</div></div><span class="badge '+(fresh?'online':'pending')+'">'+(fresh?'مزامنة حديثة':'المزامنة متأخرة')+'</span></div>'+
+      '<div class="soft-stats">'+
+        '<div class="soft-stat green"><div class="stat-icon">◉</div><div><b>'+rows.length+'</b><span>المتصلون الآن</span></div></div>'+
+        '<div class="soft-stat"><div class="stat-icon">↯</div><div><b>'+avg+' Mbps</b><span>متوسط السرعة المضبوطة</span></div></div>'+
+        '<div class="soft-stat purple"><div class="stat-icon">⌁</div><div><b>'+esc(core?.name||'MikroTik')+'</b><span>الراوتر الرئيسي</span></div></div>'+
+      '</div>'+
+      '<div class="calm-table"><table><thead><tr><th>المشترك</th><th>IP</th><th>الباقة / السرعة</th><th>الراوتر</th><th>RX / TX الآن</th><th>مدة الجلسة</th><th>الإجراءات</th></tr></thead><tbody>'+
+        rows.map(s=>'<tr><td><div class="name-main">'+esc(s.full_name)+'</div><div class="subline">'+esc(s.pppoe_username)+'</div></td>'+
+          '<td class="mono">'+esc(s.current_ip||'—')+'</td><td>'+esc(subscriberPackageLabel(s))+' • '+esc(s.download_mbps||'—')+' Mbps</td>'+
+          '<td>'+esc(core?.name||'Main MikroTik')+'</td>'+
+          '<td><span style="color:#16845c">↓ '+esc(trafficFresh(s.traffic_updated_at)?fmtRate(s.current_tx_bps):'—')+'</span> &nbsp; <span style="color:#1677ff">↑ '+esc(trafficFresh(s.traffic_updated_at)?fmtRate(s.current_rx_bps):'—')+'</span></td>'+
+          '<td>'+esc(elapsed(s.session_started_at))+'</td>'+
+          '<td><div class="row"><button class="btn small" onclick="openSpeed(\''+s.id+'\')">السرعة</button><button class="btn danger small" onclick="disconnectSubscriber(\''+s.id+'\')">فصل</button></div></td></tr>').join('')+
+      '</tbody></table></div>'+
+      '<div class="mobile-records">'+rows.map(s=>'<div class="mobile-record">'+
+        '<div class="mr-top"><div><div class="mr-name">'+esc(s.full_name)+'</div><div class="mr-meta">'+esc(s.pppoe_username)+' • '+esc(s.current_ip||'بدون IP')+'</div></div><span class="badge online">متصل</span></div>'+
+        '<div class="mr-grid"><div class="mr-cell"><span>السرعة</span><b>'+esc(s.download_mbps||'—')+' Mbps</b></div><div class="mr-cell"><span>الباقة</span><b>'+esc(subscriberPackageLabel(s))+'</b></div>'+
+        '<div class="mr-cell"><span>RX الآن</span><b>'+esc(trafficFresh(s.traffic_updated_at)?fmtRate(s.current_tx_bps):'—')+'</b></div><div class="mr-cell"><span>TX الآن</span><b>'+esc(trafficFresh(s.traffic_updated_at)?fmtRate(s.current_rx_bps):'—')+'</b></div></div>'+
+        '<div class="mr-actions"><button class="btn" onclick="openSpeed(\''+s.id+'\')">تعديل السرعة</button><button class="btn danger" onclick="disconnectSubscriber(\''+s.id+'\')">فصل</button></div></div>').join('')+
+      (rows.length?'':'<div class="empty">لا يوجد مشتركون متصلون حالياً</div>')+'</div>';
+  }
+
+  function renderDevices(){
+    const ch=commandChannelState();
+    const connected=state.routers.filter(r=>r.router_status==='ONLINE').length;
+    const offline=state.routers.filter(r=>r.router_status==='OFFLINE').length;
+    const totalSessions=state.routers.reduce((a,r)=>a+Number(r.pppoe_active_sessions||0),0);
+    $('#content').innerHTML=
+      '<div class="calm-head"><div><h1>الأجهزة والراوترات</h1><div class="muted">كل معلومات الأجهزة بمكان واحد، بعيداً عن بقية الأقسام</div></div></div>'+
+      '<div class="soft-stats">'+
+        '<div class="soft-stat green"><div class="stat-icon">⌁</div><div><b>'+connected+'</b><span>أجهزة متصلة</span></div></div>'+
+        '<div class="soft-stat red"><div class="stat-icon">×</div><div><b>'+offline+'</b><span>أجهزة غير متصلة</span></div></div>'+
+        '<div class="soft-stat '+(ch.state==='bad'?'red':ch.state==='warn'?'orange':'')+'"><div class="stat-icon">↯</div><div><b class="channel-'+ch.state+'">'+esc(ch.label)+'</b><span>قناة تنفيذ الأوامر'+(ch.age!==null?' • '+ch.age+' ث':'')+'</span></div></div>'+
+      '</div>'+
+      '<div class="device-card-grid">'+state.routers.map(r=>{const cpu=Math.min(100,Number(r.cpu_load||0));const ram=Math.min(100,Number(r.ram_used_percent||0));return '<div class="device-calm-card">'+
+        '<div class="device-calm-head"><div><h3>'+esc(r.name||r.model)+'</h3><small>'+esc(r.model||'MikroTik')+' • '+esc(r.management_ip||'—')+'</small></div><span class="badge '+routerStatusClass(r.router_status,r.adapter_mode)+'">'+esc(routerStatusLabel(r.router_status,r.adapter_mode))+'</span></div>'+
+        '<div class="device-metrics"><div class="device-metric"><span>CPU</span><b>'+cpu+'%</b><div class="progress-line"><i style="width:'+cpu+'%"></i></div></div>'+
+        '<div class="device-metric"><span>RAM</span><b>'+ram+'%</b><div class="progress-line"><i style="width:'+ram+'%"></i></div></div>'+
+        '<div class="device-metric"><span>وقت التشغيل</span><b>'+esc(fmtDuration(r.uptime_seconds||0))+'</b></div>'+
+        '<div class="device-metric"><span>الجلسات</span><b>'+esc(r.pppoe_active_sessions||0)+'</b></div></div>'+
+        '<div class="device-foot"><span>آخر اتصال: '+esc(fmtDate(r.last_seen_at))+'</span><span>الإنترنت: '+esc(r.internet_status||'—')+'</span></div>'+
+      '</div>'}).join('')+'</div>'+
+      '<div class="activity-strip"><div class="row between"><b>التنبيهات على الأجهزة</b><button class="btn small" onclick="togglePushNotifications()">🔔 إعداد الإشعارات</button></div>'+
+      '<div class="activity-row"><span class="activity-dot '+(ch.state==='ok'?'ok':ch.state==='bad'?'bad':'warn')+'"></span><span class="grow">'+esc(ch.label)+'</span><span class="muted">Worker كل 5 ثوانٍ عند تشغيله</span></div>'+
+      '<div class="activity-row"><span class="activity-dot ok"></span><span class="grow">إشعار Push عند Offline وعودة الاتصال</span><span class="muted">الهاتف والحاسبة</span></div></div>';
+  }
+
+  function renderAlerts(){
+    const now=Date.now();
+    const expiry=state.subscriptions
+      .filter(x=>x.expires_at&&new Date(x.expires_at).getTime()>now&&new Date(x.expires_at).getTime()<=now+7*86400000)
+      .sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at)).slice(0,12)
+      .map(x=>({kind:'expiry',time:x.expires_at,title:'انتهاء اشتراك قريب',body:(subscriberById(x.subscriber_id)?.full_name||'مشترك')+' • '+remaining(x.expires_at)}));
+    const router=(state.routerEvents||[]).slice(0,18).map(e=>({kind:String(e.event_type||'').toLowerCase(),time:e.created_at,title:e.event_type==='OFFLINE'?'انقطاع جهاز':e.event_type==='ONLINE'?'عودة جهاز':e.event_type==='TEMP_HIGH'?'حرارة مرتفعة':'حالة جهاز',body:eventText(e)}));
+    const transport=state.commands.filter(c=>c.status==='FAILED'&&String(c.error||'').startsWith('transport:')).slice(0,5).map(c=>({kind:'failed',time:c.finished_at||c.executed_at||c.created_at,title:'قناة الأوامر',body:'تعذر إرسال أمر '+c.type+' إلى MikroTik'}));
+    const items=[...router,...expiry,...transport].sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,30);
+    $('#content').innerHTML=
+      '<div class="calm-head"><div><h1>التنبيهات</h1><div class="muted">تنبيهات الأجهزة والاشتراكات المهمة في مكان واحد</div></div><button class="btn primary" onclick="togglePushNotifications()">🔔 تفعيل Push</button></div>'+
+      '<div class="soft-stats">'+
+        '<div class="soft-stat"><div class="stat-icon">♢</div><div><b>'+items.length+'</b><span>آخر التنبيهات</span></div></div>'+
+        '<div class="soft-stat orange"><div class="stat-icon">◷</div><div><b>'+expiry.length+'</b><span>اشتراكات تنتهي قريباً</span></div></div>'+
+        '<div class="soft-stat red"><div class="stat-icon">⌁</div><div><b>'+state.routers.filter(r=>r.router_status!=='ONLINE').length+'</b><span>أجهزة تحتاج انتباه</span></div></div>'+
+      '</div>'+
+      '<div class="alert-list">'+(items.length?items.map(a=>'<div class="alert-row '+esc(a.kind)+'"><div class="al-icon">'+(a.kind==='expiry'?'◷':a.kind==='online'?'✓':a.kind==='offline'||a.kind==='failed'?'!':'⌁')+'</div><div><b>'+esc(a.title)+'</b><p>'+esc(a.body)+'</p></div><time>'+esc(fmtDate(a.time))+'</time></div>').join(''):'<div class="empty">لا توجد تنبيهات</div>')+'</div>';
   }
 
   function renderSubscribers(){
@@ -1524,29 +1770,18 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
   }
 
   function renderSettings(){
-    const core=routerByRole('CORE')||{};
-    const connector=routerByRole('CONNECTOR')||{};
-
+    const pushSupported='Notification' in window&&'serviceWorker' in navigator&&'PushManager' in window;
+    const currency=state.settings.find(x=>x.key==='currency')?.value||'IQD';
+    const timezone=state.settings.find(x=>x.key==='timezone')?.value||'Asia/Baghdad';
     $('#content').innerHTML=
-      '<div class="page-head"><div><h1>الإعدادات</h1><div class="muted">إعدادات ISP Control، الربط، والتنبيهات</div></div></div>'+
-      '<div class="grid2">'+
-        '<div class="card card-pad"><div class="row between"><h3 class="section-title">إعدادات عامة</h3><button class="btn small primary" onclick="openLoginSettings()">تغيير بيانات الدخول</button></div>'+
-          '<div class="mini-list">'+state.settings.map(s=>
-            '<div class="mini-item"><div><b>'+esc(s.key)+'</b><div class="muted">'+esc(s.description||'')+'</div></div><div class="row"><code>'+esc(typeof s.value==='string'?s.value:JSON.stringify(s.value))+'</code>'+(isOwner()?'<button class="btn small" onclick="openSetting(\''+esc(s.key)+'\')">تعديل</button>':'')+'</div></div>'
-          ).join('')+'</div>'+
-        '</div>'+
-        '<div class="settings-stack">'+
-          '<div class="card card-pad"><div class="row between"><div><h3 class="section-title">إشعارات حالة الشبكة</h3><div class="muted" style="font-size:11px">تنبيه عند Offline / Online وارتفاع حرارة RB1100</div></div><button id="settingsPushBtn" class="btn primary small" onclick="togglePushNotifications()">تفعيل الإشعارات</button></div>'+
-            '<div class="alert info" style="margin-top:12px">على iPhone لازم يكون الـPWA مضاف للشاشة الرئيسية. الإشعار يوصلك حتى إذا التطبيق مغلق بعد منح الإذن.</div>'+
-          '</div>'+
-          '<div class="card card-pad"><div class="row between"><div><h3 class="section-title">أجهزة MikroTik</h3><div class="muted" style="font-size:10px">قراءات الحالة والحرارة لحظة بلحظة</div></div><span class="chip">2 أجهزة</span></div>'+
-            '<div class="device-health-list">'+renderRouterHealthCards()+'</div>'+
-            '<div class="router-link-summary">'+
-              '<div><span>RB1100</span><b class="mono">'+esc(core.management_ip||'10.10.5.1')+'</b></div>'+
-              '<div><span>RB951 Connector</span><b class="mono">'+esc(connector.management_ip||'10.10.5.2')+'</b></div>'+
-            '</div>'+
-          '</div>'+
-          '<div class="card card-pad"><div class="row between"><h3 class="section-title">تقرير الحالة</h3><span class="muted" style="font-size:10px">Online / Offline / Temperature</span></div><div class="status-events">'+renderRouterEvents(12)+'</div></div>'+
+      '<div class="calm-head"><div><h1>الإعدادات</h1><div class="muted">الإعدادات المهمة فقط؛ أدوات التشخيص منفصلة بالأسفل</div></div></div>'+
+      '<div class="settings-simple">'+
+        '<div class="card"><div class="row between"><div><h3 class="section-title">بيانات الدخول</h3><div class="muted" style="font-size:11px">اسم المستخدم ورمز الدخول</div></div><button class="btn" onclick="openLoginSettings()">تعديل</button></div></div>'+
+        '<div class="card"><div class="row between"><div><h3 class="section-title">إشعارات الأجهزة</h3><div class="muted" style="font-size:11px">Push على الهاتف والحاسبة عند الفصل والعودة</div></div><button id="settingsPushBtn" class="btn primary" onclick="togglePushNotifications()">تفعيل الإشعارات</button></div>'+
+          '<div class="hint" style="margin-top:11px">'+(pushSupported?'المتصفح يدعم Web Push. على iPhone ثبّت الـPWA على الشاشة الرئيسية أولاً.':'هذا المتصفح لا يدعم Web Push')+'</div></div>'+
+        '<div class="card"><h3 class="section-title">إعدادات عامة</h3><div class="mini-list"><div class="mini-item"><span>العملة</span><b>'+esc(currency)+'</b></div><div class="mini-item"><span>المنطقة الزمنية</span><b>'+esc(timezone)+'</b></div></div></div>'+
+        '<div class="card"><h3 class="section-title">تشخيص متقدم</h3><div class="muted" style="font-size:11px">مو مخليها بالواجهة اليومية حتى يبقى النظام بسيط.</div>'+
+          (isOwner()?'<div class="diagnostic-links"><button class="btn small" onclick="goPage(\'commands\')">الأوامر</button><button class="btn small" onclick="goPage(\'logs\')">السجلات</button><button class="btn small" onclick="goPage(\'users\')">المستخدمون</button><button class="btn small" onclick="goPage(\'traffic\')">الترافيك المتقدم</button></div>':'')+
         '</div>'+
       '</div>';
     updateNotificationUi();
@@ -1873,7 +2108,7 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
 
   window.refreshAll=refreshAll;
 
-  setInterval(refreshLive,1500);
+  setInterval(refreshLive,2500);
   function isStandalonePWA(){
     return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;
   }
@@ -1996,7 +2231,7 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
     });
   }
 
-  setInterval(refreshTraffic,1000);
+  setInterval(()=>{if(state.page==='online'||state.page==='traffic')refreshTraffic()},2500);
 
   setupPWA();
   boot();
