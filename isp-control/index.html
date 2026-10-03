@@ -57,6 +57,7 @@ table{width:100%;border-collapse:collapse;min-width:880px}th,td{padding:12px 13p
 .search-panel{display:grid;grid-template-columns:1fr 52px 126px;gap:10px;margin-bottom:10px}.search-panel .add-inline{white-space:nowrap;font-weight:800}.search-panel .input{height:52px;border-radius:15px;background:#102a4a}.filter-chips{display:flex;gap:8px;overflow:auto;padding:1px 0 12px;scrollbar-width:none}.filter-chips::-webkit-scrollbar{display:none}.filter-chip{border:1px solid #28517e;background:#0c203c;color:#d8e4f3;border-radius:999px;padding:8px 13px;white-space:nowrap}.filter-chip.active{background:linear-gradient(145deg,#f2f8ff,#9ed8ff);color:#08213d;border-color:#a5dcff;font-weight:900}
 .subscriber-desktop-table{display:block}.subscriber-mobile-list{display:none;gap:9px}.subscriber-mobile-card{background:linear-gradient(135deg,#102b4d,#0a203b);border:1px solid #234b78;border-radius:16px;padding:11px;box-shadow:0 10px 22px rgba(0,0,0,.18);transition:background .25s,border-color .25s,box-shadow .25s}
 .subscriber-mobile-card.subscriber-state-active{background:linear-gradient(180deg,#12b882 0%,#07845f 58%,#056d50 100%);border-color:#52f0bd;box-shadow:inset 0 2px 0 rgba(255,255,255,.32),inset 0 -4px 9px rgba(0,52,39,.26),0 12px 26px rgba(0,39,30,.34)}
+.subscriber-mobile-card.subscriber-state-offline{background:linear-gradient(180deg,#3b506b 0%,#273b55 58%,#1b2d44 100%);border-color:#7189a8;box-shadow:inset 0 2px 0 rgba(255,255,255,.16),inset 0 -4px 9px rgba(0,0,0,.22),0 12px 26px rgba(0,8,20,.30)}
 .subscriber-mobile-card.subscriber-state-soon{background:linear-gradient(180deg,#ffb31f 0%,#e78308 58%,#c86603 100%);border-color:#ffe07b;box-shadow:inset 0 2px 0 rgba(255,255,255,.34),inset 0 -4px 9px rgba(104,49,0,.25),0 12px 26px rgba(78,41,0,.34)}
 .subscriber-mobile-card.subscriber-state-expired{background:linear-gradient(180deg,#f44960 0%,#cf2644 58%,#a91835 100%);border-color:#ff9aab;box-shadow:inset 0 2px 0 rgba(255,255,255,.31),inset 0 -4px 9px rgba(78,4,25,.28),0 12px 26px rgba(68,5,22,.36)}
 .subscriber-mobile-card.subscriber-state-suspended{background:linear-gradient(180deg,#9969ff 0%,#7141df 58%,#5429b8 100%);border-color:#d5bdff;box-shadow:inset 0 2px 0 rgba(255,255,255,.31),inset 0 -4px 9px rgba(40,12,95,.28),0 12px 26px rgba(37,14,84,.38)}
@@ -76,11 +77,13 @@ table{width:100%;border-collapse:collapse;min-width:880px}th,td{padding:12px 13p
 .subscriber-desktop-table tbody tr td:first-child{border-radius:0 15px 15px 0;border-right:1px solid rgba(255,255,255,.18)}
 .subscriber-desktop-table tbody tr td:last-child{border-radius:15px 0 0 15px;border-left:1px solid rgba(0,0,0,.22)}
 .subscriber-desktop-table tbody tr.subscriber-state-active td{background:linear-gradient(180deg,#12b17e,#07845f 62%,#066e50);border-bottom-color:#034c39}
+.subscriber-desktop-table tbody tr.subscriber-state-offline td{background:linear-gradient(180deg,#3c526d,#283d57 62%,#1d3048);border-bottom-color:#142337}
 .subscriber-desktop-table tbody tr.subscriber-state-soon td{background:linear-gradient(180deg,#ffad18,#e78006 62%,#c96502);border-bottom-color:#934802}
 .subscriber-desktop-table tbody tr.subscriber-state-expired td{background:linear-gradient(180deg,#f3465e,#ce2643 62%,#a71934);border-bottom-color:#741126}
 .subscriber-desktop-table tbody tr.subscriber-state-suspended td{background:linear-gradient(180deg,#9867ff,#7040dd 62%,#5428b7);border-bottom-color:#3d188d}
 .subscriber-desktop-table tbody tr.subscriber-state-archived td{background:linear-gradient(180deg,#4d5d74,#334158);border-bottom-color:#202b3b}
 .subscriber-desktop-table tbody tr.subscriber-state-active td .muted,
+.subscriber-desktop-table tbody tr.subscriber-state-offline td .muted,
 .subscriber-desktop-table tbody tr.subscriber-state-soon td .muted,
 .subscriber-desktop-table tbody tr.subscriber-state-expired td .muted,
 .subscriber-desktop-table tbody tr.subscriber-state-suspended td .muted{color:#f3f8ff}
@@ -1179,7 +1182,7 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
       const remainingMs=end.getTime()-now;
       if(remainingMs>0&&remainingMs<=7*86400000)return 'soon';
     }
-    return 'active';
+    return s.is_online===true?'active':'offline';
   }
 
   function subscriberStateClass(s){
@@ -1201,6 +1204,7 @@ body[data-page="subscribers"] .subscriber-mobile-card:before{
     if(visual==='suspended')return '<span class="subscriber-status-pill">موقوف</span>';
     if(visual==='expired')return '<span class="subscriber-status-pill">منتهي</span>';
     if(visual==='soon')return '<span class="subscriber-status-pill">منتهي قريباً</span>';
+    if(visual==='offline')return '<span class="subscriber-status-pill">غير متصل</span>';
     return '<span class="subscriber-status-pill">متصل</span>';
   }
 
