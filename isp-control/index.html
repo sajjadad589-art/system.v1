@@ -1509,7 +1509,7 @@ body.pwa-standalone{background:#f4f8fc!important}
     const actions=[
       canManage()?['✎','a-blue','تعديل البيانات',"closeModal();openEditSubscriber('"+id+"')"]:null,
       canRenew()?['↻','a-green','تجديد الاشتراك',"closeModal();openRenew('"+id+"')"]:null,
-      canManage()?['▰','a-purple','تغيير الباقة',"closeModal();openChangePackage('"+id+"')"]:null,
+      canManage()?['▰','a-purple','تغيير الباقة',"openChangePackage('"+id+"')"]:null,
       canManage()?['◴','a-orange','تغيير السرعة',"closeModal();openSpeed('"+id+"')"]:null,
       canManage()?['Ⅱ','a-yellow',(s.status==='SUSPENDED'?'تفعيل المشترك':'تعليق / تفعيل'),"closeModal();toggleSuspend('"+id+"',"+(s.status!=='SUSPENDED')+")"]:null,
       canManage()?['⌁','a-red','فصل الجلسة',"closeModal();disconnectSubscriber('"+id+"')"]:null,
@@ -1892,21 +1892,26 @@ body.pwa-standalone{background:#f4f8fc!important}
   }
 
   window.openChangePackage=function(id){
-    if(!canManage())return;
-    const s=subscriberById(id),currentSub=subscriptionBySubscriber(id); if(!s||!currentSub)return;
+    if(!canManage()){toast('ليس لديك صلاحية تغيير الباقة',true);return;}
+    const s=subscriberById(id),currentSub=subscriptionBySubscriber(id);
+    if(!s||s.archived_at){toast('المشترك غير موجود أو مؤرشف',true);return;}
+    const activePackages=state.packages.filter(x=>x.active);
+    if(!activePackages.length){toast('لا توجد باقات فعالة للاختيار',true);return;}
     const currentPackage=packageById(s.package_id);
     openModal(
       '<div class="modal-head"><button class="btn icon-btn" type="button" onclick="closeModal()">✕</button><div style="text-align:center"><h3>▰ تغيير الباقة</h3><div class="muted" style="font-size:11px">اختر الباقة الجديدة للمشترك</div></div><span style="width:42px"></span></div>'+
       '<form id="changePackageForm">'+
         '<div class="package-current"><div class="row between"><b>الباقة الحالية</b><span class="pkg-pill">'+esc(currentPackage?.name||'—')+'</span></div></div>'+
-        '<div class="field"><label>الباقة الجديدة</label><div class="package-choice-grid">'+state.packages.filter(x=>x.active).map((p,i)=>'<label class="package-choice"><input type="radio" name="package_id" value="'+esc(p.id)+'" '+(p.id===s.package_id?'checked':'')+'><div class="pc-name">'+esc(p.name)+'</div><div class="pc-speed">'+esc(p.download_mbps)+' / '+esc(p.upload_mbps)+' Mbps</div></label>').join('')+'</div></div>'+
-        '<div class="package-current"><div class="muted" style="font-size:10px">تاريخ الانتهاء سيبقى كما هو</div><div class="row between" style="margin-top:6px"><b>'+esc(fmtDate(currentSub.expires_at))+'</b><span>▣</span></div></div>'+
+        '<div class="field"><label>الباقة الجديدة</label><div class="package-choice-grid">'+activePackages.map(p=>'<label class="package-choice"><input type="radio" name="package_id" value="'+esc(p.id)+'" required '+(p.id===s.package_id?'checked':'')+'><div class="pc-name">'+esc(p.name)+'</div><div class="pc-speed">'+esc(p.download_mbps)+' / '+esc(p.upload_mbps)+' Mbps</div></label>').join('')+'</div></div>'+
+        '<div class="package-current"><div class="muted" style="font-size:10px">'+(currentSub?'تاريخ الانتهاء سيبقى كما هو':'لا يوجد سجل اشتراك؛ تغيير الباقة لا ينشئ اشتراكاً أو يمدد المدة')+'</div><div class="row between" style="margin-top:6px"><b>'+esc(fmtDate(currentSub?.expires_at))+'</b><span>▣</span></div></div>'+
         '<label class="row"><input name="disconnect" type="checkbox" checked> تطبيق الباقة فوراً عبر فصل الجلسة</label>'+
         '<div class="row" style="margin-top:16px"><button type="button" class="btn grow" onclick="closeModal()">إلغاء</button><button class="btn primary grow">✓ تغيير الباقة</button></div>'+
       '</form>'
     );
     $('#changePackageForm').addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;const f=new FormData(e.currentTarget);try{
-      const preserved=await rpc('change_subscriber_package',{p_subscriber_id:id,p_package_id:f.get('package_id'),p_disconnect:f.get('disconnect')==='on'});
+      const packageId=f.get('package_id');
+      if(!activePackages.some(p=>p.id===packageId))throw new Error('اختر باقة فعالة');
+      await rpc('change_subscriber_package',{p_subscriber_id:id,p_package_id:packageId,p_disconnect:f.get('disconnect')==='on'});
       closeModal();toast('تم تغيير الباقة بدون تغيير تاريخ الانتهاء');await refreshAll();
     }catch(err){toast(err.message,true);btn.disabled=false}});
   }
