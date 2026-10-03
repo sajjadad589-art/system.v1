@@ -1,4 +1,4 @@
-const CACHE='isp-control-pwa-v3';
+const CACHE='isp-control-pwa-v4';
 const CORE=['./index.html','./manifest.json'];
 const ICON='https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-control-assets/icon.png';
 
@@ -63,7 +63,7 @@ self.addEventListener('push',event=>{
     renotify:true,
     requireInteraction:false,
     data:{
-      url:data.url||'./index.html?pwa=1',
+      url:data.url||'./index.html?pwa=1&section=alerts',
       ...(data.data||{})
     }
   };
@@ -73,7 +73,7 @@ self.addEventListener('push',event=>{
 
 self.addEventListener('notificationclick',event=>{
   event.notification.close();
-  const target=new URL(event.notification?.data?.url||'./index.html?pwa=1',self.location.href).href;
+  const target=new URL(event.notification?.data?.url||'./index.html?pwa=1&section=alerts',self.location.href).href;
   event.waitUntil((async()=>{
     const all=await clients.matchAll({type:'window',includeUncontrolled:true});
     for(const client of all){
