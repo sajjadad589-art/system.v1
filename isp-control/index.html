@@ -915,7 +915,7 @@ body.pwa-standalone{background:#f4f8fc!important}
     render();
   }
   window.goPage=goPage;
-  $('.nav button').forEach(btn=>btn.addEventListener('click',()=>goPage(btn.dataset.page)));
+  document.querySelectorAll('.nav button').forEach(btn=>btn.addEventListener('click',()=>goPage(btn.dataset.page)));
   $$('#bottomNav button').forEach(btn=>btn.addEventListener('click',()=>goPage(btn.dataset.page)));
 
   async function boot(){
