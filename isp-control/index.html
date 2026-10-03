@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#06172d">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ISP Control">
 <meta name="application-name" content="ISP Control">
 <link rel="manifest" href="./manifest.json">
@@ -940,6 +940,8 @@ body.pwa-standalone{background:#f4f8fc!important}
       $('#appView').classList.remove('hidden');
 
       await refreshAll();
+      const requestedSection=new URLSearchParams(location.search).get('section');
+      if(['alerts','devices','online','active','payments'].includes(requestedSection||''))goPage(requestedSection);
     }catch(err){
       showAuthMessage(err.message,true);
       saveSession(null);
