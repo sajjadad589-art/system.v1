@@ -1305,8 +1305,41 @@ body.pwa-standalone{background:#f4f8fc!important}
     const pkgEl=$('#activePackage');if(pkgEl)pkgEl.addEventListener('change',e=>{state.activePackageFilter=e.target.value;renderActiveSubscribers()});
   }
 
+  function onlineSortValue(s,key){
+    if(key==='name')return s.full_name||s.pppoe_username||'';
+    if(key==='ip')return s.current_ip?s.current_ip.split('.').reduce((n,x)=>n*256+Number(x),0):null;
+    if(key==='speed')return s.download_mbps==null?null:Number(s.download_mbps);
+    if(key==='router')return routerByRole('CORE')?.name||'Main MikroTik';
+    if(key==='rx'||key==='tx')return trafficFresh(s.traffic_updated_at)?Number(s[key==='rx'?'current_tx_bps':'current_rx_bps']):null;
+    if(key==='duration')return s.session_started_at?Date.now()-new Date(s.session_started_at).getTime():null;
+    return null;
+  }
+  function sortedOnlineRows(rows){
+    const sorted=stableSubscriberRows(rows),sort=state.onlineSort;
+    if(!sort)return sorted;
+    return sorted.sort((a,b)=>{
+      const av=onlineSortValue(a,sort.key),bv=onlineSortValue(b,sort.key);
+      const missing=v=>v==null||(typeof v==='number'&&!Number.isFinite(v));
+      if(missing(av)||missing(bv))return missing(av)===missing(bv)?0:missing(av)?1:-1;
+      const cmp=typeof av==='number'?av-bv:String(av).localeCompare(String(bv),'ar',{numeric:true});
+      return sort.direction==='desc'?-cmp:cmp;
+    });
+  }
+  window.sortOnlineSubscribers=function(key){
+    if(!['name','ip','speed','router','rx','tx','duration'].includes(key))return;
+    state.onlineSort={key,direction:state.onlineSort?.key===key&&state.onlineSort.direction==='desc'?'asc':'desc'};
+    renderOnlineSubscribers();
+  };
+  function onlineSortHeader(key,label){
+    const active=state.onlineSort?.key===key,direction=state.onlineSort?.direction;
+    return '<button type="button" class="online-sort-button" style="border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;padding:6px" onclick="sortOnlineSubscribers(\''+key+'\')" aria-label="ترتيب حسب '+label+'" title="اضغط لتبديل اتجاه الترتيب">'+label+' <span aria-hidden="true">'+(active?(direction==='desc'?'↓':'↑'):'↕')+'</span></button>';
+  }
+  function onlineSortCell(key,label){
+    const active=state.onlineSort?.key===key;
+    return '<th aria-sort="'+(active?(state.onlineSort.direction==='desc'?'descending':'ascending'):'none')+'">'+onlineSortHeader(key,label)+'</th>';
+  }
   function renderOnlineSubscribers(){
-    const rows=stableSubscriberRows(visibleSubscribers().filter(s=>s.is_online));
+    const rows=sortedOnlineRows(visibleSubscribers().filter(s=>s.is_online));
     const avg=rows.length?Math.round(rows.reduce((a,s)=>a+Number(s.download_mbps||0),0)/rows.length):0;
     const fresh=subscriberSnapshotFresh();
     const core=routerByRole('CORE');
@@ -1317,7 +1350,7 @@ body.pwa-standalone{background:#f4f8fc!important}
         '<div class="soft-stat"><div class="stat-icon">↯</div><div><b>'+avg+' Mbps</b><span>متوسط السرعة المضبوطة</span></div></div>'+
         '<div class="soft-stat purple"><div class="stat-icon">⌁</div><div><b>'+esc(core?.name||'MikroTik')+'</b><span>الراوتر الرئيسي</span></div></div>'+
       '</div>'+
-      '<div class="calm-table"><table><thead><tr><th>المشترك</th><th>IP</th><th>الباقة / السرعة</th><th>الراوتر</th><th>RX / TX الآن</th><th>مدة الجلسة</th><th>الإجراءات</th></tr></thead><tbody>'+
+      '<div class="calm-table"><table><thead><tr>'+onlineSortCell('name','المشترك')+onlineSortCell('ip','IP')+onlineSortCell('speed','الباقة / السرعة')+onlineSortCell('router','الراوتر')+'<th>'+onlineSortHeader('rx','RX ↓')+' / '+onlineSortHeader('tx','TX ↑')+'</th>'+onlineSortCell('duration','مدة الجلسة')+'<th>الإجراءات</th></tr></thead><tbody>'+
         rows.map(s=>'<tr><td><div class="name-main">'+esc(s.full_name)+'</div><div class="subline">'+esc(s.pppoe_username)+'</div></td>'+
           '<td class="mono">'+esc(s.current_ip||'—')+'</td><td>'+esc(subscriberPackageLabel(s))+' • '+esc(s.download_mbps||'—')+' Mbps</td>'+
           '<td>'+esc(core?.name||'Main MikroTik')+'</td>'+
