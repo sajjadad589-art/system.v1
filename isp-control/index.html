@@ -1828,6 +1828,7 @@ body.pwa-standalone{background:#f4f8fc!important}
         '<div class="card"><div class="row between"><div><h3 class="section-title">إشعارات الأجهزة</h3><div class="muted" style="font-size:11px">Push على الهاتف والحاسبة عند الفصل والعودة</div></div><button id="settingsPushBtn" class="btn primary" onclick="togglePushNotifications()">تفعيل الإشعارات</button></div>'+
           '<div class="hint" style="margin-top:11px">'+(pushSupported?'المتصفح يدعم Web Push. على iPhone ثبّت الـPWA على الشاشة الرئيسية أولاً.':'هذا المتصفح لا يدعم Web Push')+'</div></div>'+
         '<div class="card"><div class="row between"><div><h3 class="section-title">تنبيهات Telegram</h3><div class="muted" style="font-size:11px">تنبيه مجاني عند انقطاع البرج وعودة الإنترنت</div></div><button class="btn primary" onclick="openTelegramSettings()">إعداد Telegram</button></div></div>'+
+        '<div class="card"><div class="row between"><div><h3 class="section-title">تنبيهات Messenger</h3><div class="muted" style="font-size:11px">Messenger رئيسي + Telegram احتياط عند الفصل والعودة</div></div><button class="btn primary" onclick="openMessengerSettings()">إعداد Messenger</button></div></div>'+
         '<div class="card"><h3 class="section-title">إعدادات عامة</h3><div class="mini-list"><div class="mini-item"><span>العملة</span><b>'+esc(currency)+'</b></div><div class="mini-item"><span>المنطقة الزمنية</span><b>'+esc(timezone)+'</b></div></div></div>'+
         '<div class="card"><h3 class="section-title">تشخيص متقدم</h3><div class="muted" style="font-size:11px">مو مخليها بالواجهة اليومية حتى يبقى النظام بسيط.</div>'+
           (isOwner()?'<div class="diagnostic-links"><button class="btn small" onclick="goPage(\'commands\')">الأوامر</button><button class="btn small" onclick="goPage(\'logs\')">السجلات</button><button class="btn small" onclick="goPage(\'users\')">المستخدمون</button><button class="btn small" onclick="goPage(\'traffic\')">الترافيك المتقدم</button></div>':'')+
@@ -1890,6 +1891,86 @@ body.pwa-standalone{background:#f4f8fc!important}
       }finally{
         btn.disabled=false;
       }
+    });
+  }
+
+  window.openMessengerSettings=async function(){
+    if(!canManage())return;
+    const WEBHOOK_URL='https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-messenger-webhook';
+    let st={enabled:false,page_id:'',token_saved:false,app_secret_saved:false,recipient_paired:false,verify_token:'',pairing_code:null};
+    try{st=await rpc('get_messenger_alert_status',{})||st}catch(err){toast(err.message,true);return}
+
+    const statusText=st.recipient_paired?'مرتبط بحساب Messenger ✅':'بانتظار ربط حسابك';
+    openModal(
+      '<div class="modal-head"><button class="btn icon-btn" type="button" onclick="closeModal()">✕</button><div><h3>تنبيهات Messenger</h3><div class="muted" style="font-size:11px">'+esc(statusText)+'</div></div><button form="messengerAlertForm" class="btn primary" type="submit">حفظ</button></div>'+
+      '<form id="messengerAlertForm">'+
+        '<div class="alert info">من Meta تحتاج Page ID وPage Access Token وApp Secret. الأسرار تُحفظ بالسيرفر ولا تظهر بعد الحفظ.</div>'+
+        '<div class="field"><label>Webhook Callback URL</label><input value="'+esc(WEBHOOK_URL)+'" readonly></div>'+
+        '<div class="field"><label>Webhook Verify Token</label><input value="'+esc(st.verify_token||'')+'" readonly></div>'+
+        '<div class="field"><label>Facebook Page ID</label><input name="page_id" value="'+esc(st.page_id||'')+'" placeholder="Page ID"></div>'+
+        '<div class="field"><label>Page Access Token</label><input name="page_access_token" type="password" autocomplete="off" placeholder="'+(st.token_saved?'محفوظ مسبقاً — اتركه فارغاً للإبقاء عليه':'Page Access Token')+'"></div>'+
+        '<div class="field"><label>Meta App Secret</label><input name="app_secret" type="password" autocomplete="off" placeholder="'+(st.app_secret_saved?'محفوظ مسبقاً — اتركه فارغاً للإبقاء عليه':'App Secret')+'"></div>'+
+        '<label class="row" style="margin-top:8px"><input name="enabled" type="checkbox" '+(st.enabled?'checked':'')+'> تفعيل Messenger عند OFFLINE / ONLINE</label>'+
+        '<div id="messengerPairBox" class="alert '+(st.recipient_paired?'success':'info')+'" style="margin-top:14px">'+
+          (st.recipient_paired?'تم ربط حسابك. تقدر ترسل اختبار مباشرة.':'بعد ضبط Webhook وربط الصفحة اضغط «بدء ربط حسابي»، وبعدها أرسل الكود للصفحة من Messenger.')+
+        '</div>'+
+        '<div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button id="messengerPairBtn" class="btn" type="button">بدء ربط حسابي</button><button id="messengerTestBtn" class="btn primary" type="button">إرسال رسالة اختبار</button></div>'+
+      '</form>'
+    );
+
+    async function saveMessenger(enabled){
+      const fd=new FormData($('#messengerAlertForm'));
+      return rpc('set_messenger_alert_config',{
+        p_page_id:String(fd.get('page_id')||'').trim(),
+        p_page_access_token:String(fd.get('page_access_token')||'').trim(),
+        p_app_secret:String(fd.get('app_secret')||'').trim(),
+        p_enabled:!!enabled
+      });
+    }
+
+    $('#messengerAlertForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=$('[form="messengerAlertForm"]');btn.disabled=true;
+      const fd=new FormData(e.currentTarget);
+      try{
+        const res=await saveMessenger(fd.get('enabled')==='on');
+        closeModal();
+        toast(res?.enabled?'تم تفعيل تنبيهات Messenger':'تم حفظ إعداد Messenger');
+      }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+
+    $('#messengerPairBtn').addEventListener('click',async ()=>{
+      const btn=$('#messengerPairBtn');btn.disabled=true;
+      try{
+        await saveMessenger(false);
+        const p=await rpc('start_messenger_pairing',{});
+        $('#messengerPairBox').className='alert info';
+        $('#messengerPairBox').innerHTML='أرسل هذا الكود حرفياً إلى صفحتك من حساب Messenger الشخصي خلال 15 دقيقة:<br><b style="font-size:18px">'+esc(p?.pairing_code||'')+'</b>';
+        toast('تم إنشاء كود الربط');
+      }catch(err){toast('ربط Messenger: '+err.message,true)}
+      finally{btn.disabled=false}
+    });
+
+    $('#messengerTestBtn').addEventListener('click',async ()=>{
+      const btn=$('#messengerTestBtn');btn.disabled=true;
+      try{
+        await saveMessenger(false);
+        const res=await api('/functions/v1/isp-messenger-test',{method:'POST',body:'{}'});
+        if(res?.ok){
+          await rpc('set_messenger_alert_config',{
+            p_page_id:'',
+            p_page_access_token:'',
+            p_app_secret:'',
+            p_enabled:true
+          });
+          const check=$('#messengerAlertForm input[name="enabled"]');
+          if(check)check.checked=true;
+          $('#messengerPairBox').className='alert success';
+          $('#messengerPairBox').textContent='الاختبار نجح وتم تفعيل Messenger.';
+          toast('وصلت رسالة Messenger بنجاح');
+        }else toast('فشل اختبار Messenger',true);
+      }catch(err){toast('اختبار Messenger: '+err.message,true)}
+      finally{btn.disabled=false}
     });
   }
 
