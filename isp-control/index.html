@@ -1845,7 +1845,7 @@ body.pwa-standalone{background:#f4f8fc!important}
       '<div class="modal-head"><button class="btn icon-btn" type="button" onclick="closeModal()">✕</button><div><h3>تنبيهات Telegram</h3><div class="muted" style="font-size:11px">مجاني • OFFLINE / ONLINE</div></div><button form="telegramAlertForm" class="btn primary" type="submit">حفظ</button></div>'+
       '<form id="telegramAlertForm">'+
         '<div class="field"><label>Bot Token</label><input name="bot_token" type="password" autocomplete="off" placeholder="'+(st.token_saved?'محفوظ مسبقاً — اتركه فارغاً للإبقاء عليه':'الصق التوكن من BotFather')+'"></div>'+
-        '<div class="field"><label>Chat ID</label><input name="chat_id" value="'+esc(st.chat_id||'')+'" placeholder="مثال: 123456789" required></div>'+
+        '<div class="field"><label>Chat ID</label><input name="chat_id" value="'+esc(st.chat_id||'')+'" placeholder="اختياري — يكتشفه النظام تلقائياً بعد /start"></div>'+
         '<label class="row" style="margin-top:8px"><input name="enabled" type="checkbox" '+(st.enabled?'checked':'')+'> تفعيل تنبيهات انقطاع وعودة الإنترنت</label>'+
         '<div class="alert info" style="margin-top:14px">الـBot Token يُحفظ في إعداد خاص بالسيرفر ولا يظهر مرة ثانية في الواجهة.</div>'+
         '<div class="row" style="justify-content:flex-end;margin-top:14px"><button id="telegramTestBtn" class="btn" type="button">إرسال رسالة اختبار</button></div>'+
@@ -1875,13 +1875,15 @@ body.pwa-standalone{background:#f4f8fc!important}
         await rpc('set_telegram_alert_config',{
           p_bot_token:String(fd.get('bot_token')||'').trim(),
           p_chat_id:String(fd.get('chat_id')||'').trim(),
-          p_enabled:true
+          p_enabled:false
         });
         const res=await api('/functions/v1/isp-telegram-test',{method:'POST',body:'{}'});
         toast(res?.ok?'وصلت رسالة الاختبار بنجاح':'فشل اختبار Telegram',!res?.ok);
         if(res?.ok){
           const check=form.querySelector('input[name="enabled"]');
           if(check)check.checked=true;
+          const chat=form.querySelector('input[name="chat_id"]');
+          if(chat&&res.chat_id)chat.value=res.chat_id;
         }
       }catch(err){
         toast('اختبار Telegram: '+err.message,true);
