@@ -1827,12 +1827,44 @@ body.pwa-standalone{background:#f4f8fc!important}
         '<div class="card"><div class="row between"><div><h3 class="section-title">بيانات الدخول</h3><div class="muted" style="font-size:11px">اسم المستخدم ورمز الدخول</div></div><button class="btn" onclick="openLoginSettings()">تعديل</button></div></div>'+
         '<div class="card"><div class="row between"><div><h3 class="section-title">إشعارات الأجهزة</h3><div class="muted" style="font-size:11px">Push على الهاتف والحاسبة عند الفصل والعودة</div></div><button id="settingsPushBtn" class="btn primary" onclick="togglePushNotifications()">تفعيل الإشعارات</button></div>'+
           '<div class="hint" style="margin-top:11px">'+(pushSupported?'المتصفح يدعم Web Push. على iPhone ثبّت الـPWA على الشاشة الرئيسية أولاً.':'هذا المتصفح لا يدعم Web Push')+'</div></div>'+
+        '<div class="card"><div class="row between"><div><h3 class="section-title">تنبيهات Telegram</h3><div class="muted" style="font-size:11px">تنبيه مجاني عند انقطاع البرج وعودة الإنترنت</div></div><button class="btn primary" onclick="openTelegramSettings()">إعداد Telegram</button></div></div>'+
         '<div class="card"><h3 class="section-title">إعدادات عامة</h3><div class="mini-list"><div class="mini-item"><span>العملة</span><b>'+esc(currency)+'</b></div><div class="mini-item"><span>المنطقة الزمنية</span><b>'+esc(timezone)+'</b></div></div></div>'+
         '<div class="card"><h3 class="section-title">تشخيص متقدم</h3><div class="muted" style="font-size:11px">مو مخليها بالواجهة اليومية حتى يبقى النظام بسيط.</div>'+
           (isOwner()?'<div class="diagnostic-links"><button class="btn small" onclick="goPage(\'commands\')">الأوامر</button><button class="btn small" onclick="goPage(\'logs\')">السجلات</button><button class="btn small" onclick="goPage(\'users\')">المستخدمون</button><button class="btn small" onclick="goPage(\'traffic\')">الترافيك المتقدم</button></div>':'')+
         '</div>'+
       '</div>';
     updateNotificationUi();
+  }
+
+  window.openTelegramSettings=async function(){
+    if(!canManage())return;
+    let st={enabled:false,chat_id:'',token_saved:false};
+    try{st=await rpc('get_telegram_alert_status',{})||st}catch(err){toast(err.message,true);return}
+
+    openModal(
+      '<div class="modal-head"><button class="btn icon-btn" type="button" onclick="closeModal()">✕</button><div><h3>تنبيهات Telegram</h3><div class="muted" style="font-size:11px">مجاني • OFFLINE / ONLINE</div></div><button form="telegramAlertForm" class="btn primary" type="submit">حفظ</button></div>'+
+      '<form id="telegramAlertForm">'+
+        '<div class="field"><label>Bot Token</label><input name="bot_token" type="password" autocomplete="off" placeholder="'+(st.token_saved?'محفوظ مسبقاً — اتركه فارغاً للإبقاء عليه':'الصق التوكن من BotFather')+'"></div>'+
+        '<div class="field"><label>Chat ID</label><input name="chat_id" value="'+esc(st.chat_id||'')+'" placeholder="مثال: 123456789" required></div>'+
+        '<label class="row" style="margin-top:8px"><input name="enabled" type="checkbox" '+(st.enabled?'checked':'')+'> تفعيل تنبيهات انقطاع وعودة الإنترنت</label>'+
+        '<div class="alert info" style="margin-top:14px">الـBot Token يُحفظ في إعداد خاص بالسيرفر ولا يظهر مرة ثانية في الواجهة.</div>'+
+      '</form>'
+    );
+
+    $('#telegramAlertForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=$('[form="telegramAlertForm"]');btn.disabled=true;
+      const fd=new FormData(e.currentTarget);
+      try{
+        const res=await rpc('set_telegram_alert_config',{
+          p_bot_token:String(fd.get('bot_token')||'').trim(),
+          p_chat_id:String(fd.get('chat_id')||'').trim(),
+          p_enabled:fd.get('enabled')==='on'
+        });
+        closeModal();
+        toast(res?.enabled?'تم تفعيل تنبيهات Telegram':'تم حفظ إعداد Telegram');
+      }catch(err){toast(err.message,true);btn.disabled=false}
+    });
   }
 
   window.openAddSubscriber=function(){
