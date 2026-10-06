@@ -1542,6 +1542,7 @@ body.pwa-standalone{background:#f4f8fc!important}
     const actions=[
       canManage()?['✎','a-blue','تعديل البيانات',"closeModal();openEditSubscriber('"+id+"')"]:null,
       canRenew()?['↻','a-green','تجديد الاشتراك',"closeModal();openRenew('"+id+"')"]:null,
+      canManage()?['◫','a-orange','تعديل تاريخ الانتهاء',"closeModal();openEditExpiry('"+id+"')"]:null,
       canManage()?['▰','a-purple','تغيير الباقة',"openChangePackage('"+id+"')"]:null,
       canManage()?['◴','a-orange','تغيير السرعة',"closeModal();openSpeed('"+id+"')"]:null,
       canManage()?['Ⅱ','a-yellow',(s.status==='SUSPENDED'?'تفعيل المشترك':'تعليق / تفعيل'),"closeModal();toggleSuspend('"+id+"',"+(s.status!=='SUSPENDED')+")"]:null,
@@ -1899,6 +1900,51 @@ body.pwa-standalone{background:#f4f8fc!important}
         });
         closeModal();toast('تم التجديد حتى '+fmtDate(expiry));await refreshAll();
       }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+  }
+
+  window.openEditExpiry=function(id){
+    if(!canManage())return;
+    const s=subscriberById(id);
+    const sub=subscriptionBySubscriber(id);
+    if(!s)return;
+    if(!sub||!sub.expires_at){toast('لا يوجد اشتراك فعال لهذا المشترك',true);return}
+
+    const currentDate=new Date(sub.expires_at);
+    const localValue=Number.isNaN(currentDate.getTime())
+      ? ''
+      : new Date(currentDate.getTime()-currentDate.getTimezoneOffset()*60000).toISOString().slice(0,16);
+
+    openModal(
+      '<div class="modal-head"><button class="btn icon-btn" type="button" onclick="closeModal()">✕</button><div style="text-align:center"><h3>تعديل تاريخ الانتهاء</h3><div class="muted" style="font-size:11px">'+esc(s.full_name)+' • '+esc(s.pppoe_username)+'</div></div><button form="editExpiryForm" class="btn primary" type="submit">حفظ ▣</button></div>'+
+      '<form id="editExpiryForm">'+
+        '<div class="field"><label>تاريخ ووقت انتهاء الاشتراك</label><input name="expires_at" type="datetime-local" value="'+esc(localValue)+'" required></div>'+
+        '<div class="alert info">الانتهاء الحالي: <b>'+esc(fmtDate(sub.expires_at))+'</b><br>إذا اخترت تاريخاً بالماضي ينتهي الاشتراك فوراً. وإذا كان منتهياً ومددت التاريخ للمستقبل يرجع فعالاً تلقائياً. المشترك الموقوف يدوياً يبقى موقوفاً.</div>'+
+      '</form>'
+    );
+
+    $('#editExpiryForm').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const btn=$('[form="editExpiryForm"]');
+      btn.disabled=true;
+      const f=new FormData(e.currentTarget);
+      try{
+        const raw=String(f.get('expires_at')||'').trim();
+        const expiry=new Date(raw);
+        if(!raw||Number.isNaN(expiry.getTime()))throw new Error('اختر تاريخ انتهاء صحيح');
+
+        const saved=await rpc('set_subscriber_expiry',{
+          p_subscriber_id:id,
+          p_expires_at:expiry.toISOString()
+        });
+
+        closeModal();
+        toast('تم تعديل تاريخ الانتهاء إلى '+fmtDate(saved));
+        await refreshAll();
+      }catch(err){
+        toast(err.message,true);
+        btn.disabled=false;
+      }
     });
   }
 
