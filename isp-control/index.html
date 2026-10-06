@@ -1848,6 +1848,7 @@ body.pwa-standalone{background:#f4f8fc!important}
         '<div class="field"><label>Chat ID</label><input name="chat_id" value="'+esc(st.chat_id||'')+'" placeholder="مثال: 123456789" required></div>'+
         '<label class="row" style="margin-top:8px"><input name="enabled" type="checkbox" '+(st.enabled?'checked':'')+'> تفعيل تنبيهات انقطاع وعودة الإنترنت</label>'+
         '<div class="alert info" style="margin-top:14px">الـBot Token يُحفظ في إعداد خاص بالسيرفر ولا يظهر مرة ثانية في الواجهة.</div>'+
+        '<div class="row" style="justify-content:flex-end;margin-top:14px"><button id="telegramTestBtn" class="btn" type="button">إرسال رسالة اختبار</button></div>'+
       '</form>'
     );
 
@@ -1864,6 +1865,29 @@ body.pwa-standalone{background:#f4f8fc!important}
         closeModal();
         toast(res?.enabled?'تم تفعيل تنبيهات Telegram':'تم حفظ إعداد Telegram');
       }catch(err){toast(err.message,true);btn.disabled=false}
+    });
+
+    $('#telegramTestBtn').addEventListener('click',async ()=>{
+      const btn=$('#telegramTestBtn');btn.disabled=true;
+      const form=$('#telegramAlertForm');
+      const fd=new FormData(form);
+      try{
+        await rpc('set_telegram_alert_config',{
+          p_bot_token:String(fd.get('bot_token')||'').trim(),
+          p_chat_id:String(fd.get('chat_id')||'').trim(),
+          p_enabled:true
+        });
+        const res=await api('/functions/v1/isp-telegram-test',{method:'POST',body:'{}'});
+        toast(res?.ok?'وصلت رسالة الاختبار بنجاح':'فشل اختبار Telegram',!res?.ok);
+        if(res?.ok){
+          const check=form.querySelector('input[name="enabled"]');
+          if(check)check.checked=true;
+        }
+      }catch(err){
+        toast('اختبار Telegram: '+err.message,true);
+      }finally{
+        btn.disabled=false;
+      }
     });
   }
 
