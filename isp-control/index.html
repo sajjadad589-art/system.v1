@@ -518,6 +518,42 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
   border-color:#ff9aab!important;
 }
 
+
+/* Account identity in the existing top bar; does not cover navigation or content. */
+.topbar .topbar-account-controls{align-items:center;gap:9px;min-width:0;flex-wrap:nowrap}
+.topbar .account-userbox{
+  box-sizing:border-box;flex:0 1 185px;min-width:0;max-width:185px;
+  height:50px;margin:0!important;padding:7px 12px!important;
+  display:flex;flex-direction:column;justify-content:center;
+  overflow:hidden;text-align:right;border-radius:13px
+}
+.topbar .account-userbox b,
+.topbar .account-userbox span{
+  display:block;max-width:100%;overflow:hidden;
+  white-space:nowrap;text-overflow:ellipsis;line-height:1.45
+}
+.topbar .account-userbox b{font-size:12px}
+.topbar .account-userbox span{font-size:10px}
+@media (max-width:780px){
+  .topbar{gap:7px}
+  .topbar .top-brand{flex:0 1 auto;min-width:0;gap:6px}
+  .topbar .top-brand>div:last-child{min-width:0}
+  .topbar .top-brand b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topbar .topbar-account-controls{gap:5px;flex:0 1 auto}
+  .topbar .account-userbox{
+    flex:0 1 120px;max-width:120px;min-width:70px;
+    height:42px;padding:4px 7px!important;border-radius:10px
+  }
+  .topbar .account-userbox b{font-size:11px}
+  .topbar .account-userbox span{font-size:9px}
+  .topbar .topbar-account-controls .icon-btn{flex:0 0 35px;width:35px;height:35px}
+}
+@media (max-width:400px){
+  .topbar .top-brand b{font-size:13px!important}
+  .topbar .account-userbox{max-width:100px;min-width:65px}
+  .topbar .topbar-account-controls .icon-btn{flex-basis:32px;width:32px;height:32px}
+}
+
 </style>
 </head>
 <body>
@@ -603,10 +639,6 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     </nav>
 
     <div class="sidebar-foot">
-      <div class="userbox">
-        <b id="sideUser">—</b>
-        <span id="sideRole">—</span>
-      </div>
       <button id="logoutBtn" class="btn" style="width:100%">تسجيل الخروج</button>
     </div>
   </aside>
@@ -617,7 +649,11 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
         <div class="router-logo logo-image"><img src="https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-control-assets/icon.png" alt="ISP Control"></div>
         <div><b>MikroTik • ISP</b><small>إدارة المشتركين والاشتراكات</small></div>
       </div>
-      <div class="row">
+      <div class="row topbar-account-controls">
+        <div class="userbox account-userbox" aria-label="معلومات الحساب الحالي">
+          <b id="sideUser">—</b>
+          <span id="sideRole">—</span>
+        </div>
         <button id="notificationBtn" class="btn icon-btn" type="button" title="إشعارات حالة الشبكة" onclick="togglePushNotifications()"><span id="notificationBell">🔔</span></button>
         <button id="mobileMenuBtn" class="btn icon-btn" type="button">☰</button>
         <span id="routerBadge" class="badge offline">MikroTik غير متصل</span>
