@@ -2073,56 +2073,13 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     });
   }
 
-  window.openEditExpiry=function(id){
-    if(!canManage())return;
-    const s=subscriberById(id);
-    const sub=subscriptionBySubscriber(id);
-    if(!s)return;
-    if(!sub||!sub.expires_at){toast('لا يوجد اشتراك فعال لهذا المشترك',true);return}
-
-    const currentDate=new Date(sub.expires_at);
-    const localValue=Number.isNaN(currentDate.getTime())
-      ? ''
-      : new Date(currentDate.getTime()-currentDate.getTimezoneOffset()*60000).toISOString().slice(0,16);
-
-    openModal(
-      '<div class="modal-head"><button class="btn icon-btn" type="button" onclick="closeModal()">✕</button><div style="text-align:center"><h3>تعديل تاريخ الانتهاء</h3><div class="muted" style="font-size:11px">'+esc(s.full_name)+' • '+esc(s.pppoe_username)+'</div></div><button form="editExpiryForm" class="btn primary" type="submit">حفظ ▣</button></div>'+
-      '<form id="editExpiryForm">'+
-        '<div class="field"><label>تاريخ ووقت انتهاء الاشتراك</label><input name="expires_at" type="datetime-local" value="'+esc(localValue)+'" required></div>'+
-        '<div class="alert info">الانتهاء الحالي: <b>'+esc(fmtDate(sub.expires_at))+'</b><br>إذا اخترت تاريخاً بالماضي ينتهي الاشتراك فوراً. وإذا كان منتهياً ومددت التاريخ للمستقبل يرجع فعالاً تلقائياً. المشترك الموقوف يدوياً يبقى موقوفاً.</div>'+
-      '</form>'
-    );
-
-    $('#editExpiryForm').addEventListener('submit',async e=>{
-      e.preventDefault();
-      const btn=$('[form="editExpiryForm"]');
-      btn.disabled=true;
-      const f=new FormData(e.currentTarget);
-      try{
-        const raw=String(f.get('expires_at')||'').trim();
-        const expiry=new Date(raw);
-        if(!raw||Number.isNaN(expiry.getTime()))throw new Error('اختر تاريخ انتهاء صحيح');
-
-        const saved=await rpc('set_subscriber_expiry',{
-          p_subscriber_id:id,
-          p_expires_at:expiry.toISOString()
-        });
-
-        closeModal();
-        toast('تم تعديل تاريخ الانتهاء إلى '+fmtDate(saved));
-        await refreshAll();
-      }catch(err){
-        toast(err.message,true);
-        btn.disabled=false;
-      }
-    });
-  }
-
   window.openEditSubscriber=async function(id){
     if(!canManage())return;
     const s=subscriberById(id); if(!s)return;
     let password=''; try{password=await rpc('get_subscriber_pppoe_password',{p_subscriber_id:id})}catch(err){toast(err.message,true);return}
     const p=packageById(s.package_id);
+    const subscription=subscriptionBySubscriber(id);
+    const originalExpiry=baghdadDateInput(subscription?.expires_at);
     openModal(
       '<div class="modal-head"><button class="btn icon-btn" type="button" onclick="closeModal()">✕</button><div style="text-align:center"><h3>تعديل المشترك</h3><div class="muted" style="font-size:11px">تعديل بيانات المشترك ومعلومات الاتصال</div></div><button form="editSubscriberForm" class="btn primary" type="submit">حفظ ▣</button></div>'+
       '<form id="editSubscriberForm">'+
@@ -2131,11 +2088,27 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
         '<div class="field"><label>اسم المستخدم PPPoE</label><input name="username" value="'+esc(s.pppoe_username)+'" required></div>'+
         '<div class="field"><label>رمز المشترك PPPoE</label><div class="password-row"><input id="editPppPass" name="password" type="password" value="'+esc(password)+'" required><button class="btn icon-btn" type="button" onclick="const x=document.getElementById(\'editPppPass\');x.type=x.type===\'password\'?\'text\':\'password\'">◉</button></div></div>'+
         '<div class="field"><label>الباقة الحالية</label><input value="'+esc(p?.name||'—')+'" disabled></div>'+
+        '<div class="field"><label>تاريخ ووقت انتهاء الاشتراك (بتوقيت بغداد)</label><input name="expires_at" type="datetime-local" value="'+esc(originalExpiry)+'" '+(subscription?'required':'disabled')+'></div>'+
         '<div class="field"><label>ملاحظات</label><textarea name="notes" placeholder="ملاحظات إضافية...">'+esc(s.notes||'')+'</textarea></div>'+
       '</form>'
     );
     $('#editSubscriberForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('[form="editSubscriberForm"]');btn.disabled=true;const f=new FormData(e.currentTarget);try{
-      await rpc('update_subscriber_details',{p_subscriber_id:id,p_full_name:f.get('full_name').trim(),p_phone:f.get('phone').trim(),p_username:f.get('username').trim(),p_notes:f.get('notes')?.trim()||null,p_password:f.get('password')});
+      const expiryRaw=String(f.get('expires_at')||'').trim();
+      let expiresAt=null;
+      if(subscription&&expiryRaw!==originalExpiry){
+        const parsed=new Date(expiryRaw+':00+03:00');
+        if(!expiryRaw||Number.isNaN(parsed.getTime()))throw new Error('تاريخ الانتهاء غير صحيح');
+        expiresAt=parsed.toISOString();
+      }
+      await rpc('update_subscriber_with_expiry',{
+        p_subscriber_id:id,
+        p_full_name:String(f.get('full_name')||'').trim(),
+        p_phone:String(f.get('phone')||'').trim(),
+        p_username:String(f.get('username')||'').trim(),
+        p_notes:String(f.get('notes')||'').trim()||null,
+        p_password:String(f.get('password')||''),
+        p_expires_at:expiresAt
+      });
       closeModal();toast('تم تحديث بيانات المشترك');await refreshAll();
     }catch(err){toast(err.message,true);btn.disabled=false}});
   }
@@ -2217,6 +2190,24 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       toast('تم إنشاء أمر فصل الجلسة');
       await refreshAll();
     }catch(err){toast(err.message,true)}
+  }
+
+  window.requestSubscriberDeletion=async function(id){
+    if(!canManage())return;
+    const s=subscriberById(id);if(!s)return;
+    const typed=prompt('لحذف '+s.full_name+' من MikroTik، اكتب اسم مستخدم PPPoE للتأكيد:\\n'+s.pppoe_username+'\\nسجلات الفواتير والتدقيق تبقى محفوظة.');
+    if(typed===null)return;
+    if(typed.trim()!==s.pppoe_username){toast('اسم PPPoE غير مطابق. تم إلغاء الحذف.',true);return}
+    try{
+      const commandId=await rpc('request_subscriber_deletion',{p_subscriber_id:id});
+      toast('تم إرسال طلب الحذف. ننتظر تأكيد MikroTik قبل إزالة المشترك من القائمة.');
+      await refreshAll();
+      return commandId;
+    }catch(err){toast('حذف المشترك: '+err.message,true)}
+  }
+
+  window.retrySubscriberDeletion=function(id){
+    return requestSubscriberDeletion(id);
   }
 
   window.archiveSubscriber=async function(id){
