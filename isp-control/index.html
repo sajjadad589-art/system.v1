@@ -1576,7 +1576,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       canRenew()?['↻','a-green','تجديد الاشتراك',"closeModal();openRenew('"+id+"')"]:null,
       canManage()?['▰','a-purple','تغيير الباقة',"openChangePackage('"+id+"')"]:null,
       canManage()?['◴','a-orange','تغيير السرعة',"closeModal();openSpeed('"+id+"')"]:null,
-      canManage()?['Ⅱ','a-yellow',(s.status==='SUSPENDED'?'تفعيل المشترك':'تعليق / تفعيل'),"closeModal();toggleSuspend('"+id+"',"+(s.status!=='SUSPENDED')+")"]:null,
+      canManage()&&subscriberVisualState(s)!=='expired'?['Ⅱ','a-yellow',(['suspended','router-stopped'].includes(subscriberVisualState(s))?'تفعيل المشترك':'إيقاف المشترك'),"closeModal();toggleSuspend('"+id+"',"+(!['suspended','router-stopped'].includes(subscriberVisualState(s)))+")"]:null,
       canManage()?['⌁','a-red','فصل الجلسة',"closeModal();disconnectSubscriber('"+id+"')"]:null,
       canManage()?['⌫','a-red','حذف المشترك من MikroTik',"closeModal();requestSubscriberDeletion('"+id+"')"]:null
     ].filter(Boolean);
