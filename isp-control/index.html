@@ -499,6 +499,25 @@ body.pwa-standalone{background:#f4f8fc!important}
 @media(min-width:1101px){body[data-page="packages"] .grid3{grid-template-columns:repeat(4,1fr)!important}}
 @media(max-width:780px){body[data-page="packages"] .grid3{grid-template-columns:1fr!important}}
 
+body[data-page="subscribers"] .subscriber-status-pill.pill-expired,
+body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
+.subscriber-status-pill.pill-expired,.subscriber-status-pill.pill-stopped{
+  background:linear-gradient(180deg,#fc5364,#d92141 65%,#a5102a)!important;
+  border:1px solid #ff9dab!important;color:#fff!important;
+  box-shadow:inset 0 2px 0 #ffffff66,0 5px 13px #6d102b66!important;
+}
+.subscriber-status-pill.pill-pending-delete{
+  background:linear-gradient(180deg,#d7843a,#a84b10)!important;color:#fff!important;
+}
+.subscriber-desktop-table tbody tr.subscriber-state-suspended td{
+  background:linear-gradient(180deg,#f24e64,#ce2643 62%,#a71934)!important;
+  border-bottom-color:#741126!important;
+}
+.subscriber-mobile-card.subscriber-state-suspended{
+  background:linear-gradient(180deg,#f24e64,#ce2643 62%,#a71934)!important;
+  border-color:#ff9aab!important;
+}
+
 </style>
 </head>
 <body>
@@ -648,7 +667,7 @@ body.pwa-standalone{background:#f4f8fc!important}
     subscriberOrder:[],
     trafficOnlineSignature:'',
     activePackageFilter:'',
-    activeStatusFilter:'ACTIVE',
+    activeStatusFilter:'',
     activeSearch:''
   };
 
@@ -709,6 +728,17 @@ body.pwa-standalone{background:#f4f8fc!important}
       const ap=String(get('dayPeriod')).toUpperCase()==='PM'?'م':'ص';
       return get('year')+'/'+get('month')+'/'+get('day')+'  '+get('hour')+':'+get('minute')+' '+ap;
     }catch{return '—'}
+  }
+  function baghdadDateInput(value){
+    if(!value)return '';
+    const d=new Date(value);
+    if(Number.isNaN(d.getTime()))return '';
+    const fields=new Intl.DateTimeFormat('en-GB',{
+      timeZone:'Asia/Baghdad',year:'numeric',month:'2-digit',day:'2-digit',
+      hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+    }).formatToParts(d);
+    const get=type=>fields.find(p=>p.type===type)?.value||'';
+    return get('year')+'-'+get('month')+'-'+get('day')+'T'+get('hour')+':'+get('minute');
   }
   function remaining(expiresAt){
     if(!expiresAt)return '—';
@@ -1072,7 +1102,7 @@ body.pwa-standalone{background:#f4f8fc!important}
   }
   function subscriptionBySubscriber(id){return state.subscriptions.find(x=>x.subscriber_id===id)}
   function subscriberById(id){return state.subscribers.find(x=>x.id===id)}
-  function visibleSubscribers(){return state.subscribers.filter(x=>!x.archived_at)}
+  function visibleSubscribers(){return state.subscribers.filter(x=>!x.archived_at||(x.deletion_requested_at&&!x.router_deleted_at))}
   function rememberSubscriberOrder(){
     const current=new Set(state.subscribers.map(x=>x.id));
     const kept=state.subscriberOrder.filter(id=>current.has(id));
@@ -1465,49 +1495,51 @@ body.pwa-standalone{background:#f4f8fc!important}
   }
 
   function subscriberVisualState(s){
+    if(s.deletion_requested_at&&!s.router_deleted_at)return 'deleting';
     if(s.archived_at)return 'archived';
-    if(s.status==='SUSPENDED'||s.router_disabled===true)return 'suspended';
-
     const sub=subscriptionBySubscriber(s.id);
-    const end=sub?.expires_at?new Date(sub.expires_at):null;
-    const now=Date.now();
-
-    if(s.status==='EXPIRED'||(end&&end.getTime()<=now))return 'expired';
-    if(end){
-      const remainingMs=end.getTime()-now;
-      if(remainingMs>0&&remainingMs<=7*86400000)return 'soon';
-    }
+    const end=sub?.expires_at?new Date(sub.expires_at).getTime():null;
+    if(s.status==='EXPIRED'||(end!==null&&Number.isFinite(end)&&end<=Date.now()))return 'expired';
+    if(s.status==='SUSPENDED')return 'suspended';
+    if(s.router_disabled===true)return 'router-stopped';
+    if(end!==null&&Number.isFinite(end)&&end>Date.now()&&end-Date.now()<=7*86400000)return 'soon';
     return s.is_online===true?'active':'offline';
   }
-
   function subscriberStateClass(s){
-    return 'subscriber-state-'+subscriberVisualState(s);
+    return 'subscriber-state-'+(subscriberVisualState(s)==='router-stopped'?'suspended':subscriberVisualState(s));
   }
-
   function subscriberActionButton(s){
+    if(s.deletion_requested_at&&!s.router_deleted_at){
+      const cmd=state.commands.find(x=>x.subscriber_id===s.id&&x.type==='DELETE_PPPOE');
+      if(cmd?.status==='FAILED'&&canManage())
+        return '<button class="btn small" onclick="retrySubscriberDeletion(\''+s.id+'\')">إعادة محاولة الحذف</button>';
+      return '<span class="muted">انتظار تنفيذ الحذف</span>';
+    }
     if(s.archived_at){
       if(!canManage())return '<span class="muted">مؤرشف</span>';
-      return '<button class="btn success small" title="استرجاع المشترك" onclick="restoreArchivedSubscriber(\''+s.id+'\')">↺ استرجاع</button>';
+      return '<button class="btn success small" onclick="restoreArchivedSubscriber(\''+s.id+'\')">↺ استرجاع</button>';
     }
     if(!canRenew()&&!canManage())return '<span class="muted">—</span>';
     return '<button class="btn action-trigger" title="الإجراءات" onclick="openSubscriberActions(\''+s.id+'\')">⋮</button>';
   }
-
   function subscriberStatusBadge(s){
     const visual=subscriberVisualState(s);
+    if(visual==='deleting'){
+      const cmd=state.commands.find(x=>x.subscriber_id===s.id&&x.type==='DELETE_PPPOE');
+      return '<span class="subscriber-status-pill pill-pending-delete">'+(cmd?.status==='FAILED'?'فشل الحذف':'جارٍ الحذف')+'</span>';
+    }
     if(visual==='archived')return '<span class="subscriber-status-pill">مؤرشف</span>';
-    if(visual==='suspended')return '<span class="subscriber-status-pill">موقوف</span>';
-    if(visual==='expired')return '<span class="subscriber-status-pill">منتهي</span>';
-    if(visual==='soon')return '<span class="subscriber-status-pill">منتهي قريباً</span>';
-    if(visual==='offline')return '<span class="subscriber-status-pill">غير متصل</span>';
-    return '<span class="subscriber-status-pill">متصل</span>';
+    if(visual==='suspended'||visual==='router-stopped')return '<span class="subscriber-status-pill pill-stopped">Stopped</span>';
+    if(visual==='expired')return '<span class="subscriber-status-pill pill-expired">Expired</span>';
+    if(visual==='soon')return '<span class="subscriber-status-pill">فعال • ينتهي قريباً</span>';
+    return '<span class="subscriber-status-pill">فعال</span>';
   }
 
   function drawSubscriberTable(){
     const query=String(state.subscriberSearch||'').trim().toLowerCase();
     const filter=state.subscriberFilter||'';
     const rows=stableSubscriberRows(state.subscribers.filter(s=>{
-      const archived=!!s.archived_at;
+      const archived=!!s.archived_at&&!(s.deletion_requested_at&&!s.router_deleted_at);
       if(filter==='ARCHIVED'){
         if(!archived)return false;
       }else if(archived){
