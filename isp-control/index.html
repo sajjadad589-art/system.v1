@@ -593,7 +593,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
 
     <nav class="nav">
       <button data-page="dashboard" class="active"><span class="nav-ico">⌂</span>الرئيسية</button>
-      <button data-page="active"><span class="nav-ico">♙</span>المشتركون الفعالون</button>
+      <button data-page="active"><span class="nav-ico">♙</span>إدارة المشتركين</button>
       <button data-page="online"><span class="nav-ico">◉</span>المشتركون المتصلون</button>
       <button data-page="packages"><span class="nav-ico">▰</span>الاشتراكات والباقات</button>
       <button data-page="devices"><span class="nav-ico">⌁</span>الأجهزة والراوترات</button>
@@ -1266,7 +1266,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     const devices=state.routers.filter(x=>x.router_status==='ONLINE').length;
     const unread=(state.routerEvents||[]).filter(x=>['OFFLINE','TEMP_HIGH','UNKNOWN'].includes(x.event_type)).slice(0,9).length;
     const cards=[
-      ['active','♙','المشتركون الفعالون',active+' مشترك','إدارة بيانات المشتركين والتجديد والتعديل',''],
+      ['active','♙','إدارة المشتركين',visibleSubscribers().length+' مشترك','إدارة جميع حالات المشتركين والتجديد والتعديل',''],
       ['online','◉','المشتركون المتصلون',online+' متصل','عرض IP والسرعة والحالة المباشرة','green'],
       ['packages','▰','الاشتراكات والباقات',state.packages.length+' باقات','الباقات والأسعار والمدة والتجديد','purple'],
       ['devices','⌁','الأجهزة والراوترات',devices+' متصل','حالة الراوترات والموارد وقناة الأوامر',''],
