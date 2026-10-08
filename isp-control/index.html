@@ -1230,7 +1230,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     document.body.dataset.page=state.page;
     const titles={
       dashboard:['الرئيسية','وصول سريع لكل أقسام النظام'],
-      active:['المشتركون الفعالون','إدارة المشتركين واشتراكاتهم'],
+      active:['إدارة المشتركين','جميع الحالات والاشتراكات'],
       online:['المشتركون المتصلون','IP والسرعة والحالة الحالية'],
       packages:['الاشتراكات والباقات','الباقات والأسعار والمدة والتجديد'],
       devices:['الأجهزة والراوترات','حالة الأجهزة والاتصال والموارد'],
@@ -1289,17 +1289,17 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
 
   function renderActiveSubscribers(){
     const all=visibleSubscribers();
-    const active=all.filter(x=>x.status==='ACTIVE');
-    const suspended=all.filter(x=>x.status==='SUSPENDED').length;
+    const active=all.filter(x=>x.status==='ACTIVE'&&new Date(subscriptionBySubscriber(x.id)?.expires_at||0).getTime()>Date.now());
+    const suspended=all.filter(x=>['suspended','router-stopped'].includes(subscriberVisualState(x))).length;
     const search=String(state.activeSearch||'').trim().toLowerCase();
     const pkgFilter=state.activePackageFilter||'';
-    const statusFilter=state.activeStatusFilter||'ACTIVE';
+    const statusFilter=state.activeStatusFilter||'';
     const rows=stableSubscriberRows(all.filter(s=>{
       const text=(s.full_name+' '+s.pppoe_username+' '+(s.phone||'')).toLowerCase();
-      return (!search||text.includes(search))&&(!pkgFilter||s.package_id===pkgFilter)&&(!statusFilter||s.status===statusFilter);
+      return (!search||text.includes(search))&&(!pkgFilter||s.package_id===pkgFilter)&&(!statusFilter||(statusFilter==='SUSPENDED'?['suspended','router-stopped'].includes(subscriberVisualState(s)):statusFilter==='EXPIRED'?subscriberVisualState(s)==='expired':s.status===statusFilter));
     }));
     $('#content').innerHTML=
-      '<div class="calm-head"><div><h1>المشتركون الفعالون</h1><div class="muted">قائمة واضحة للمشتركين الذين اشتراكاتهم فعالة حالياً</div></div></div>'+
+      '<div class="calm-head"><div><h1>إدارة المشتركين</h1><div class="muted">جميع المشتركين: فعال، Expired، Stopped</div></div></div>'+
       '<div class="soft-stats">'+
         '<div class="soft-stat"><div class="stat-icon">♙</div><div><b>'+active.length+'</b><span>إجمالي الفعالين</span></div></div>'+
         '<div class="soft-stat orange"><div class="stat-icon">◷</div><div><b>'+activeSoonCount(7)+'</b><span>ينتهون خلال 7 أيام</span></div></div>'+
@@ -1307,7 +1307,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       '</div>'+
       '<div class="calm-toolbar">'+
         '<input id="activeSearch" class="input" placeholder="بحث بالاسم أو الهاتف أو PPPoE..." value="'+esc(state.activeSearch||'')+'">'+
-        '<select id="activeStatus"><option value="ACTIVE" '+(statusFilter==='ACTIVE'?'selected':'')+'>الفعالون</option><option value="EXPIRED" '+(statusFilter==='EXPIRED'?'selected':'')+'>المنتهون</option><option value="SUSPENDED" '+(statusFilter==='SUSPENDED'?'selected':'')+'>الموقوفون</option><option value="" '+(statusFilter===''?'selected':'')+'>الكل</option></select>'+
+        '<select id="activeStatus"><option value="" '+(statusFilter===''?'selected':'')+'>الكل</option><option value="ACTIVE" '+(statusFilter==='ACTIVE'?'selected':'')+'>الفعالون</option><option value="EXPIRED" '+(statusFilter==='EXPIRED'?'selected':'')+'>المنتهون</option><option value="SUSPENDED" '+(statusFilter==='SUSPENDED'?'selected':'')+'>الموقوفون</option></select>'+
         '<select id="activePackage"><option value="">جميع الباقات</option>'+state.packages.filter(x=>x.active).map(p=>'<option value="'+p.id+'" '+(pkgFilter===p.id?'selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select>'+
         (canManage()?'<button class="btn primary" onclick="openAddSubscriber()">+ إضافة مشترك</button>':'')+
       '</div>'+
@@ -1316,8 +1316,8 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
           '<td><div class="name-main">'+esc(s.full_name)+'</div><div class="subline">'+(s.is_online?'متصل الآن':'غير متصل')+'</div></td>'+
           '<td class="mono">'+esc(s.pppoe_username)+'</td><td>'+esc(subscriberPackageLabel(s))+'</td>'+
           '<td>'+esc(fmtExpiryDate(sub?.expires_at))+'</td><td>'+esc(s.phone||'—')+'</td>'+
-          '<td>'+statusBadge(s.status)+(cmd&&cmd.status!=='COMPLETED'?'<div class="subline">'+esc(commandStatusText(cmd))+'</div>':'')+'</td>'+
-          '<td><button class="btn small" onclick="openSubscriberActions(\''+s.id+'\')">إدارة</button></td></tr>'}).join('')+
+          '<td>'+subscriberStatusBadge(s)+(cmd&&cmd.status!=='COMPLETED'?'<div class="subline">'+esc(commandStatusText(cmd))+'</div>':'')+'</td>'+
+          '<td>'+subscriberActionButton(s)+(canManage()&&['suspended','router-stopped'].includes(subscriberVisualState(s))?'<button class="btn small success" style="margin-inline-start:6px" onclick="toggleSuspend(\''+s.id+'\',false)">تفعيل</button>':'')+'</td></tr>'}).join('')+
       '</tbody></table></div>'+
       '<div class="mobile-records">'+rows.map(s=>{const sub=subscriptionBySubscriber(s.id);const cmd=latestCommandForSubscriber(s.id);return '<div class="mobile-record">'+
         '<div class="mr-top"><div><div class="mr-name">'+esc(s.full_name)+'</div><div class="mr-meta">'+esc(s.pppoe_username)+' • '+esc(s.phone||'بدون هاتف')+'</div></div>'+statusBadge(s.status)+'</div>'+
@@ -1570,16 +1570,15 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
   }
 
   window.openSubscriberActions=function(id){
-    const s=subscriberById(id); if(!s||s.archived_at)return;
+    const s=subscriberById(id); if(!s||s.archived_at||s.deletion_requested_at)return;
     const actions=[
       canManage()?['✎','a-blue','تعديل البيانات',"closeModal();openEditSubscriber('"+id+"')"]:null,
       canRenew()?['↻','a-green','تجديد الاشتراك',"closeModal();openRenew('"+id+"')"]:null,
-      canManage()?['◫','a-orange','تعديل تاريخ الانتهاء',"closeModal();openEditExpiry('"+id+"')"]:null,
       canManage()?['▰','a-purple','تغيير الباقة',"openChangePackage('"+id+"')"]:null,
       canManage()?['◴','a-orange','تغيير السرعة',"closeModal();openSpeed('"+id+"')"]:null,
       canManage()?['Ⅱ','a-yellow',(s.status==='SUSPENDED'?'تفعيل المشترك':'تعليق / تفعيل'),"closeModal();toggleSuspend('"+id+"',"+(s.status!=='SUSPENDED')+")"]:null,
       canManage()?['⌁','a-red','فصل الجلسة',"closeModal();disconnectSubscriber('"+id+"')"]:null,
-      canManage()?['⌫','a-red','أرشفة المشترك',"closeModal();archiveSubscriber('"+id+"')"]:null
+      canManage()?['⌫','a-red','حذف المشترك من MikroTik',"closeModal();requestSubscriberDeletion('"+id+"')"]:null
     ].filter(Boolean);
     openModal('<div class="modal-head"><div><h3>الإجراءات</h3><div class="muted" style="font-size:12px">'+esc(s.full_name)+' - '+esc(s.pppoe_username)+'</div></div><button class="btn icon-btn" onclick="closeModal()">✕</button></div>'+
       '<div class="action-sheet-list">'+actions.map(a=>'<button class="action-sheet-item" onclick="'+a[3]+'"><span class="a-icon '+a[1]+'">'+a[0]+'</span><b>'+a[2]+'</b><span class="muted">‹</span></button>').join('')+'</div>');
