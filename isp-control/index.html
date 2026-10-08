@@ -1186,6 +1186,32 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     if(t>=Number(r.temp_recover_c||65))return 'temp-warm';
     return 'temp-normal';
   }
+  function eventConfirmedForAlerts(e){
+    const type=String(e?.event_type||'');
+    const reason=String(e?.details?.reason||'');
+    if(type==='UNKNOWN'||type==='MONITORING_RECOVERED')return false;
+    if(type==='TEMP_HIGH'||type==='TEMP_NORMAL')return true;
+    if(!['ONLINE','OFFLINE'].includes(type))return false;
+    if(reason.startsWith('INTERNET_LINK_')){
+      const d=e.details||{};
+      const sampled=d.diagnostics_at?new Date(d.diagnostics_at).getTime():NaN;
+      if(!Number.isFinite(sampled)||Math.abs(new Date(e.created_at).getTime()-sampled)>120000)return false;
+      return ['cloudflare','google'].every(target=>{
+        const status=String(d[target+'_status']||'').toUpperCase();
+        const loss=d[target+'_packet_loss'];
+        if(loss===null||loss===undefined||!Number.isFinite(Number(loss)))return false;
+        return type==='OFFLINE'?(['OFFLINE','DOWN','FAILED','FAIL','UNREACHABLE'].includes(status)&&Number(loss)>=90)
+          :(['ONLINE','UP','OK','REACHABLE'].includes(status)&&Number(loss)<=20);
+      });
+    }
+    if(reason==='CONNECTOR_CHANNEL_RECOVERED'||reason==='CONFIRMED_RECOVERY')
+      return Number(e.outage_seconds||0)>=90;
+    if(reason==='CONNECTOR_BOTH_CHANNELS_TIMEOUT'||reason==='CORE_PROBE_TIMEOUT'){
+      const r=state.routers.find(x=>x.id===e.router_id);
+      return r?.router_status==='OFFLINE'&&Date.now()-new Date(e.created_at).getTime()>=90000;
+    }
+    return false;
+  }
   function eventText(e){
     const r=state.routers.find(x=>x.id===e.router_id);
     const device=r?.device_role==='CONNECTOR'?'RB951':'RB1100';
@@ -1214,7 +1240,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     ).join('');
   }
   function renderRouterEvents(limit=6){
-    const events=(state.routerEvents||[]).slice(0,limit);
+    const events=(state.routerEvents||[]).filter(eventConfirmedForAlerts).slice(0,limit);
     if(!events.length)return '<div class="empty compact-empty">ماكو أحداث فعلية بعد. تبدأ السجلات من أول ربط حقيقي للراوترات.</div>';
     return events.map(e=>
       '<div class="status-event"><div><b>'+esc(eventText(e))+'</b><span>'+esc(fmtDate(e.created_at))+'</span></div>'+
@@ -1300,7 +1326,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     const active=visibleSubscribers().filter(x=>x.status==='ACTIVE').length;
     const online=visibleSubscribers().filter(x=>x.is_online).length;
     const devices=state.routers.filter(x=>x.router_status==='ONLINE').length;
-    const unread=(state.routerEvents||[]).filter(x=>['OFFLINE','TEMP_HIGH','UNKNOWN'].includes(x.event_type)).slice(0,9).length;
+    const unread=(state.routerEvents||[]).filter(x=>eventConfirmedForAlerts(x)&&['OFFLINE','TEMP_HIGH'].includes(x.event_type)).slice(0,9).length;
     const cards=[
       ['active','♙','إدارة المشتركين',visibleSubscribers().length+' مشترك','إدارة جميع حالات المشتركين والتجديد والتعديل',''],
       ['online','◉','المشتركون المتصلون',online+' متصل','عرض IP والسرعة والحالة المباشرة','green'],
@@ -1309,7 +1335,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       ['payments','▥','المدفوعات',state.payments.length+' عملية','الدفعات وسجل التسديد','orange'],
       ['alerts','♢','التنبيهات',unread+' حالة مهمة','انقطاع الأجهزة وانتهاء الاشتراكات','red']
     ];
-    const activity=(state.routerEvents||[]).slice(0,4);
+    const activity=(state.routerEvents||[]).filter(eventConfirmedForAlerts).slice(0,4);
     $('#content').innerHTML=
       '<div class="calm-head"><div><h1>مرحباً بك في ISP Control</h1><div class="muted">اختر القسم الذي تريد العمل عليه</div></div></div>'+
       '<div class="section-grid">'+cards.map(c=>
@@ -1463,7 +1489,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       .filter(x=>x.expires_at&&new Date(x.expires_at).getTime()>now&&new Date(x.expires_at).getTime()<=now+7*86400000)
       .sort((a,b)=>new Date(a.expires_at)-new Date(b.expires_at)).slice(0,12)
       .map(x=>({kind:'expiry',time:x.expires_at,title:'انتهاء اشتراك قريب',body:(subscriberById(x.subscriber_id)?.full_name||'مشترك')+' • '+remaining(x.expires_at)}));
-    const router=(state.routerEvents||[]).slice(0,18).map(e=>({kind:String(e.event_type||'').toLowerCase(),time:e.created_at,title:e.event_type==='OFFLINE'?'انقطاع جهاز':e.event_type==='ONLINE'?'عودة جهاز':e.event_type==='TEMP_HIGH'?'حرارة مرتفعة':'حالة جهاز',body:eventText(e)}));
+    const router=(state.routerEvents||[]).filter(eventConfirmedForAlerts).slice(0,18).map(e=>({kind:String(e.event_type||'').toLowerCase(),time:e.created_at,title:e.event_type==='OFFLINE'?'انقطاع جهاز':e.event_type==='ONLINE'?'عودة جهاز':e.event_type==='TEMP_HIGH'?'حرارة مرتفعة':'حالة جهاز',body:eventText(e)}));
     const transport=state.commands.filter(c=>c.status==='FAILED'&&String(c.error||'').startsWith('transport:')).slice(0,5).map(c=>({kind:'failed',time:c.finished_at||c.executed_at||c.created_at,title:'قناة الأوامر',body:'تعذر إرسال أمر '+c.type+' إلى MikroTik'}));
     const items=[...router,...expiry,...transport].sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,30);
     $('#content').innerHTML=
