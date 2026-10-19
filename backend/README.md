@@ -1,0 +1,17 @@
+# Router board control
+
+Owner-only RouterOS command console, using the existing RB951-to-RB1100 SSH transport. No new WAN listener, firmware upgrade or router credentials are required. The current transport targets CORE only; CONNECTOR is shown as a transit device, not falsely advertised as a supported execution target.
+
+The UI includes editable command presets, explicit confirmation naming the target router, cancellation while pending and a private history with real output. It executes independent scripts, not an interactive WinBox/SSH session. Router permissions remain those of the existing SSH identity. Simple print queries are converted to print as-value and returned as data. Scripts can use :return; console :put output is not captured. Output is limited to approximately 1000 bytes with an explicit truncation marker. Lost callbacks are shown as UNKNOWN, never as success. Long operations and operations that disconnect the router may complete without confirmation.
+
+`router-control.sql` adds only a private queue and service-only RPC. Anonymous and signed-in browser roles have no direct queue or RPC access. `isp-router-control.ts` verifies the Supabase user and the server-side OWNER role. The server serializes enqueue requests, enforces recent connector contact, rate limits and idempotency, and expires unclaimed jobs after 60 seconds. Claimed jobs are never retried automatically.
+
+`isp-router-commands.ts` extends the original connector endpoint: it claims private jobs and returns a script in the legacy execution envelope. The installed worker's compatible envelope type is PROBE_INTERNET; private job IDs are intercepted separately on acknowledgement and never written into the subscriber queue or probe evidence. Existing subscriber commands are otherwise unchanged.
+
+`remote-script.ts` executes a parsed script in the existing SSH identity and serializes its return value, then percent-encodes it for a RouterOS 6-compatible HTTPS GET callback. POST/custom HTTP headers are unavailable on the installed 6.38 release. A per-job HMAC capability authorizes the callback; it gives no general API or database access. The capability is used only while a job is executing and never returned by the browser-facing history API. Router output/commands may contain secrets: history is private and available only to the issuing OWNER. Avoid unnecessary sensitive output. No temporary files or extra execute-job permissions are required by the final implementation. Early read-only experiments with execute/file capture were unsuccessful and are retained as failed/unknown diagnostic records; they are not automatically replayed.
+
+Deployment order: migration, result receiver, owner API, connector endpoint, then verified frontend preview/production. Original connector source was backed up outside the repository. Full original Git history is saved in the task outputs as `system.v1-original-history.bundle`.
+
+Rollback: restore the previous frontend deployment; restore original isp-router-commands source and deno.json with verify_jwt=false. This stops private queue consumption. Pending jobs expire and no job is replayed automatically. Keep the private queue as an audit record; don't drop it during rollback.
+
+Validation: `node --test tests/router-control.test.mjs`; local browser fixture `node tests/router-control-server.mjs` uses simulated results and never connects to routers. Live validation uses harmless `:put` / resource reads only. No reboot, reset, firewall, interface, subscriber or credential mutations are used for tests.

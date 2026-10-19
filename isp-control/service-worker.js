@@ -1,4 +1,4 @@
-const CACHE='isp-control-pwa-v5';
+const CACHE='isp-control-pwa-v6-router-control';
 const CORE=['./index.html','./manifest.json'];
 const ICON='https://varccsjoydhlfazaizqs.supabase.co/functions/v1/isp-control-assets/icon.png';
 
