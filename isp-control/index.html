@@ -1474,7 +1474,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
         '<div class="device-calm-head"><div><h3>'+esc(r.name||r.model)+'</h3><small>'+esc(r.model||'MikroTik')+' • '+esc(r.management_ip||'—')+'</small></div><span class="badge '+routerStatusClass(r.router_status,r.adapter_mode)+'">'+esc(routerStatusLabel(r.router_status,r.adapter_mode))+'</span></div>'+
         '<div class="device-metrics"><div class="device-metric"><span>CPU</span><b>'+cpu+'%</b><div class="progress-line"><i style="width:'+cpu+'%"></i></div></div>'+
         '<div class="device-metric"><span>RAM</span><b>'+ram+'%</b><div class="progress-line"><i style="width:'+ram+'%"></i></div></div>'+
-        '<div class="device-metric"><span>وقت التشغيل</span><b>'+esc(fmtDuration(r.uptime_seconds||0))+'</b></div>'+
+        '<div class="device-metric"><span>وقت التشغيل</span><b>'+esc(fmtRouterUptime(r.uptime_seconds))+'</b></div>'+
         '<div class="device-metric"><span>الجلسات</span><b>'+esc(r.pppoe_active_sessions||0)+'</b></div></div>'+
         '<div class="device-foot"><span>آخر اتصال: '+esc(fmtDate(r.last_seen_at))+'</span><span>الإنترنت: '+esc(r.internet_status||'—')+'</span></div>'+
       '</div>'}).join('')+'</div>'+
@@ -1777,6 +1777,15 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       $$('[data-router-ram="'+r.id+'"]').forEach(el=>el.textContent=r.ram_used_percent==null?'—':Number(r.ram_used_percent).toFixed(0)+'%');
       $$('[data-router-seen="'+r.id+'"]').forEach(el=>el.textContent=fmtDate(r.last_seen_at));
     }
+  }
+
+  function fmtRouterUptime(seconds){
+    if(seconds==null || !Number.isFinite(Number(seconds))) return '—';
+    const total=Math.max(0,Math.floor(Number(seconds)));
+    const days=Math.floor(total/86400);
+    const hours=Math.floor((total%86400)/3600);
+    if(days===0) return hours+' ساعة';
+    return days+' يوم'+(hours?' و'+hours+' ساعة':'');
   }
 
   function fmtDuration(seconds){
