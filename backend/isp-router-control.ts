@@ -12,6 +12,11 @@ Deno.serve(async req=>{
   const {data:profile}=await db.from('profiles').select('role').eq('id',auth.user.id).single();
   if(profile?.role!=='OWNER')return reply({error:'هذا القسم متاح لمالك النظام فقط'},403);
   const raw=await req.text();if(raw.length>16000)return reply({error:'request too large'},413);const b=JSON.parse(raw);
+  if(b.action==='channel_mode'){
+   if(typeof b.enabled!=='boolean')return reply({error:'invalid channel mode'},400);
+   const {error}=await db.from('routers').update({command_channel_subscriber_enabled:b.enabled}).eq('device_role','CONNECTOR');
+   if(error)throw error;return reply({ok:true,enabled:b.enabled});
+  }
   if(b.action==='list'){
    // Maintenance expires stale jobs without re-executing them.
    const {data,error}=await db.rpc('isp_control_job',{p_action:'list',p_actor:auth.user.id});
