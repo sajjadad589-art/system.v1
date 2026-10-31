@@ -1425,17 +1425,17 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       '</div>'+
       '<div class="calm-table"><table><thead><tr><th>المشترك</th><th>اسم المستخدم</th><th>الباقة</th><th>تاريخ الانتهاء</th><th>الهاتف</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody>'+
         rows.map(s=>{const sub=subscriptionBySubscriber(s.id);const cmd=latestCommandForSubscriber(s.id);return '<tr>'+
-          '<td><div class="name-main">'+esc(s.full_name)+'</div><div class="subline">'+(s.is_online?'متصل الآن':'غير متصل')+'</div></td>'+
+          '<td><div class="name-main"><button class="btn small ghost" onclick="openSubscriberUsage(\''+s.id+'\')">'+esc(s.full_name)+'</button></div><div class="subline">'+(s.is_online?'متصل الآن':'غير متصل')+'</div></td>'+
           '<td class="mono">'+esc(s.pppoe_username)+'</td><td>'+esc(subscriberPackageLabel(s))+'</td>'+
           '<td>'+esc(fmtExpiryDate(sub?.expires_at))+'</td><td>'+esc(s.phone||'—')+'</td>'+
           '<td>'+subscriberStatusBadge(s)+(cmd&&cmd.status!=='COMPLETED'?'<div class="subline">'+esc(commandStatusText(cmd))+'</div>':'')+'</td>'+
           '<td>'+subscriberActionButton(s)+(canManage()&&['suspended','router-stopped'].includes(subscriberVisualState(s))?'<button class="btn small success" style="margin-inline-start:6px" onclick="toggleSuspend(\''+s.id+'\',false)">تفعيل</button>':'')+'</td></tr>'}).join('')+
       '</tbody></table></div>'+
       '<div class="mobile-records">'+rows.map(s=>{const sub=subscriptionBySubscriber(s.id);const cmd=latestCommandForSubscriber(s.id);return '<div class="mobile-record">'+
-        '<div class="mr-top"><div><div class="mr-name">'+esc(s.full_name)+'</div><div class="mr-meta">'+esc(s.pppoe_username)+' • '+esc(s.phone||'بدون هاتف')+'</div></div>'+statusBadge(s.status)+'</div>'+
+        '<div class="mr-top"><div><div class="mr-name" onclick="openSubscriberUsage(\''+s.id+'\')">'+esc(s.full_name)+'</div><div class="mr-meta">'+esc(s.pppoe_username)+' • '+esc(s.phone||'بدون هاتف')+'</div></div>'+statusBadge(s.status)+'</div>'+
         '<div class="mr-grid"><div class="mr-cell"><span>الباقة</span><b>'+esc(subscriberPackageLabel(s))+'</b></div><div class="mr-cell"><span>الانتهاء</span><b>'+esc(fmtExpiryDate(sub?.expires_at))+'</b></div></div>'+
         (cmd&&cmd.status!=='COMPLETED'?'<div class="mr-meta" style="margin-top:8px">'+esc(commandStatusText(cmd))+'</div>':'')+
-        '<div class="mr-actions"><button class="btn" onclick="openSubscriberActions(\''+s.id+'\')">إدارة المشترك</button></div></div>'}).join('')+
+        '<div class="mr-actions"><button class="btn" onclick="openSubscriberUsage(\''+s.id+'\')">تحليل الاستهلاك</button><button class="btn" onclick="openSubscriberActions(\''+s.id+'\')">إدارة المشترك</button></div></div>'}).join('')+
       (rows.length?'':'<div class="empty">لا توجد نتائج</div>')+'</div>';
     const searchEl=$('#activeSearch');if(searchEl)searchEl.addEventListener('input',e=>{
       state.activeSearch=e.target.value;
@@ -1874,6 +1874,30 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       '</svg></div>'+
     '</div>';
   }
+
+
+  window.openSubscriberUsage=async function(id){
+    if(!isOwner())return;
+    const sub=subscriberById(id);if(!sub)return;
+    const header='<div class="modal-head"><div><h3>تحليل استهلاك '+esc(sub.full_name)+'</h3><div class="muted">'+esc(sub.pppoe_username)+'</div></div><button class="btn icon-btn" onclick="closeModal()">✕</button></div>';
+    openModal(header+'<div class="empty">جاري تحميل البيانات...</div>');
+    let rows=[],error='';
+    try{
+      rows=await table('subscriber_app_usage_daily','select=usage_date,category,domain,download_bytes,upload_bytes,confidence&subscriber_id=eq.'+encodeURIComponent(id)+'&order=usage_date.desc&limit=100');
+    }catch(e){error=e.message;}
+    const current=subscriberById(id)||sub;
+    const fmt=n=>esc(fmtBytes(Number(n||0)));
+    const total=rows.reduce((a,x)=>a+Number(x.download_bytes||0)+Number(x.upload_bytes||0),0);
+    openModal(header+
+      '<div class="usage-summary"><div class="usage-card download"><span>تحميل الجلسة الحالية</span><b>'+fmt(current.session_tx_bytes)+'</b></div><div class="usage-card upload"><span>رفع الجلسة الحالية</span><b>'+fmt(current.session_rx_bytes)+'</b></div><div class="usage-card download"><span>المصنّف في الفترة المتاحة</span><b>'+(rows.length?fmt(total):'—')+'</b></div></div>'+
+      '<h3>التطبيقات والمواقع حسب اليوم</h3>'+
+      (rows.length?'<div style="overflow-x:auto"><table style="width:100%;text-align:right"><thead><tr><th>اليوم</th><th>التطبيق/الموقع</th><th>تنزيل</th><th>رفع</th><th>الثقة</th></tr></thead><tbody>'+
+      rows.map(x=>'<tr><td>'+esc(x.usage_date)+'</td><td>'+esc(x.category||'غير مصنّف')+(x.domain?' • '+esc(x.domain):'')+'</td><td>'+fmt(x.download_bytes)+'</td><td>'+fmt(x.upload_bytes)+'</td><td>'+esc(x.confidence||'غير محدد')+'</td></tr>').join('')+'</tbody></table></div>':
+      '<div class="empty">لا توجد بيانات تصنيف حقيقية بعد. يجب إعداد مجمّع تدفقات الشبكة وربطه بالمشتركين أولاً.</div>')+
+      '<p class="muted" style="font-size:11px">التصنيف تقريبي حسب الوجهات المعروفة؛ لا يعرض صفحات HTTPS الداخلية. استهلاك الجلسة ليس مجموع اليوم.</p>'+
+      (error?'<p class="muted" style="font-size:11px">مصدر التصنيف غير جاهز: '+esc(error)+'</p>':'')
+    );
+  };
 
   window.openTrafficDetails=async function(id){
     const s=subscriberById(id);
