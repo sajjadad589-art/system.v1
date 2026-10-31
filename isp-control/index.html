@@ -1336,9 +1336,24 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
   function renderAppTests(){
     if(!isOwner()){ $('#content').innerHTML='<div class="card card-pad">هذا القسم متاح لمالك النظام فقط.</div>';return; }
     $('#content').innerHTML='<div class="page-head"><div><h1>قائمة الاختبار</h1><p class="muted">آخر نتائج واردة فعلياً من الراوتر؛ لا يتم توليد نتائج افتراضية.</p></div><button class="btn primary" onclick="loadAppProbeResults()">تحديث النتائج</button></div>'+
-      '<div class="card card-pad"><div class="muted" id="probeNotice">جاري تحميل آخر النتائج...</div><div id="probeGrid" class="section-grid" style="margin-top:15px"></div></div>';
+      '<div class="card card-pad" style="margin-bottom:14px"><h3>فحص أي موقع</h3><div class="muted">فحص فعلي من خادم Supabase (ليس من برج MikroTik)</div><div class="row wrap" style="margin-top:12px"><input id="siteHost" class="input grow" placeholder="example.com" style="min-width:180px"><button id="siteCheckBtn" class="btn primary" onclick="checkCustomSite()">ابدأ الفحص</button></div><div id="siteCheckResult" style="margin-top:12px" aria-live="polite">بانتظار اختيار الموقع</div></div>'+\n      '<div class="card card-pad"><div class="muted" id="probeNotice">جاري تحميل آخر النتائج...</div><div id="probeGrid" class="section-grid" style="margin-top:15px"></div></div>';
     loadAppProbeResults();
   }
+  window.checkCustomSite=async function(){
+    const input=$('#siteHost'),out=$('#siteCheckResult'),btn=$('#siteCheckBtn');
+    if(!input||!out)return;
+    let host=input.value.trim().toLowerCase();
+    try{if(/^https?:\/\//i.test(host))host=new URL(host).hostname;}catch{}
+    if(!host){out.textContent='اكتب اسم موقع مثل example.com';return;}
+    btn.disabled=true;out.textContent='جاري فحص DNS و HTTPS من خادم Supabase...';
+    try{
+      const result=await api('/functions/v1/isp-site-check',{method:'POST',body:JSON.stringify({host})});
+      if(!result.ok)throw Error(result.error||'فشل الفحص');
+      out.innerHTML='<b>'+esc(result.host)+'</b> — '+(result.dns_ok?'DNS ناجح':'DNS فشل')+' — '+(result.https_ok?'HTTPS قابل للوصول':'HTTPS تعذر')+
+        '<div class="muted">DNS: '+esc(result.dns_ms)+' ms | HTTPS: '+(result.http_ms==null?'—':esc(result.http_ms)+' ms')+' | HTTP: '+esc(result.status??'—')+'</div>'+
+        '<div class="muted">'+esc(result.reason||'')+'</div><div class="muted">المصدر: Supabase Cloud، وليس الراوتر أو البرج. لا يتم تتبع المشتركين بهذا الاختبار.</div>';
+    }catch(err){out.textContent='تعذر الفحص: '+err.message;}finally{btn.disabled=false;}
+  };
   window.loadAppProbeResults=async function(){
     const notice=$('#probeNotice'),grid=$('#probeGrid');if(!notice||!grid)return;
     notice.textContent='جاري جلب آخر نتائج الفحص...';
