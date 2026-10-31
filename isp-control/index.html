@@ -1333,71 +1333,80 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     ['facebook','فيسبوك','📘'],['instagram','إنستغرام','📸'],['youtube','يوتيوب','▶️'],
     ['tiktok','تيك توك','🎵'],['whatsapp','واتساب','💬'],['telegram','تيليغرام','✈️'],['messenger','ماسنجر','🗨️']
   ];
+
+  const appCheckHosts={facebook:'www.facebook.com',instagram:'www.instagram.com',youtube:'www.youtube.com',tiktok:'www.tiktok.com',whatsapp:'www.whatsapp.com',telegram:'web.telegram.org',messenger:'www.messenger.com'};
+  let appCheckHistory=[];
+  let appCheckBusy=false;
+  function appendAppCheck(entry){
+    appCheckHistory.unshift(entry);
+    appCheckHistory=appCheckHistory.slice(0,60);
+    const el=$('#appCheckHistory');if(!el)return;
+    el.innerHTML=appCheckHistory.map((x,i)=>'<div class="card card-pad" style="margin-bottom:9px"><div class="row between wrap"><b>'+esc(x.name)+'</b><span class="badge '+(x.state==='ok'?'online':x.state==='error'?'offline':'pending')+'">'+esc(x.state==='ok'?'متاح من الخادم':x.state==='error'?'تعذر الفحص':'قيد الفحص')+'</span></div><div class="muted" style="font-size:12px;margin-top:6px">'+esc(x.host)+' • '+esc(x.time)+'</div><div style="margin-top:6px">'+esc(x.detail)+'</div><div class="muted" style="font-size:11px">المصدر: '+esc(x.source)+'</div></div>').join('');
+  }
   function renderAppTests(){
     if(!isOwner()){ $('#content').innerHTML='<div class="card card-pad">هذا القسم متاح لمالك النظام فقط.</div>';return; }
-    $('#content').innerHTML='<div class="page-head"><div><h1>قائمة الاختبار</h1><p class="muted">آخر نتائج واردة فعلياً من الراوتر؛ لا يتم توليد نتائج افتراضية.</p></div><button class="btn primary" onclick="loadAppProbeResults()">تحديث النتائج</button></div>'+
-      '<div class="card card-pad" style="margin-bottom:14px"><h3>فحص أي موقع</h3><div class="muted">فحص فعلي من خادم Supabase (ليس من برج MikroTik)</div><div class="row wrap" style="margin-top:12px"><input id="siteHost" class="input grow" placeholder="example.com" style="min-width:180px"><button id="siteCheckBtn" class="btn primary" onclick="checkCustomSite()">ابدأ الفحص</button></div><div id="siteCheckResult" style="margin-top:12px" aria-live="polite">بانتظار اختيار الموقع</div><div class="row wrap" style="margin-top:12px"><button id="routerProbeBtn" class="btn" onclick="runRouterSiteProbe()">فحص من الراوتر (عند الطلب)</button></div><div id="routerProbeResult" class="muted" style="margin-top:10px">يتطلب تثبيت عامل MikroTik أولاً.</div></div>'+
-      '<div class="card card-pad"><div class="muted" id="probeNotice">جاري تحميل آخر النتائج...</div><div id="probeGrid" class="section-grid" style="margin-top:15px"></div></div>';
-    loadAppProbeResults();
+    $('#content').innerHTML='<div class="page-head"><div><h1>قائمة الاختبار</h1><p class="muted">اضغط على الخدمة لبدء فحص جديد. النتائج والسجل بأسفل الصفحة.</p></div></div>'+
+      '<div class="section-grid" id="probeGrid">'+diagnosticApps.map(([key,name,emoji])=>
+        '<button class="card card-pad" data-app-check="'+esc(key)+'" onclick="checkSelectedApp(\''+key+'\')" style="text-align:right;cursor:pointer;border:1px solid var(--border);font:inherit"><div style="font-size:26px">'+emoji+'</div><h3>'+esc(name)+'</h3><div class="muted" data-app-status="'+esc(key)+'">اضغط للفحص</div></button>'
+      ).join('')+'</div>'+
+      '<div class="card card-pad" style="margin-top:14px"><h3>فحص أي موقع</h3><div class="muted">أدخل اسم نطاق عام. فحص مباشر من خادم Supabase.</div><div class="row wrap" style="margin-top:12px"><input id="siteHost" class="input grow" placeholder="example.com" style="min-width:180px"><button id="siteCheckBtn" class="btn primary" onclick="checkCustomSite()">ابدأ الفحص</button></div><div id="siteCheckResult" class="muted" style="margin-top:9px">النتائج ستظهر في السجل بالأسفل.</div><div class="row wrap" style="margin-top:12px"><button id="routerProbeBtn" class="btn" onclick="runRouterSiteProbe()">فحص من الراوتر (يتطلب عامل MikroTik)</button></div><div id="routerProbeResult" class="muted" style="margin-top:8px">عامل الراوتر غير مؤكد التشغيل.</div></div>'+
+      '<div class="card card-pad" style="margin-top:14px"><div class="row between"><h3>سجل الفحوصات</h3><button class="btn small" onclick="clearAppCheckHistory()">مسح السجل المعروض</button></div><p class="muted">آخر 60 عملية في جلسة الصفحة. فحص الخادم لا يثبت اتصال البرج.</p><div id="appCheckHistory"></div></div>';
+    const prior=appCheckHistory.slice();appCheckHistory=[];prior.reverse().forEach(appendAppCheck);
   }
+  window.clearAppCheckHistory=function(){appCheckHistory=[];const el=$('#appCheckHistory');if(el)el.innerHTML='<div class="empty">لا يوجد سجل بعد.</div>';};
+  function appProbeHost(raw){let host=String(raw||'').trim().toLowerCase();try{if(/^https?:\/\//i.test(host))host=new URL(host).hostname;}catch{}return host;}
+  async function cloudProbe(host,name,key){
+    const entry={name,host,time:new Date().toLocaleString('ar-IQ'),state:'pending',detail:'جاري فحص DNS و HTTPS...',source:'Supabase Cloud'};
+    appendAppCheck(entry);
+    const status=key?document.querySelector('[data-app-status="'+key+'"]'):null;
+    if(status)status.textContent='جاري الفحص...';
+    try{
+      const x=await api('/functions/v1/isp-site-check',{method:'POST',body:JSON.stringify({host})});
+      if(!x.ok)throw Error(x.error||'فشل الطلب');
+      entry.state=x.dns_ok&&x.https_ok?'ok':'error';
+      entry.detail='DNS: '+(x.dns_ok?'ناجح':'فشل')+' ('+(x.dns_ms??'—')+'ms) | HTTPS: '+(x.https_ok?'متاح':'غير متاح')+' ('+(x.http_ms??'—')+'ms) | HTTP: '+(x.status??'—')+' | '+(x.reason||'');
+      if(status)status.textContent=entry.state==='ok'?'✓ تم الفحص — متاح من الخادم':'⚠ فشل أو تعذر الاتصال من الخادم';
+    }catch(e){entry.state='error';entry.detail='خطأ الفحص: '+e.message;if(status)status.textContent='تعذر الفحص — راجع السجل';}
+    const el=$('#appCheckHistory');if(el){const prior=appCheckHistory.slice();appCheckHistory=[];prior.reverse().forEach(appendAppCheck);}
+    return entry;
+  }
+  window.checkSelectedApp=async function(key){
+    if(!isOwner()||appCheckBusy||!Object.prototype.hasOwnProperty.call(appCheckHosts,key))return;
+    appCheckBusy=true;
+    const btn=document.querySelector('[data-app-check="'+key+'"]');if(btn)btn.disabled=true;
+    try{const item=diagnosticApps.find(x=>x[0]===key);await cloudProbe(appCheckHosts[key],item?item[1]:key,key);}
+    finally{appCheckBusy=false;if(btn)btn.disabled=false;}
+  };
+  window.checkCustomSite=async function(){
+    const input=$('#siteHost'),btn=$('#siteCheckBtn');if(!input||!btn||appCheckBusy)return;
+    const host=appProbeHost(input.value);if(!host){$('#siteCheckResult').textContent='اكتب اسم الموقع أولاً';return;}
+    appCheckBusy=true;btn.disabled=true;$('#siteCheckResult').textContent='جاري الفحص...';
+    try{const entry=await cloudProbe(host,host,null);$('#siteCheckResult').textContent=entry.state==='ok'?'انتهى الفحص — النتيجة في السجل بالأسفل':'انتهى الفحص مع مشكلة — راجع السجل بالأسفل';}
+    finally{appCheckBusy=false;btn.disabled=false;}
+  };
   window.runRouterSiteProbe=async function(){
-    const input=$('#siteHost'),out=$('#routerProbeResult'),btn=$('#routerProbeBtn');
-    if(!input||!out)return;let host=input.value.trim().toLowerCase();
-    try{if(/^https?:\/\//i.test(host))host=new URL(host).hostname;}catch{}
-    btn.disabled=true;out.textContent='إرسال طلب فحص جديد إلى طابور الراوتر...';
+    const input=$('#siteHost'),out=$('#routerProbeResult'),btn=$('#routerProbeBtn');if(!input||!out)return;
+    const host=appProbeHost(input.value);if(!host){out.textContent='اكتب اسم الموقع أولاً';return;}
+    btn.disabled=true;out.textContent='إرسال طلب جديد إلى عامل الراوتر...';
+    const entry={name:host,host,time:new Date().toLocaleString('ar-IQ'),state:'pending',detail:'طلب فحص MikroTik بانتظار العامل',source:'MikroTik — قيد الانتظار'};appendAppCheck(entry);
     try{
       const started=await api('/functions/v1/isp-on-demand-probe',{method:'POST',body:JSON.stringify({action:'start',host})});
       const id=started.request.id;
-      out.textContent='تم إنشاء الطلب '+id+'. بانتظار عامل MikroTik...';
       for(let i=0;i<12;i++){
         await new Promise(resolve=>setTimeout(resolve,5000));
-        if(!document.getElementById('routerProbeResult'))break;
-        const result=await api('/functions/v1/isp-on-demand-probe',{method:'POST',body:JSON.stringify({action:'status',id})});
-        const x=result.request;
+        if(!$('#routerProbeResult'))break;
+        const result=await api('/functions/v1/isp-on-demand-probe',{method:'POST',body:JSON.stringify({action:'status',id})});const x=result.request;
         if(x.status==='COMPLETED'){
-          out.innerHTML='<b>'+esc(x.host)+'</b><div>DNS: '+(x.dns_ok?'نجاح':'فشل')+' | HTTPS: '+(x.https_ok?'نجاح':'فشل')+'</div><div>ICMP: '+esc(x.icmp_received)+' / '+esc(x.icmp_sent)+' | التأخير: '+esc(x.latency_ms??'—')+' ms</div><div class="muted">نتيجة جديدة من عامل MikroTik، رقم الطلب: '+esc(id)+'</div>';
-          return;
+          entry.state=x.dns_ok&&x.https_ok?'ok':'error';
+          entry.detail='DNS: '+(x.dns_ok?'ناجح':'فشل')+' | HTTPS: '+(x.https_ok?'متاح':'غير متاح')+' | ICMP: '+x.icmp_received+'/'+x.icmp_sent+' | التأخير: '+(x.latency_ms??'—')+'ms';
+          entry.source='MikroTik — نتيجة الطلب '+id;out.textContent='وصلت نتيجة الراوتر — راجع السجل';break;
         }
-        if(x.status==='EXPIRED'||x.status==='FAILED'){out.textContent='تعذر إكمال الفحص: '+x.status;return;}
-        out.textContent='بانتظار الراوتر... '+(i+1)*5+' ثانية | الحالة: '+x.status;
+        if(['EXPIRED','FAILED'].includes(x.status)){entry.state='error';entry.detail='لم يكتمل فحص الراوتر: '+x.status;out.textContent=entry.detail;break;}
+        out.textContent='بانتظار العامل... '+(i+1)*5+' ثانية';
       }
-      out.textContent='انتهت مهلة الانتظار. الطلب محفوظ، لكن عامل الراوتر لم يؤكد التنفيذ بعد.';
-    }catch(e){out.textContent='خطأ: '+e.message;}finally{btn.disabled=false;}
-  };
-  window.checkCustomSite=async function(){
-    const input=$('#siteHost'),out=$('#siteCheckResult'),btn=$('#siteCheckBtn');
-    if(!input||!out)return;
-    let host=input.value.trim().toLowerCase();
-    try{if(/^https?:\/\//i.test(host))host=new URL(host).hostname;}catch{}
-    if(!host){out.textContent='اكتب اسم موقع مثل example.com';return;}
-    btn.disabled=true;out.textContent='جاري فحص DNS و HTTPS من خادم Supabase...';
-    try{
-      const result=await api('/functions/v1/isp-site-check',{method:'POST',body:JSON.stringify({host})});
-      if(!result.ok)throw Error(result.error||'فشل الفحص');
-      out.innerHTML='<b>'+esc(result.host)+'</b> — '+(result.dns_ok?'DNS ناجح':'DNS فشل')+' — '+(result.https_ok?'HTTPS قابل للوصول':'HTTPS تعذر')+
-        '<div class="muted">DNS: '+esc(result.dns_ms)+' ms | HTTPS: '+(result.http_ms==null?'—':esc(result.http_ms)+' ms')+' | HTTP: '+esc(result.status??'—')+'</div>'+
-        '<div class="muted">'+esc(result.reason||'')+'</div><div class="muted">المصدر: Supabase Cloud، وليس الراوتر أو البرج. لا يتم تتبع المشتركين بهذا الاختبار.</div>';
-    }catch(err){out.textContent='تعذر الفحص: '+err.message;}finally{btn.disabled=false;}
-  };
-  window.loadAppProbeResults=async function(){
-    const notice=$('#probeNotice'),grid=$('#probeGrid');if(!notice||!grid)return;
-    notice.textContent='جاري جلب آخر نتائج الفحص...';
-    try{
-      const result=await api('/functions/v1/isp-app-probes',{method:'POST',body:JSON.stringify({action:'latest'})});
-      const raw=Array.isArray(result)?result:(result.results||result.data||result.latest||[]);
-      const items=Array.isArray(raw)?raw:Object.values(raw);
-      const byService={};for(const x of items){if(x&&x.service&&!byService[x.service])byService[x.service]=x;}
-      grid.innerHTML=diagnosticApps.map(([key,label,emoji])=>{
-        const x=byService[key];const has=x&&x.checked_at;
-        const ok=has&&x.dns_ok===true&&x.https_ok===true;
-        const bad=has&&x.dns_ok===false&&x.https_ok===false;
-        const status=!has?'لم يصل فحص بعد':ok?'✓ ناجح':bad?'✕ فشل':'⚠ جزئي أو غير مكتمل';
-        const color=!has?'var(--muted)':ok?'var(--green)':bad?'var(--red)':'var(--orange)';
-        const loss=has&&Number(x.icmp_sent)>0?Math.round(100*(Number(x.icmp_sent)-Number(x.icmp_received||0))/Number(x.icmp_sent))+'%':'—';
-        return '<div class="card card-pad"><h3>'+emoji+' '+label+'</h3><b style="color:'+color+'">'+status+'</b><div class="muted" style="margin-top:10px;font-size:12px">DNS: '+(has?String(x.dns_ok):'—')+' | HTTPS: '+(has?String(x.https_ok):'—')+'</div><div class="muted" style="font-size:12px">فقدان ICMP: '+loss+' | التأخير: '+(has&&x.latency_ms!=null?esc(x.latency_ms)+' ms':'—')+'</div><div class="muted" style="font-size:11px;margin-top:8px">آخر فحص: '+(has?esc(fmtDate(x.checked_at)):'لا يوجد')+'</div></div>';
-      }).join('');
-      notice.textContent=items.length?'النتائج المعروضة هي آخر قياسات محفوظة، وليست اختباراً فورياً.':'لا توجد قياسات من الراوتر بعد. يجب تفعيل عامل الفحص على MikroTik.';
-    }catch(err){notice.textContent='تعذّر جلب القياسات: '+err.message;grid.innerHTML='';}
+      if(entry.state==='pending'){entry.state='error';entry.detail='لم تصل نتيجة من الراوتر خلال مهلة الانتظار؛ تحقق من تثبيت العامل';out.textContent=entry.detail;}
+    }catch(e){entry.state='error';entry.detail='خطأ: '+e.message;out.textContent=entry.detail;}
+    finally{btn.disabled=false;const prior=appCheckHistory.slice();appCheckHistory=[];prior.reverse().forEach(appendAppCheck);}
   };
   function renderUsageInsights(){
     if(!isOwner()){ $('#content').innerHTML='<div class="card card-pad">هذا القسم متاح لمالك النظام فقط.</div>';return; }
