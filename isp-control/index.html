@@ -1444,7 +1444,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
           '<td class="mono">'+esc(s.pppoe_username)+'</td><td>'+esc(subscriberPackageLabel(s))+'</td>'+
           '<td>'+esc(fmtExpiryDate(sub?.expires_at))+'</td><td>'+esc(s.phone||'—')+'</td>'+
           '<td>'+subscriberStatusBadge(s)+(cmd&&cmd.status!=='COMPLETED'?'<div class="subline">'+esc(commandStatusText(cmd))+'</div>':'')+'</td>'+
-          '<td>'+subscriberActionButton(s)+(canManage()&&['suspended','router-stopped'].includes(subscriberVisualState(s))?'<button class="btn small success" style="margin-inline-start:6px" onclick="toggleSuspend(\''+s.id+'\',false)">تفعيل</button>':'')+'</td></tr>'}).join('')+
+          '<td>'+subscriberActionButton(s)+(isOwner()?'<button class="btn small" onclick="openSubscriberDomainUsage(\''+s.id+'\')">المواقع</button>':'')+(canManage()&&['suspended','router-stopped'].includes(subscriberVisualState(s))?'<button class="btn small success" style="margin-inline-start:6px" onclick="toggleSuspend(\''+s.id+'\',false)">تفعيل</button>':'')+'</td></tr>'}).join('')+
       '</tbody></table></div>'+
       '<div class="mobile-records">'+rows.map(s=>{const sub=subscriptionBySubscriber(s.id);const cmd=latestCommandForSubscriber(s.id);return '<div class="mobile-record">'+
         '<div class="mr-top"><div><div class="mr-name" onclick="openSubscriberUsage(\''+s.id+'\')">'+esc(s.full_name)+'</div><div class="mr-meta">'+esc(s.pppoe_username)+' • '+esc(s.phone||'بدون هاتف')+'</div></div>'+statusBadge(s.status)+'</div>'+
@@ -1912,6 +1912,23 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       '<p class="muted" style="font-size:11px">التصنيف تقريبي حسب الوجهات المعروفة؛ لا يعرض صفحات HTTPS الداخلية. استهلاك الجلسة ليس مجموع اليوم.</p>'+
       (error?'<p class="muted" style="font-size:11px">مصدر التصنيف غير جاهز: '+esc(error)+'</p>':'')
     );
+  };
+
+
+  window.openSubscriberDomainUsage=async function(id,days=1){
+    if(!isOwner())return;const sub=subscriberById(id);if(!sub)return;
+    const n=[1,7,30].includes(Number(days))?Number(days):1;
+    openModal('<div class="modal-head"><h3>استخدام المواقع — '+esc(sub.full_name)+'</h3><button class="btn icon-btn" onclick="closeModal()">✕</button></div><div class="muted">جاري التحميل...</div>');
+    try{
+      const d=new Date();d.setDate(d.getDate()-n+1);
+      const data=await table('isp_subscriber_domain_usage_daily','select=domain,download_bytes,upload_bytes,confidence,usage_date&subscriber_id=eq.'+encodeURIComponent(id)+'&usage_date=gte.'+d.toISOString().slice(0,10)+'&order=usage_date.desc&limit=1000');
+      const totals={};for(const x of data||[]){const v=totals[x.domain]||(totals[x.domain]={down:0,up:0,confidence:'verified'});v.down+=Number(x.download_bytes||0);v.up+=Number(x.upload_bytes||0);if(x.confidence!=='verified')v.confidence='estimated';}
+      const rows=Object.entries(totals).sort((a,b)=>(b[1].down+b[1].up)-(a[1].down+a[1].up));
+      openModal('<div class="modal-head"><h3>استخدام المواقع — '+esc(sub.full_name)+'</h3><button class="btn icon-btn" onclick="closeModal()">✕</button></div>'+
+        '<div class="row wrap">'+[1,7,30].map(k=>'<button class="btn small '+(k===n?'primary':'')+'" onclick="openSubscriberDomainUsage(\''+id+'\','+k+')">'+(k===1?'اليوم':k===7?'7 أيام':'30 يوم')+'</button>').join('')+'</div>'+
+        '<p class="muted">تظهر فقط بيانات النطاقات التي تم جمعها فعلياً. لا يمكن كشف جميع صفحات HTTPS أو نشاط VPN بدقة.</p>'+
+        (rows.length?'<div style="overflow-x:auto"><table style="width:100%;text-align:right"><thead><tr><th>الموقع</th><th>تنزيل</th><th>رفع</th><th>الدقة</th></tr></thead><tbody>'+rows.map(([domain,v])=>'<tr><td>'+esc(domain)+'</td><td>'+esc(fmtBytes(v.down))+'</td><td>'+esc(fmtBytes(v.up))+'</td><td>'+esc(v.confidence==='verified'?'موثوق':'تقديري')+'</td></tr>').join('')+'</tbody></table></div>':'<div class="empty">لا توجد قياسات مواقع بعد. يجب تركيب مجمّع تدفقات وربطه ببيانات PPPoE.</div>'));
+    }catch(e){openModal('<div class="modal-head"><h3>استخدام المواقع</h3><button class="btn icon-btn" onclick="closeModal()">✕</button></div><div class="empty">'+esc(e.message)+'</div>');}
   };
 
   window.openTrafficDetails=async function(id){
