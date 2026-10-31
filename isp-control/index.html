@@ -635,6 +635,8 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       <button data-page="devices"><span class="nav-ico">⌁</span>الأجهزة والراوترات</button>
       <button data-page="payments"><span class="nav-ico">▥</span>المدفوعات</button>
       <button data-page="alerts"><span class="nav-ico">♢</span>التنبيهات</button>
+      <button data-page="appTests"><span class="nav-ico">◈</span>قائمة الاختبار</button>
+      <button data-page="usageInsights"><span class="nav-ico">▤</span>مراقبة الاستهلاك</button>
       <button data-page="settings"><span class="nav-ico">⚙</span>الإعدادات</button>
     </nav>
 
@@ -1298,6 +1300,8 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       devices:['الأجهزة والراوترات','حالة الأجهزة والاتصال والموارد'],
       payments:['المدفوعات','سجل التسديدات والاشتراكات'],
       alerts:['التنبيهات','انقطاع الأجهزة وانتهاء الاشتراكات والحالات المهمة'],
+      appTests:['قائمة الاختبار','نتائج الفحص الفعلية من الراوتر'],
+      usageInsights:['مراقبة الاستهلاك','مؤشرات المشتركين دون تتبع سجل تصفحهم'],
       settings:['الإعدادات','إعدادات النظام والتنبيهات'],
       commands:['تشخيص الأوامر','سجل نقل أوامر MikroTik'],
       logs:['السجلات','السجل الإداري والتغييرات'],
@@ -1315,11 +1319,55 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     else if(state.page==='devices')renderDevices();
     else if(state.page==='payments')renderPayments();
     else if(state.page==='alerts')renderAlerts();
+    else if(state.page==='appTests')renderAppTests();
+    else if(state.page==='usageInsights')renderUsageInsights();
     else if(state.page==='commands')renderCommands();
     else if(state.page==='logs')renderLogs();
     else if(state.page==='users')renderUsers();
     else if(state.page==='traffic')renderTraffic();
     else if(state.page==='settings')renderSettings();
+  }
+
+
+  const diagnosticApps=[
+    ['facebook','فيسبوك','📘'],['instagram','إنستغرام','📸'],['youtube','يوتيوب','▶️'],
+    ['tiktok','تيك توك','🎵'],['whatsapp','واتساب','💬'],['telegram','تيليغرام','✈️'],['messenger','ماسنجر','🗨️']
+  ];
+  function renderAppTests(){
+    if(!isOwner()){ $('#content').innerHTML='<div class="card card-pad">هذا القسم متاح لمالك النظام فقط.</div>';return; }
+    $('#content').innerHTML='<div class="page-head"><div><h1>قائمة الاختبار</h1><p class="muted">آخر نتائج واردة فعلياً من الراوتر؛ لا يتم توليد نتائج افتراضية.</p></div><button class="btn primary" onclick="loadAppProbeResults()">تحديث النتائج</button></div>'+
+      '<div class="card card-pad"><div class="muted" id="probeNotice">جاري تحميل آخر النتائج...</div><div id="probeGrid" class="section-grid" style="margin-top:15px"></div></div>';
+    loadAppProbeResults();
+  }
+  window.loadAppProbeResults=async function(){
+    const notice=$('#probeNotice'),grid=$('#probeGrid');if(!notice||!grid)return;
+    notice.textContent='جاري جلب آخر نتائج الفحص...';
+    try{
+      const result=await api('/functions/v1/isp-app-probes',{method:'POST',body:JSON.stringify({action:'latest'})});
+      const raw=Array.isArray(result)?result:(result.results||result.data||result.latest||[]);
+      const items=Array.isArray(raw)?raw:Object.values(raw);
+      const byService={};for(const x of items){if(x&&x.service&&!byService[x.service])byService[x.service]=x;}
+      grid.innerHTML=diagnosticApps.map(([key,label,emoji])=>{
+        const x=byService[key];const has=x&&x.checked_at;
+        const ok=has&&x.dns_ok===true&&x.https_ok===true;
+        const bad=has&&x.dns_ok===false&&x.https_ok===false;
+        const status=!has?'لم يصل فحص بعد':ok?'✓ ناجح':bad?'✕ فشل':'⚠ جزئي أو غير مكتمل';
+        const color=!has?'var(--muted)':ok?'var(--green)':bad?'var(--red)':'var(--orange)';
+        const loss=has&&Number(x.icmp_sent)>0?Math.round(100*(Number(x.icmp_sent)-Number(x.icmp_received||0))/Number(x.icmp_sent))+'%':'—';
+        return '<div class="card card-pad"><h3>'+emoji+' '+label+'</h3><b style="color:'+color+'">'+status+'</b><div class="muted" style="margin-top:10px;font-size:12px">DNS: '+(has?String(x.dns_ok):'—')+' | HTTPS: '+(has?String(x.https_ok):'—')+'</div><div class="muted" style="font-size:12px">فقدان ICMP: '+loss+' | التأخير: '+(has&&x.latency_ms!=null?esc(x.latency_ms)+' ms':'—')+'</div><div class="muted" style="font-size:11px;margin-top:8px">آخر فحص: '+(has?esc(fmtDate(x.checked_at)):'لا يوجد')+'</div></div>';
+      }).join('');
+      notice.textContent=items.length?'النتائج المعروضة هي آخر قياسات محفوظة، وليست اختباراً فورياً.':'لا توجد قياسات من الراوتر بعد. يجب تفعيل عامل الفحص على MikroTik.';
+    }catch(err){notice.textContent='تعذّر جلب القياسات: '+err.message;grid.innerHTML='';}
+  };
+  function renderUsageInsights(){
+    if(!isOwner()){ $('#content').innerHTML='<div class="card card-pad">هذا القسم متاح لمالك النظام فقط.</div>';return; }
+    const subs=state.subscribers.filter(s=>!s.archived_at);
+    const byteFmt=n=>{const v=Number(n);if(!Number.isFinite(v)||v<0)return '—';return v>=1073741824?(v/1073741824).toFixed(2)+' GB':(v/1048576).toFixed(1)+' MB';};
+    $('#content').innerHTML='<div class="page-head"><div><h1>مراقبة استهلاك المشتركين</h1><p class="muted">بيانات الاستخدام التي يرسلها MikroTik حالياً، وليست سجل المواقع.</p></div><button class="btn" onclick="goPage(\'traffic\')">الترافيك المباشر</button></div>'+
+      '<div class="card card-pad"><h3>حدود البيانات المتاحة</h3><p class="muted">الأرقام التالية تخص الجلسة الحالية فقط، وليست مجموع اليوم. لا تتوفر حالياً قياسات موثوقة لاستهلاك كل موقع أو تطبيق، ولا يتم جمع روابط التصفح أو محتوى الاتصالات.</p><p class="muted">للحصول على استهلاك يومي صحيح يلزم تجميع عدادات الجلسات زمنياً على الخادم، ومعرفة تصنيف التطبيقات تتطلب بيانات تدفق مجمّعة مع مراعاة خصوصية المشتركين؛ HTTPS لا يكشف الصفحات الداخلية.</p></div>'+
+      '<div class="card card-pad" style="margin-top:12px"><h3>استهلاك الجلسة الحالية</h3><div style="overflow-x:auto"><table style="width:100%;text-align:right"><thead><tr><th>المشترك</th><th>الحالة</th><th>تنزيل الجلسة</th><th>رفع الجلسة</th></tr></thead><tbody>'+
+      subs.map(x=>'<tr><td>'+esc(x.full_name||x.pppoe_username||'—')+'</td><td>'+(x.is_online?'متصل':'غير متصل')+'</td><td>'+byteFmt(x.session_tx_bytes)+'</td><td>'+byteFmt(x.session_rx_bytes)+'</td></tr>').join('')+
+      '</tbody></table></div></div>';
   }
 
   function renderDashboard(){
@@ -1333,7 +1381,9 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       ['packages','▰','الاشتراكات والباقات',state.packages.length+' باقات','الباقات والأسعار والمدة والتجديد','purple'],
       ['devices','⌁','الأجهزة والراوترات',devices+' متصل','حالة الراوترات والموارد وقناة الأوامر',''],
       ['payments','▥','المدفوعات',state.payments.length+' عملية','الدفعات وسجل التسديد','orange'],
-      ['alerts','♢','التنبيهات',unread+' حالة مهمة','انقطاع الأجهزة وانتهاء الاشتراكات','red']
+      ['alerts','♢','التنبيهات',unread+' حالة مهمة','انقطاع الأجهزة وانتهاء الاشتراكات','red'],
+      ['appTests','◈','قائمة الاختبار','فحص الخدمات','اختبارات حقيقية من الراوتر عند توفرها',''],
+      ['usageInsights','▤','مراقبة الاستهلاك','بيانات الشبكة','عرض الاستهلاك الحالي لكل مشترك','']
     ];
     const activity=(state.routerEvents||[]).filter(eventConfirmedForAlerts).slice(0,4);
     $('#content').innerHTML=
