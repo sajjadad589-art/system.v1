@@ -1336,9 +1336,34 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
   function renderAppTests(){
     if(!isOwner()){ $('#content').innerHTML='<div class="card card-pad">هذا القسم متاح لمالك النظام فقط.</div>';return; }
     $('#content').innerHTML='<div class="page-head"><div><h1>قائمة الاختبار</h1><p class="muted">آخر نتائج واردة فعلياً من الراوتر؛ لا يتم توليد نتائج افتراضية.</p></div><button class="btn primary" onclick="loadAppProbeResults()">تحديث النتائج</button></div>'+
-      '<div class="card card-pad" style="margin-bottom:14px"><h3>فحص أي موقع</h3><div class="muted">فحص فعلي من خادم Supabase (ليس من برج MikroTik)</div><div class="row wrap" style="margin-top:12px"><input id="siteHost" class="input grow" placeholder="example.com" style="min-width:180px"><button id="siteCheckBtn" class="btn primary" onclick="checkCustomSite()">ابدأ الفحص</button></div><div id="siteCheckResult" style="margin-top:12px" aria-live="polite">بانتظار اختيار الموقع</div></div>'+\n      '<div class="card card-pad"><div class="muted" id="probeNotice">جاري تحميل آخر النتائج...</div><div id="probeGrid" class="section-grid" style="margin-top:15px"></div></div>';
+      '<div class="card card-pad" style="margin-bottom:14px"><h3>فحص أي موقع</h3><div class="muted">فحص فعلي من خادم Supabase (ليس من برج MikroTik)</div><div class="row wrap" style="margin-top:12px"><input id="siteHost" class="input grow" placeholder="example.com" style="min-width:180px"><button id="siteCheckBtn" class="btn primary" onclick="checkCustomSite()">ابدأ الفحص</button></div><div id="siteCheckResult" style="margin-top:12px" aria-live="polite">بانتظار اختيار الموقع</div><div class="row wrap" style="margin-top:12px"><button id="routerProbeBtn" class="btn" onclick="runRouterSiteProbe()">فحص من الراوتر (عند الطلب)</button></div><div id="routerProbeResult" class="muted" style="margin-top:10px">يتطلب تثبيت عامل MikroTik أولاً.</div></div>'+
+      '<div class="card card-pad"><div class="muted" id="probeNotice">جاري تحميل آخر النتائج...</div><div id="probeGrid" class="section-grid" style="margin-top:15px"></div></div>';
     loadAppProbeResults();
   }
+  window.runRouterSiteProbe=async function(){
+    const input=$('#siteHost'),out=$('#routerProbeResult'),btn=$('#routerProbeBtn');
+    if(!input||!out)return;let host=input.value.trim().toLowerCase();
+    try{if(/^https?:\/\//i.test(host))host=new URL(host).hostname;}catch{}
+    btn.disabled=true;out.textContent='إرسال طلب فحص جديد إلى طابور الراوتر...';
+    try{
+      const started=await api('/functions/v1/isp-on-demand-probe',{method:'POST',body:JSON.stringify({action:'start',host})});
+      const id=started.request.id;
+      out.textContent='تم إنشاء الطلب '+id+'. بانتظار عامل MikroTik...';
+      for(let i=0;i<12;i++){
+        await new Promise(resolve=>setTimeout(resolve,5000));
+        if(!document.getElementById('routerProbeResult'))break;
+        const result=await api('/functions/v1/isp-on-demand-probe',{method:'POST',body:JSON.stringify({action:'status',id})});
+        const x=result.request;
+        if(x.status==='COMPLETED'){
+          out.innerHTML='<b>'+esc(x.host)+'</b><div>DNS: '+(x.dns_ok?'نجاح':'فشل')+' | HTTPS: '+(x.https_ok?'نجاح':'فشل')+'</div><div>ICMP: '+esc(x.icmp_received)+' / '+esc(x.icmp_sent)+' | التأخير: '+esc(x.latency_ms??'—')+' ms</div><div class="muted">نتيجة جديدة من عامل MikroTik، رقم الطلب: '+esc(id)+'</div>';
+          return;
+        }
+        if(x.status==='EXPIRED'||x.status==='FAILED'){out.textContent='تعذر إكمال الفحص: '+x.status;return;}
+        out.textContent='بانتظار الراوتر... '+(i+1)*5+' ثانية | الحالة: '+x.status;
+      }
+      out.textContent='انتهت مهلة الانتظار. الطلب محفوظ، لكن عامل الراوتر لم يؤكد التنفيذ بعد.';
+    }catch(e){out.textContent='خطأ: '+e.message;}finally{btn.disabled=false;}
+  };
   window.checkCustomSite=async function(){
     const input=$('#siteHost'),out=$('#siteCheckResult'),btn=$('#siteCheckBtn');
     if(!input||!out)return;
