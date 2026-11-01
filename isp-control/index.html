@@ -576,7 +576,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       <button id="setupTab" class="btn" type="button">تهيئة الدخول</button>
     </div>
 
-    <form id="loginForm">
+    <form id="loginForm" onsubmit="event.preventDefault();if(!this.dataset.loginReady){var m=document.getElementById('authMessage');if(m){m.textContent='تعذر تحميل نظام الدخول. افتح الموقع من Safari وحدّث الصفحة.';m.style.color='red';}return false;}">
       <div class="field">
         <label>اسم المستخدم</label>
         <input id="loginUsername" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" required>
@@ -891,6 +891,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     showAuthMessage('');
   });
 
+  $('#loginForm').dataset.loginReady='1';
   $('#loginForm').addEventListener('submit',async e=>{
     e.preventDefault();
     showAuthMessage('جاري تسجيل الدخول...');
