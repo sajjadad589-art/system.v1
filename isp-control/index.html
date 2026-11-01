@@ -2083,7 +2083,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
   window.openRouterControlPanel=function(){
     openModal(
       '<div class="modal-head"><h3>التحكم بالراوترات</h3><button class="btn icon-btn" type="button" onclick="closeModal()">✕</button></div>'+
-      '<div class="alert info">فحوصات قراءة فقط؛ لم يتم ربط تنفيذ الأوامر عن بعد بعد.</div>'+
+      '<div class="alert info"><b>Safe Mode مفعّل:</b> هذا القسم يعرض أوامر القراءة فقط. أي تعديل على WAN أو PPPoE أو Firewall أو Routes يتطلب فحصاً وموافقة من قناة التحكم الآمنة، ولا يُنفذ من هذه النافذة.</div>'+
       '<div class="mini-list">'+
       [['هوية الراوتر','/system resource print'],['واجهات الشبكة','/interface print'],['المسارات','/ip route print'],['قواعد NAT','/ip firewall nat print'],['VPN','/interface l2tp-client print detail'],['PPPoE','/ppp active print count-only']].map(x=>
       '<div class="mini-item"><div><b>'+x[0]+'</b><div class="muted mono" style="font-size:10px;direction:ltr">'+x[1]+'</div></div><button class="btn small" data-cmd="'+x[1]+'" onclick="copyRouterReadCommand(this.dataset.cmd)">نسخ</button></div>').join('')+
