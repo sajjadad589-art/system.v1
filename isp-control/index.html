@@ -2089,10 +2089,29 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       '<div class="modal-head"><h3>تيرمنال الراوترات الآمن</h3><button class="btn icon-btn" onclick="closeModal()">✕</button></div>'+
       '<div class="alert info"><b>Safe Mode ON</b> — فحوصات قراءة معتمدة فقط. التعديل وتغيير الرموز والسكربتات غير مفعّلين حتى يكتمل فحص الأثر والتراجع.</div>'+
       '<div class="field"><label>الراوتر</label><select id="safeRouter" style="width:100%;padding:12px">'+devices.map(r=>'<option value="'+esc(r.id)+'">'+esc(r.name||r.device_role||r.model||r.id)+'</option>').join('')+'</select></div>'+
-      '<div class="diagnostic-links">'+tests.map(t=>'<button class="btn small" data-op="'+t[1]+'" onclick="runSafeRouterCheck(this.dataset.op)">'+t[0]+'</button>').join('')+'</div>'+
+      '<div class="field" style="margin-top:12px"><label>Terminal — اكتب أمر RouterOS</label><textarea id="safeRouterCommand" rows="3" spellcheck="false" style="width:100%;direction:ltr;text-align:left;font-family:monospace" placeholder="/system resource print"></textarea><div class="hint">Safe Mode: يُنفّذ فقط أمر قراءة مطابق للقائمة المعتمدة. الأوامر الأخرى تُرفض ولا تُرسل.</div><button class="btn primary" onclick="submitSafeRouterCommand()">فحص وتنفيذ الأمر الآمن</button></div>'+\n      '<div class="diagnostic-links">'+tests.map(t=>'<button class="btn small" data-op="'+t[1]+'" onclick="runSafeRouterCheck(this.dataset.op)">'+t[0]+'</button>').join('')+'</div>'+
       '<div class="row" style="margin-top:12px"><button class="btn" onclick="refreshSafeRouterJobs()">تحديث نتائج الأوامر</button></div>'+
       '<pre id="safeRouterResult" style="direction:ltr;text-align:left;white-space:pre-wrap;overflow:auto;max-height:300px;padding:12px;background:#f4f8fc;border-radius:12px">اختر الراوتر والفحص</pre>'
     );
+  };
+  window.submitSafeRouterCommand=function(){
+    const command=$('#safeRouterCommand')?.value?.trim().replace(/\\s+/g,' ');
+    const allowed={
+      '/system identity print':'identity',
+      '/system resource print':'resources',
+      '/system clock print':'clock',
+      '/ip traffic-flow print':'traffic_flow',
+      '/ppp active print count-only':'pppoe_count',
+      ':return [/ppp active print count-only];':'pppoe_count',
+      ':return [/ip firewall filter print count-only where action=fasttrack-connection];':'fasttrack_count'
+    };
+    const operation=allowed[command];
+    if(!operation){
+      const output=$('#safeRouterResult');
+      if(output)output.textContent='Safe Mode: هذا الأمر غير مدرج ضمن أوامر القراءة المعتمدة، لذلك لم يُرسل إلى الراوتر.';
+      return;
+    }
+    runSafeRouterCheck(operation);
   };
   window.runSafeRouterCheck=async function(operation){
     const router=$('#safeRouter')?.value;
