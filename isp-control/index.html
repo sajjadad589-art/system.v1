@@ -1412,7 +1412,18 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     }catch(e){entry.state='error';entry.detail='خطأ: '+e.message;out.textContent=entry.detail;}
     finally{btn.disabled=false;const prior=appCheckHistory.slice();appCheckHistory=[];prior.reverse().forEach(appendAppCheck);}
   };
-  function renderUsageInsights(){
+  window.monitorToggle=async function(id,enabled){
+    try{await api('/functions/v1/isp-selective-monitor',{method:'POST',body:JSON.stringify({action:'toggle',subscriber_id:id,enabled})});renderUsageInsights();}catch(e){alert(e.message);}
+  };
+  window.monitorSamples=async function(id){
+    const out=$('#selectiveMonitorResults');if(!out)return;
+    out.textContent='جاري تحميل العينات...';
+    try{
+      const x=await api('/functions/v1/isp-selective-monitor',{method:'POST',body:JSON.stringify({action:'samples',subscriber_id:id})});
+      out.innerHTML=(x.samples||[]).map(s=>'<div class="card card-pad"><b>'+esc(fmtDate(s.sampled_at))+'</b> • '+esc(s.current_ip||'غير متصل')+' • الجلسة '+esc(s.session_key||'—')+(s.truncated?' • عينة محدودة':'')+'<div style="overflow:auto"><table><thead><tr><th>IP الوجهة</th><th>المنفذ</th><th>البروتوكول</th><th>بايتات أصلية / رد</th><th>النطاق / التطبيق المحتمل</th><th>الثقة</th></tr></thead><tbody>'+s.connections.map(c=>'<tr><td>'+esc(c.ip)+'</td><td>'+esc(c.port??'—')+'</td><td>'+esc(c.protocol)+'</td><td>'+esc(c.orig_bytes)+' / '+esc(c.repl_bytes)+'</td><td>'+esc(c.domains.join(', '))+' '+esc(c.app||'')+'</td><td>'+esc(c.confidence)+'</td></tr>').join('')+'</tbody></table></div></div>').join('')||'لا توجد عينات محفوظة. التفعيل وحده لا يثبت اتصال عامل القراءة.';
+    }catch(e){out.textContent=e.message;}
+  };
+  async function renderUsageInsights(){
     if(!isOwner()){ $('#content').innerHTML='<div class="card card-pad">هذا القسم متاح لمالك النظام فقط.</div>';return; }
     const subs=state.subscribers.filter(s=>!s.archived_at);
     const byteFmt=n=>{const v=Number(n);if(!Number.isFinite(v)||v<0)return '—';return v>=1073741824?(v/1073741824).toFixed(2)+' GB':(v/1048576).toFixed(1)+' MB';};
@@ -1420,7 +1431,12 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       '<div class="card card-pad"><h3>حدود البيانات المتاحة</h3><p class="muted">الأرقام التالية تخص الجلسة الحالية فقط، وليست مجموع اليوم. لا تتوفر حالياً قياسات موثوقة لاستهلاك كل موقع أو تطبيق، ولا يتم جمع روابط التصفح أو محتوى الاتصالات.</p><p class="muted">للحصول على استهلاك يومي صحيح يلزم تجميع عدادات الجلسات زمنياً على الخادم، ومعرفة تصنيف التطبيقات تتطلب بيانات تدفق مجمّعة مع مراعاة خصوصية المشتركين؛ HTTPS لا يكشف الصفحات الداخلية.</p></div>'+
       '<div class="card card-pad" style="margin-top:12px"><h3>استهلاك الجلسة الحالية</h3><div style="overflow-x:auto"><table style="width:100%;text-align:right"><thead><tr><th>المشترك</th><th>الحالة</th><th>تنزيل الجلسة</th><th>رفع الجلسة</th></tr></thead><tbody>'+
       subs.map(x=>'<tr><td>'+esc(x.full_name||x.pppoe_username||'—')+'</td><td>'+(x.is_online?'متصل':'غير متصل')+'</td><td>'+byteFmt(x.session_tx_bytes)+'</td><td>'+byteFmt(x.session_rx_bytes)+'</td></tr>').join('')+
-      '</tbody></table></div></div>';
+      '</tbody></table></div></div><div class="card card-pad" style="margin-top:12px"><h3>المراقبة الانتقائية</h3><p class="muted">حتى 5 مشتركين، عينة كل 30 ثانية وبحد 100 اتصال. البايتات عدادات الاتصالات الظاهرة وليست مجموع الاستهلاك؛ قد تفوت الاتصالات القصيرة. DNS مشترك بين المستخدمين ويشير إلى نطاق محتمل فقط، ولا يثبت زيارة أو يعرض رابط HTTPS كاملاً. آخر 500 عينة لكل مشترك ولمدة أقصاها 7 أيام عند وصول عينات جديدة.</p><div id="selectiveMonitorControls">جاري التحميل...</div><div id="selectiveMonitorResults"></div></div>';
+    try{
+      const x=await api('/functions/v1/isp-selective-monitor',{method:'POST',body:JSON.stringify({action:'list'})});
+      const el=$('#selectiveMonitorControls');if(!el)return;
+      el.innerHTML=subs.map(s=>{const on=(x.controls||[]).some(c=>c.subscriber_id===s.id&&c.enabled);return '<div class="row wrap" style="margin:8px 0"><span>'+esc(s.pppoe_username)+'</span><button class="btn" onclick="monitorToggle(\''+s.id+'\','+(!on)+')">'+(on?'إيقاف المراقبة':'تفعيل المراقبة')+'</button><button class="btn" onclick="monitorSamples(\''+s.id+'\')">آخر العينات</button></div>';}).join('');
+    }catch(e){const el=$('#selectiveMonitorControls');if(el)el.textContent=e.message;}
   }
 
   function renderDashboard(){
