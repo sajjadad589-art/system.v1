@@ -2080,18 +2080,37 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     updateNotificationUi();
   }
 
+  const routerSafeApi=(payload)=>api('/functions/v1/isp-router-control',{method:'POST',body:JSON.stringify(payload)});
   window.openRouterControlPanel=function(){
+    if(state.profile?.role!=='OWNER'){toast('هذا القسم متاح لمالك النظام فقط',true);return}
+    const devices=(state.routers||[]).filter(r=>r.id);
+    const tests=[['هوية الراوتر','identity'],['الموارد','resources'],['الساعة','clock'],['الترافيك','traffic_flow'],['جلسات PPPoE','pppoe_count'],['FastTrack','fasttrack_count']];
     openModal(
-      '<div class="modal-head"><h3>التحكم بالراوترات</h3><button class="btn icon-btn" type="button" onclick="closeModal()">✕</button></div>'+
-      '<div class="alert info"><b>Safe Mode مفعّل:</b> هذا القسم يعرض أوامر القراءة فقط. أي تعديل على WAN أو PPPoE أو Firewall أو Routes يتطلب فحصاً وموافقة من قناة التحكم الآمنة، ولا يُنفذ من هذه النافذة.</div>'+
-      '<div class="mini-list">'+
-      [['هوية الراوتر','/system resource print'],['واجهات الشبكة','/interface print'],['المسارات','/ip route print'],['قواعد NAT','/ip firewall nat print'],['VPN','/interface l2tp-client print detail'],['PPPoE','/ppp active print count-only']].map(x=>
-      '<div class="mini-item"><div><b>'+x[0]+'</b><div class="muted mono" style="font-size:10px;direction:ltr">'+x[1]+'</div></div><button class="btn small" data-cmd="'+x[1]+'" onclick="copyRouterReadCommand(this.dataset.cmd)">نسخ</button></div>').join('')+
-      '</div>'
+      '<div class="modal-head"><h3>تيرمنال الراوترات الآمن</h3><button class="btn icon-btn" onclick="closeModal()">✕</button></div>'+
+      '<div class="alert info"><b>Safe Mode ON</b> — فحوصات قراءة معتمدة فقط. التعديل وتغيير الرموز والسكربتات غير مفعّلين حتى يكتمل فحص الأثر والتراجع.</div>'+
+      '<div class="field"><label>الراوتر</label><select id="safeRouter" style="width:100%;padding:12px">'+devices.map(r=>'<option value="'+esc(r.id)+'">'+esc(r.name||r.device_role||r.model||r.id)+'</option>').join('')+'</select></div>'+
+      '<div class="diagnostic-links">'+tests.map(t=>'<button class="btn small" data-op="'+t[1]+'" onclick="runSafeRouterCheck(this.dataset.op)">'+t[0]+'</button>').join('')+'</div>'+
+      '<div class="row" style="margin-top:12px"><button class="btn" onclick="refreshSafeRouterJobs()">تحديث نتائج الأوامر</button></div>'+
+      '<pre id="safeRouterResult" style="direction:ltr;text-align:left;white-space:pre-wrap;overflow:auto;max-height:300px;padding:12px;background:#f4f8fc;border-radius:12px">اختر الراوتر والفحص</pre>'
     );
   };
-  window.copyRouterReadCommand=async function(command){
-    try{await navigator.clipboard.writeText(command);toast('تم نسخ أمر القراءة')}catch(e){toast('تعذر النسخ',true)}
+  window.runSafeRouterCheck=async function(operation){
+    const router=$('#safeRouter')?.value;
+    const output=$('#safeRouterResult');
+    if(!router||!output)return;
+    const approved=['identity','resources','clock','traffic_flow','pppoe_count','fasttrack_count'];
+    if(!approved.includes(operation))return;
+    output.textContent='جارٍ تسجيل فحص القراءة...';
+    try{
+      const result=await routerSafeApi({action:'enqueue',router_id:router,operation,request_id:crypto.randomUUID(),confirmed:true});
+      output.textContent='تم تسجيل الفحص؛ التنفيذ يعتمد على اتصال عامل الراوتر.\\n'+JSON.stringify(result,null,2);
+    }catch(e){output.textContent='خطأ: '+e.message}
+  };
+  window.refreshSafeRouterJobs=async function(){
+    const output=$('#safeRouterResult');if(!output)return;
+    output.textContent='جارٍ تحميل سجل الأوامر...';
+    try{const result=await routerSafeApi({action:'list'});output.textContent=JSON.stringify(result,null,2).slice(0,16000)}
+    catch(e){output.textContent='خطأ: '+e.message}
   };
 
   window.openTelegramSettings=async function(){
