@@ -2085,56 +2085,75 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
   }
 
   const routerSafeApi=(payload)=>api('/functions/v1/isp-router-control',{method:'POST',body:JSON.stringify(payload)});
+  const safeCommands={
+    '/system identity print':'identity',
+    '/system resource print':'resources',
+    '/system clock print':'clock',
+    '/ip traffic-flow print':'traffic_flow',
+    '/ppp active print count-only':'pppoe_count',
+    ':return [/ppp active print count-only];':'pppoe_count',
+    ':return [/ip firewall filter print count-only where action=fasttrack-connection];':'fasttrack_count'
+  };
+  function terminalWrite(message,kind){
+    const log=$('#safeRouterTranscript');
+    if(!log)return;
+    const line=document.createElement('div');
+    line.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;margin:4px 0;color:'+(kind==='error'?'#ff9d9d':kind==='command'?'#8fe2a6':'#d9e4ee');
+    line.textContent=message;
+    log.appendChild(line);
+    log.scrollTop=log.scrollHeight;
+  }
+  function terminalPrompt(){
+    const id=$('#safeRouter');
+    return '[admin@'+(id?.selectedOptions?.[0]?.textContent||'MikroTik')+'] > ';
+  }
   window.openRouterControlPanel=function(){
     if(state.profile?.role!=='OWNER'){toast('هذا القسم متاح لمالك النظام فقط',true);return}
     const devices=(state.routers||[]).filter(r=>r.id);
-    const tests=[['هوية الراوتر','identity'],['الموارد','resources'],['الساعة','clock'],['الترافيك','traffic_flow'],['جلسات PPPoE','pppoe_count'],['FastTrack','fasttrack_count']];
+    const tests=[['الهوية','/system identity print'],['الموارد','/system resource print'],['الساعة','/system clock print'],['الترافيك','/ip traffic-flow print'],['PPPoE','/ppp active print count-only']];
     openModal(
-      '<div class="modal-head"><h3>تيرمنال الراوترات الآمن</h3><button class="btn icon-btn" onclick="closeModal()">✕</button></div>'+
-      '<div class="alert info"><b>Safe Mode ON</b> — فحوصات قراءة معتمدة فقط. التعديل وتغيير الرموز والسكربتات غير مفعّلين حتى يكتمل فحص الأثر والتراجع.</div>'+
-      '<div class="field"><label>الراوتر</label><select id="safeRouter" style="width:100%;padding:12px">'+devices.map(r=>'<option value="'+esc(r.id)+'">'+esc(r.name||r.device_role||r.model||r.id)+'</option>').join('')+'</select></div>'+
-      '<div class="field" style="margin-top:12px"><label>Terminal — اكتب أمر RouterOS</label><textarea id="safeRouterCommand" rows="3" spellcheck="false" style="width:100%;direction:ltr;text-align:left;font-family:monospace" placeholder="/system resource print"></textarea><div class="hint">Safe Mode: يُنفّذ فقط أمر قراءة مطابق للقائمة المعتمدة. الأوامر الأخرى تُرفض ولا تُرسل.</div><button class="btn primary" onclick="submitSafeRouterCommand()">فحص وتنفيذ الأمر الآمن</button></div>'+
-      '<div class="diagnostic-links">'+tests.map(t=>'<button class="btn small" data-op="'+t[1]+'" onclick="runSafeRouterCheck(this.dataset.op)">'+t[0]+'</button>').join('')+'</div>'+
-      '<div class="row" style="margin-top:12px"><button class="btn" onclick="refreshSafeRouterJobs()">تحديث نتائج الأوامر</button></div>'+
-      '<pre id="safeRouterResult" style="direction:ltr;text-align:left;white-space:pre-wrap;overflow:auto;max-height:300px;padding:12px;background:#f4f8fc;border-radius:12px">اختر الراوتر والفحص</pre>'
+      '<div class="modal-head"><h3>RouterOS Terminal</h3><button class="btn icon-btn" onclick="closeModal()">✕</button></div>'+
+      '<div class="field"><label>إرسال الأمر إلى الراوتر</label><select id="safeRouter" onchange="terminalWrite(\'--- Router: \'+this.selectedOptions[0].textContent+\' ---\')" style="width:100%;padding:12px">'+devices.map(r=>'<option value="'+esc(r.id)+'">'+esc(r.name||r.device_role||r.model||r.id)+'</option>').join('')+'</select></div>'+
+      '<div class="hint" style="margin:8px 0">Safe Mode: أوامر القراءة المعتمدة فقط. لا يتم تنفيذ أوامر التعديل.</div>'+
+      '<div style="background:#101a24;color:#d9e4ee;border:1px solid #33485a;border-radius:12px;padding:12px;direction:ltr;text-align:left;font:12px/1.65 monospace">'+
+      '<div id="safeRouterTranscript" role="log" aria-live="polite" style="height:250px;overflow:auto;white-space:pre-wrap">MikroTik RouterOS — Safe Terminal\nType a supported read-only command.</div>'+
+      '<form id="safeTerminalForm" onsubmit="event.preventDefault();submitSafeRouterCommand()" style="display:flex;align-items:center;gap:8px;border-top:1px solid #33485a;padding-top:10px;margin-top:10px">'+
+      '<span id="safeTerminalPrompt" style="color:#8fe2a6;white-space:nowrap">[admin@Router] &gt;</span>'+
+      '<input id="safeRouterCommand" spellcheck="false" autocomplete="off" aria-label="RouterOS command" style="flex:1;min-width:0;background:transparent;color:#fff;border:0;outline:0;font:inherit;direction:ltr" placeholder="/system resource print"/>'+
+      '<button type="submit" class="btn small primary">Enter</button></form></div>'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">'+tests.map(t=>'<button class="btn small" data-cmd="'+t[1]+'" onclick="document.getElementById(\'safeRouterCommand\').value=this.dataset.cmd;submitSafeRouterCommand()">'+t[0]+'</button>').join('')+'</div>'+
+      '<button class="btn small" style="margin-top:8px" onclick="refreshSafeRouterJobs()">تحديث سجل التنفيذ</button>'
     );
+    const select=$('#safeRouter'),prompt=$('#safeTerminalPrompt');
+    if(select&&prompt)prompt.textContent=terminalPrompt();
+    select?.addEventListener('change',()=>{if(prompt)prompt.textContent=terminalPrompt()});
   };
   window.submitSafeRouterCommand=function(){
-    const command=$('#safeRouterCommand')?.value?.trim().replace(/\\s+/g,' ');
-    const allowed={
-      '/system identity print':'identity',
-      '/system resource print':'resources',
-      '/system clock print':'clock',
-      '/ip traffic-flow print':'traffic_flow',
-      '/ppp active print count-only':'pppoe_count',
-      ':return [/ppp active print count-only];':'pppoe_count',
-      ':return [/ip firewall filter print count-only where action=fasttrack-connection];':'fasttrack_count'
-    };
-    const operation=allowed[command];
-    if(!operation){
-      const output=$('#safeRouterResult');
-      if(output)output.textContent='Safe Mode: هذا الأمر غير مدرج ضمن أوامر القراءة المعتمدة، لذلك لم يُرسل إلى الراوتر.';
-      return;
-    }
+    const input=$('#safeRouterCommand');
+    const command=input?.value?.trim().replace(/\s+/g,' ');
+    if(!command)return;
+    terminalWrite(terminalPrompt()+command,'command');
+    input.value='';
+    const operation=safeCommands[command];
+    if(!operation){terminalWrite('Safe Mode: command blocked. Only approved read-only commands are allowed.','error');return}
     runSafeRouterCheck(operation);
   };
   window.runSafeRouterCheck=async function(operation){
     const router=$('#safeRouter')?.value;
-    const output=$('#safeRouterResult');
-    if(!router||!output)return;
-    const approved=['identity','resources','clock','traffic_flow','pppoe_count','fasttrack_count'];
-    if(!approved.includes(operation))return;
-    output.textContent='جارٍ تسجيل فحص القراءة...';
+    if(!router)return terminalWrite('Select a router first.','error');
+    if(!Object.values(safeCommands).includes(operation))return;
+    terminalWrite('> Submitting diagnostic request...');
     try{
       const result=await routerSafeApi({action:'enqueue',router_id:router,operation,request_id:crypto.randomUUID(),confirmed:true});
-      output.textContent='تم تسجيل الفحص؛ التنفيذ يعتمد على اتصال عامل الراوتر.\\n'+JSON.stringify(result,null,2);
-    }catch(e){output.textContent='خطأ: '+e.message}
+      terminalWrite('Request queued (not confirmed executed):\n'+JSON.stringify(result,null,2));
+    }catch(e){terminalWrite('Error: '+e.message,'error')}
   };
   window.refreshSafeRouterJobs=async function(){
-    const output=$('#safeRouterResult');if(!output)return;
-    output.textContent='جارٍ تحميل سجل الأوامر...';
-    try{const result=await routerSafeApi({action:'list'});output.textContent=JSON.stringify(result,null,2).slice(0,16000)}
-    catch(e){output.textContent='خطأ: '+e.message}
+    terminalWrite('> Loading execution history...');
+    try{
+      const result=await routerSafeApi({action:'list'});
+      terminalWrite(JSON.stringify(result,null,2).slice(0,12000));
+    }catch(e){terminalWrite('Error: '+e.message,'error')}
   };
 
   window.openTelegramSettings=async function(){
