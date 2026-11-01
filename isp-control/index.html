@@ -913,6 +913,9 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       });
       saveSession(data);
       await boot();
+      if($('#appView').classList.contains('hidden')){
+        showAuthMessage('تعذر فتح اللوحة بعد التحقق من الحساب. أعد المحاولة أو أرسل نص الخطأ الظاهر.',true);
+      }
     }catch(err){
       showAuthMessage(err.message==='Invalid login credentials'?'اسم المستخدم أو الرمز غير صحيح':err.message,true);
     }
@@ -1016,7 +1019,7 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       const requestedSection=new URLSearchParams(location.search).get('section');
       if(['alerts','devices','online','active','payments'].includes(requestedSection||''))goPage(requestedSection);
     }catch(err){
-      showAuthMessage(err.message,true);
+      showAuthMessage('تعذر فتح اللوحة: '+(err.message||'خطأ غير معروف'),true);
       saveSession(null);
       $('#authView').classList.remove('hidden');
       $('#appView').classList.add('hidden');
