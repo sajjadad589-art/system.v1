@@ -2108,7 +2108,11 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     '/ip traffic-flow print':'traffic_flow',
     '/ppp active print count-only':'pppoe_count',
     ':return [/ppp active print count-only];':'pppoe_count',
-    ':return [/ip firewall filter print count-only where action=fasttrack-connection];':'fasttrack_count'
+    ':return [/ip firewall filter print count-only where action=fasttrack-connection];':'fasttrack_count',
+    '/ip arp print detail':'arp',
+    '/ip dhcp-client print detail':'dhcp_client',
+    '/ip route print detail':'routes',
+    '/ip neighbor print detail':'neighbors'
   };
   function terminalWrite(message,kind){
     const log=$('#safeRouterTranscript');
@@ -2126,11 +2130,11 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
   window.openRouterControlPanel=function(){
     if(state.profile?.role!=='OWNER'){toast('هذا القسم متاح لمالك النظام فقط',true);return}
     const devices=(state.routers||[]).filter(r=>r.id);
-    const tests=[['الهوية','/system identity print'],['الموارد','/system resource print'],['الساعة','/system clock print'],['الترافيك','/ip traffic-flow print'],['PPPoE','/ppp active print count-only']];
+    const tests=[['الهوية','/system identity print'],['الموارد','/system resource print'],['الساعة','/system clock print'],['الترافيك','/ip traffic-flow print'],['PPPoE','/ppp active print count-only'],['ARP / MAC','/ip arp print detail'],['DHCP Client','/ip dhcp-client print detail'],['Routes','/ip route print detail'],['Neighbors','/ip neighbor print detail']];
     openModal(
       '<div class="modal-head"><h3>RouterOS Terminal</h3><button class="btn icon-btn" onclick="closeModal()">✕</button></div>'+
       '<div class="field"><label>إرسال الأمر إلى الراوتر</label><select id="safeRouter" onchange="terminalWrite(\'--- Router: \'+this.selectedOptions[0].textContent+\' ---\')" style="width:100%;padding:12px">'+devices.map(r=>'<option value="'+esc(r.id)+'">'+esc(r.name||r.device_role||r.model||r.id)+'</option>').join('')+'</select></div>'+
-      '<div class="hint" style="margin:8px 0">Safe Mode: أوامر القراءة المعتمدة فقط. لا يتم تنفيذ أوامر التعديل.</div>'+
+      '<div class="hint" style="margin:8px 0">Safe Mode: أوامر قراءة فقط، بدون تغيير إعدادات RB1100 أو RB951. فحص IP/MAC لا يعرض dBm الخاص بالـ ONT.</div>'+
       '<div style="background:#101a24;color:#d9e4ee;border:1px solid #33485a;border-radius:12px;padding:12px;direction:ltr;text-align:left;font:12px/1.65 monospace">'+
       '<div id="safeRouterTranscript" role="log" aria-live="polite" style="height:250px;overflow:auto;white-space:pre-wrap">MikroTik RouterOS — Safe Terminal\nType a supported read-only command.</div>'+
       '<form id="safeTerminalForm" onsubmit="event.preventDefault();submitSafeRouterCommand()" style="display:flex;align-items:center;gap:8px;border-top:1px solid #33485a;padding-top:10px;margin-top:10px">'+
