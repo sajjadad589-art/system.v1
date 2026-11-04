@@ -1637,6 +1637,20 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
         '<div class="device-metric"><span>الجلسات</span><b>'+esc(r.pppoe_active_sessions||0)+'</b></div></div>'+
         '<div class="device-foot"><span>آخر اتصال: '+esc(fmtDate(r.last_seen_at))+'</span><span>الإنترنت: '+esc(r.internet_status||'—')+'</span></div>'+
       '</div>'}).join('')+'</div>'+
+      '<div class="card" style="margin-top:16px;padding:20px" id="ontHuaweiCard">'+
+        '<div class="row between" style="gap:12px;flex-wrap:wrap"><div><h3 style="margin:0 0 5px">Huawei EchoLife HG8245</h3><div class="muted">جهاز ONT • اتصال FTTH • العنوان معتمد من صاحب الشبكة</div></div><span class="badge">ONT / GPON</span></div>'+
+        '<div class="device-metrics" style="margin-top:14px">'+
+          '<div class="device-metric"><span>عنوان الإدارة / Gateway</span><b dir="ltr">192.168.100.1</b></div>'+
+          '<div class="device-metric"><span>الاتصال بالراوتر</span><b dir="ltr">RB1100 • ether2</b></div>'+
+          '<div class="device-metric"><span>MAC (آخر فحص ARP)</span><b dir="ltr" style="font-size:12px">E4:68:A3:23:7C:47</b></div>'+
+          '<div class="device-metric"><span>قوة الإشارة RX / TX</span><b>غير متاحة (dBm)</b></div>'+
+        '</div>'+
+        '<p class="muted" style="font-size:12px;margin:12px 0">اختبار Ping يفحص الوصول إلى عنوان ONT من RB1100، وليس قوة الألياف. قراءة dBm تحتاج صلاحية مصرح بها من HRINS عبر واجهة ONT أو SNMP/OLT.</p>'+
+        '<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">'+
+          (isOwner()?'<button class="btn primary" type="button" id="ontPingBtn" onclick="checkHuaweiOnt()">فحص اتصال Huawei</button>':'')+
+          '<span id="ontPingResult" class="muted" role="status" aria-live="polite">لم يتم إجراء فحص مباشر بعد.</span>'+
+        '</div>'+
+      '</div>'+ 
       '<div class="activity-strip"><div class="row between"><b>التنبيهات على الأجهزة</b><button class="btn small" onclick="togglePushNotifications()">🔔 إعداد الإشعارات</button></div>'+
       '<div class="activity-row"><span class="activity-dot '+(ch.state==='ok'?'ok':ch.state==='bad'?'bad':'warn')+'"></span><span class="grow">'+esc(ch.label)+'</span><span class="muted">Worker كل 5 ثوانٍ عند تشغيله</span></div>'+
       '<div class="activity-row"><span class="activity-dot ok"></span><span class="grow">إشعار Push عند Offline وعودة الاتصال</span><span class="muted">الهاتف والحاسبة</span></div></div>';
@@ -2152,7 +2166,8 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     '/ip arp print detail':'arp',
     '/ip dhcp-client print detail':'dhcp_client',
     '/ip route print detail':'routes',
-    '/ip neighbor print detail':'neighbors'
+    '/ip neighbor print detail':'neighbors',
+    ':return [/ping address=192.168.100.1 count=4];':'huawei_ont_ping'
   };
   function terminalWrite(message,kind){
     const log=$('#safeRouterTranscript');
@@ -2208,6 +2223,46 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       terminalWrite('Request queued (not confirmed executed):\n'+JSON.stringify(result,null,2));
     }catch(e){terminalWrite('Error: '+e.message,'error')}
   };
+  window.checkHuaweiOnt=async function(){
+    const ontStatus=$('#ontPingResult'),button=$('#ontPingBtn');
+    if(!ontStatus)return;
+    const core=(state.routers||[]).find(r=>r.device_role==='CORE'&&r.id);
+    if(!core){ontStatus.textContent='جهاز RB1100 غير متوفر في البيانات الحالية.';return}
+    if(button)button.disabled=true;
+    ontStatus.textContent='إرسال طلب Ping إلى RB1100...';
+    try{
+      const created=await routerSafeApi({action:'enqueue',router_id:core.id,operation:'huawei_ont_ping',request_id:crypto.randomUUID(),confirmed:true});
+      if(!created?.id)throw new Error('لم يُرجع النظام رقم عملية الفحص');
+      ontStatus.textContent='طلب الفحص مرسل؛ جارٍ انتظار تنفيذ الراوتر...';
+      for(let i=0;i<15;i++){
+        await new Promise(resolve=>setTimeout(resolve,2200));
+        const result=await routerSafeApi({action:'list'});
+        const job=(Array.isArray(result.jobs)?result.jobs:[]).find(j=>j.id===created.id);
+        if(!job)continue;
+        if(job.status==='COMPLETED'){
+          const output=String(job.output||'').trim();
+          const n=/^([0-4])$/.exec(output);
+          if(n){
+            const received=Number(n[1]);
+            ontStatus.textContent='نتيجة Ping إلى 192.168.100.1: '+received+'/4 ردود'+(received===4?' — الجهاز يستجيب':received===0?' — لا توجد استجابة (لا يثبت انقطاع الفايبر)':' — استجابة جزئية');
+          }else{
+            ontStatus.textContent='اكتمل فحص الراوتر. النتيجة: '+(output||'لم يُرجع عدداً واضحاً')+'. راجع سجل التحكم للتفاصيل.';
+          }
+          return;
+        }
+        if(['FAILED','EXPIRED','UNKNOWN','CANCELED'].includes(job.status)){
+          ontStatus.textContent='لم يكتمل فحص اتصال Huawei ('+job.status+'). راجع سجل التحكم.';
+          return;
+        }
+      }
+      ontStatus.textContent='لم تصل نتيجة مؤكدة خلال فترة الانتظار؛ راجع سجل التنفيذ. لا يمكن استنتاج حالة ONT.';
+    }catch(err){
+      ontStatus.textContent='تعذر الفحص: '+(err?.message||'خطأ اتصال');
+    }finally{
+      if(button)button.disabled=false;
+    }
+  };
+
   window.refreshSafeRouterJobs=async function(){
     terminalWrite('> Loading execution history...');
     try{
