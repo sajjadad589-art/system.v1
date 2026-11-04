@@ -746,7 +746,8 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
     trafficOnlineSignature:'',
     activePackageFilter:'',
     activeStatusFilter:'',
-    activeSearch:''
+    activeSearch:'',
+    ontProbe:{busy:false,loaded:false,message:'جارٍ تحميل آخر نتيجة فحص Huawei...'}
   };
 
   let session=loadSession();
@@ -1647,13 +1648,14 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
         '</div>'+
         '<p class="muted" style="font-size:12px;margin:12px 0">اختبار Ping يفحص الوصول إلى عنوان ONT من RB1100، وليس قوة الألياف. قراءة dBm تحتاج صلاحية مصرح بها من HRINS عبر واجهة ONT أو SNMP/OLT.</p>'+
         '<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">'+
-          (isOwner()?'<button class="btn primary" type="button" id="ontPingBtn" onclick="checkHuaweiOnt()">فحص اتصال Huawei</button>':'')+
-          '<span id="ontPingResult" class="muted" role="status" aria-live="polite">لم يتم إجراء فحص مباشر بعد.</span>'+
+          (isOwner()?'<button class="btn primary" type="button" id="ontPingBtn" '+(state.ontProbe.busy?'disabled ':'')+'onclick="checkHuaweiOnt()">فحص اتصال Huawei</button>':'')+
+          '<span id="ontPingResult" class="muted" role="status" aria-live="polite">'+esc(state.ontProbe.message)+'</span>'+
         '</div>'+
       '</div>'+ 
       '<div class="activity-strip"><div class="row between"><b>التنبيهات على الأجهزة</b><button class="btn small" onclick="togglePushNotifications()">🔔 إعداد الإشعارات</button></div>'+
       '<div class="activity-row"><span class="activity-dot '+(ch.state==='ok'?'ok':ch.state==='bad'?'bad':'warn')+'"></span><span class="grow">'+esc(ch.label)+'</span><span class="muted">Worker كل 5 ثوانٍ عند تشغيله</span></div>'+
       '<div class="activity-row"><span class="activity-dot ok"></span><span class="grow">إشعار Push عند Offline وعودة الاتصال</span><span class="muted">الهاتف والحاسبة</span></div></div>';
+    if(isOwner()&&!state.ontProbe.loaded&&!state.ontProbe.busy)void loadLastHuaweiOntProbe();
   }
 
   function renderAlerts(){
@@ -2223,47 +2225,74 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
       terminalWrite('Request queued (not confirmed executed):\n'+JSON.stringify(result,null,2));
     }catch(e){terminalWrite('Error: '+e.message,'error')}
   };
+  const HUAWEI_ONT_PING_SCRIPT=':return [/ping address=192.168.100.1 count=4];';
+  function setHuaweiOntProbeMessage(message){
+    state.ontProbe.message=message;
+    const status=$('#ontPingResult');
+    if(status)status.textContent=message;
+    const button=$('#ontPingBtn');
+    if(button)button.disabled=state.ontProbe.busy;
+  }
+  function huaweiOntJobSummary(job){
+    if(job.status==='COMPLETED'){
+      const raw=String(job.output||'').trim();
+      const matches=/^([0-4])$/.exec(raw);
+      if(matches){
+        const received=Number(matches[1]);
+        const note=received===4?'الجهاز يستجيب':received===0?'لا توجد استجابة (لا يثبت انقطاع الألياف)':'استجابة جزئية';
+        return 'Ping 192.168.100.1: '+received+'/4 ردود — '+note+' • آخر فحص: '+fmtDate(job.finished_at||job.created_at);
+      }
+      return 'اكتمل فحص Huawei، لكن النتيجة غير واضحة: '+(raw||'لا يوجد إخراج')+' • '+fmtDate(job.finished_at);
+    }
+    if(['FAILED','EXPIRED','UNKNOWN','CANCELED'].includes(job.status))
+      return 'لم يكتمل فحص Huawei ('+job.status+') • '+fmtDate(job.finished_at||job.created_at);
+    return 'آخر فحص Huawei قيد التنفيذ منذ '+fmtDate(job.created_at);
+  }
+  async function loadLastHuaweiOntProbe(){
+    if(!isOwner()||state.ontProbe.loaded||state.ontProbe.busy)return;
+    state.ontProbe.loaded=true;
+    try{
+      const response=await routerSafeApi({action:'list'});
+      const jobs=Array.isArray(response?.jobs)?response.jobs:[];
+      const latest=jobs.find(j=>j.script===HUAWEI_ONT_PING_SCRIPT);
+      if(!state.ontProbe.busy)
+        setHuaweiOntProbeMessage(latest?huaweiOntJobSummary(latest):'لا توجد نتيجة فحص محفوظة. اضغط «فحص اتصال Huawei».');
+    }catch(err){
+      if(!state.ontProbe.busy)
+        setHuaweiOntProbeMessage('تعذر استرجاع آخر نتيجة: '+(err?.message||'خطأ اتصال')+'. يمكن بدء فحص جديد.');
+    }
+  }
   window.checkHuaweiOnt=async function(){
-    const ontStatus=$('#ontPingResult'),button=$('#ontPingBtn');
-    if(!ontStatus)return;
+    if(!isOwner()||state.ontProbe.busy)return;
     const core=(state.routers||[]).find(r=>r.device_role==='CORE'&&r.id);
-    if(!core){ontStatus.textContent='جهاز RB1100 غير متوفر في البيانات الحالية.';return}
-    if(button)button.disabled=true;
-    ontStatus.textContent='إرسال طلب Ping إلى RB1100...';
+    if(!core){setHuaweiOntProbeMessage('جهاز RB1100 غير متوفر في البيانات الحالية.');return;}
+    state.ontProbe.loaded=true;
+    state.ontProbe.busy=true;
+    setHuaweiOntProbeMessage('إرسال طلب Ping إلى RB1100...');
     try{
       const created=await routerSafeApi({action:'enqueue',router_id:core.id,operation:'huawei_ont_ping',request_id:crypto.randomUUID(),confirmed:true});
       if(!created?.id)throw new Error('لم يُرجع النظام رقم عملية الفحص');
-      ontStatus.textContent='طلب الفحص مرسل؛ جارٍ انتظار تنفيذ الراوتر...';
+      setHuaweiOntProbeMessage('طلب الفحص مرسل؛ جارٍ انتظار تنفيذ الراوتر...');
       for(let i=0;i<15;i++){
         await new Promise(resolve=>setTimeout(resolve,2200));
         const result=await routerSafeApi({action:'list'});
-        const job=(Array.isArray(result.jobs)?result.jobs:[]).find(j=>j.id===created.id);
+        const job=(Array.isArray(result?.jobs)?result.jobs:[]).find(j=>j.id===created.id);
         if(!job)continue;
-        if(job.status==='COMPLETED'){
-          const output=String(job.output||'').trim();
-          const n=/^([0-4])$/.exec(output);
-          if(n){
-            const received=Number(n[1]);
-            ontStatus.textContent='نتيجة Ping إلى 192.168.100.1: '+received+'/4 ردود'+(received===4?' — الجهاز يستجيب':received===0?' — لا توجد استجابة (لا يثبت انقطاع الفايبر)':' — استجابة جزئية');
-          }else{
-            ontStatus.textContent='اكتمل فحص الراوتر. النتيجة: '+(output||'لم يُرجع عدداً واضحاً')+'. راجع سجل التحكم للتفاصيل.';
-          }
-          return;
-        }
-        if(['FAILED','EXPIRED','UNKNOWN','CANCELED'].includes(job.status)){
-          ontStatus.textContent='لم يكتمل فحص اتصال Huawei ('+job.status+'). راجع سجل التحكم.';
+        if(['COMPLETED','FAILED','EXPIRED','UNKNOWN','CANCELED'].includes(job.status)){
+          setHuaweiOntProbeMessage(huaweiOntJobSummary(job));
           return;
         }
       }
-      ontStatus.textContent='لم تصل نتيجة مؤكدة خلال فترة الانتظار؛ راجع سجل التنفيذ. لا يمكن استنتاج حالة ONT.';
+      setHuaweiOntProbeMessage('لم تصل نتيجة مؤكدة خلال فترة الانتظار؛ راجع سجل التنفيذ. لا يمكن استنتاج حالة ONT.');
     }catch(err){
-      ontStatus.textContent='تعذر الفحص: '+(err?.message||'خطأ اتصال');
+      setHuaweiOntProbeMessage('تعذر الفحص: '+(err?.message||'خطأ اتصال'));
     }finally{
-      if(button)button.disabled=false;
+      state.ontProbe.busy=false;
+      setHuaweiOntProbeMessage(state.ontProbe.message);
     }
   };
 
-  window.refreshSafeRouterJobs=async function(){
+    window.refreshSafeRouterJobs=async function(){
     terminalWrite('> Loading execution history...');
     try{
       const result=await routerSafeApi({action:'list'});
