@@ -554,6 +554,46 @@ body[data-page="subscribers"] .subscriber-status-pill.pill-stopped,
   .topbar .topbar-account-controls .icon-btn{flex-basis:32px;width:32px;height:32px}
 }
 
+
+/* Sidebar layout: reserve a dedicated row for logout so it never overlaps links. */
+.sidebar{
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  min-height:0;
+}
+.sidebar>.brand{flex:0 0 auto;}
+.sidebar>.nav{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  padding-bottom:8px;
+}
+.sidebar>.sidebar-foot{
+  position:static!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  flex:0 0 auto;
+  width:100%;
+  box-sizing:border-box;
+  margin:10px 0 0;
+  padding:12px 0 max(0px, env(safe-area-inset-bottom));
+  border-top:1px solid #e0e9f3;
+  background:inherit;
+}
+.sidebar>.sidebar-foot #logoutBtn{
+  position:static;
+  display:block;
+  width:100%;
+}
+@media(max-width:780px){
+  .sidebar{height:100dvh;max-height:100dvh;}
+}
+
 </style>
 </head>
 <body>
